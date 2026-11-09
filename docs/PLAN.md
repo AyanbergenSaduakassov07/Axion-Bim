@@ -1,7 +1,7 @@
 # Axiom BIM — Lead-dev plan
 
 Status: approved-for-execution draft, 2026-11-09. Source proposal: `docs/PROPOSAL.md` (verbatim).
-Decisions with rationale: `docs/DECISIONS.md`. Execution queue: `prompts/INDEX.md`.
+Decisions with rationale: `docs/DECISIONS.md`.
 
 ## 1. Verdict
 

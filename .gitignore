@@ -14,3 +14,9 @@ data/
 *.ifc
 !tests/fixtures/**/*.ifc
 !examples/models/**/*.ifc
+# Local AI workflow + throwaway spike code (kept on disk, not published)
+/prompts/
+/.claude/
+/CLAUDE.md
+/docs/spikes/*
+!/docs/spikes/00-findings.md

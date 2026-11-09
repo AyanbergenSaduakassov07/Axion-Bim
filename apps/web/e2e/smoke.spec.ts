@@ -10,7 +10,7 @@ test("upload rev1, wait for the job, Quality Center shows the golden findings", 
   await page.goto("/");
   await page.getByLabel("Project name").fill("Smoke Tower");
   await page.getByRole("button", { name: "Create project" }).click();
-  await page.getByRole("link", { name: "Smoke Tower" }).click();
+  await page.waitForURL(/\/projects\/\d+$/); // creating a project opens it
   const projectUrl = page.url();
 
   await page.getByLabel("Model name").fill("Structure");

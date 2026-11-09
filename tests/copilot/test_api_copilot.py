@@ -59,3 +59,11 @@ def test_openrouter_key_enables_copilot_with_free_default_model(client, monkeypa
     assert body["available"] is True and body["model"].endswith(":free")
     sdk = agent.client_from_env()
     assert str(sdk.base_url).startswith("https://openrouter.ai/api")
+
+
+def test_empty_model_env_falls_back_to_default(monkeypatch):
+    # docker-compose passes unset vars as "" (AXIOM_COPILOT_MODEL=${AXIOM_COPILOT_MODEL:-})
+    monkeypatch.setenv("AXIOM_COPILOT_MODEL", "")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-not-a-key")
+    assert agent.model_name() == agent.DEFAULT_MODEL

@@ -133,6 +133,9 @@ npx playwright install chromium
 npx playwright test
 ```
 
+Backend benchmarks on public CC-BY models: `uv run python benchmarks/run.py` → [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
+The latest release walkthrough is in [docs/release-check.md](docs/release-check.md).
+
 ## Scope and deployment
 
 Axiom is designed for local, single-user workflows and does not include authentication or multi-tenant access controls. Keep the API on a trusted network; add authentication and rate limiting before exposing it to other users. Revision matching uses `GlobalId`, so re-exported elements with new IDs appear as removed and added. Clash detection and structural capacity or code-compliance calculations are outside the current scope.

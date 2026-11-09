@@ -118,5 +118,5 @@ Property values stored typed (`value_type` + `value_text`/`value_num`), not JSON
 
 ## D-23 · Dropped ifcdiff dependency (P13)
 - `ifcdiff==0.9.0` was originally listed in D-03 as an optional cross-check and geometry-change signal.
-- In practice, snapshot-based diffing (`axiom.revision.diff`) is pure Python/SQL, 100x faster, deterministic, and operates at the exact property and finding granularity needed for MHI and regression events.
+- In practice, snapshot-based diffing (`axiom.revision.diff`) is pure Python/SQL, deterministic, and operates at the exact property and finding granularity needed for MHI and regression events.
 - `ifcdiff` remained unused across all production and test modules, pulling in heavy dependencies (`deepdiff`, `orderly-set`, `cachebox`). Removed in P13 to reduce build time and attack surface.

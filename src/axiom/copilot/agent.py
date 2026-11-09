@@ -99,7 +99,7 @@ def client_from_env() -> Any:
 
 
 def model_name() -> str:
-    return os.environ.get("AXIOM_COPILOT_MODEL", OPENROUTER_MODEL if _openrouter() else DEFAULT_MODEL)
+    return os.environ.get("AXIOM_COPILOT_MODEL") or (OPENROUTER_MODEL if _openrouter() else DEFAULT_MODEL)
 
 
 def ask(

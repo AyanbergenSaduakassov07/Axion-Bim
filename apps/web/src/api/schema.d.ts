@@ -582,6 +582,12 @@ export interface components {
             name: string | null;
             /** Object Type */
             object_type: string | null;
+            /** Origin M */
+            origin_m?: [
+                number,
+                number,
+                number
+            ] | null;
             /** Parent Global Id */
             parent_global_id: string | null;
             /** Predefined Type */

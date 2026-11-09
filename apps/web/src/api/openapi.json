@@ -529,6 +529,30 @@
             ],
             "title": "Object Type"
           },
+          "origin_m": {
+            "anyOf": [
+              {
+                "maxItems": 3,
+                "minItems": 3,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origin M"
+          },
           "parent_global_id": {
             "anyOf": [
               {

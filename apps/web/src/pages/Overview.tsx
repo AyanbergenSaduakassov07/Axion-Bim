@@ -3,6 +3,7 @@ import { Link, useParams, useSearchParams } from "react-router";
 import type { Finding, Model, Revision, RevisionSummary } from "../api/client";
 import { useAudits, useAuditSummary, useFindings, useModels, useProjects, useRevision, useRevisions } from "../api/queries";
 import { btn, btnPrimary, bytes, date, fmt, Panel, Q, Severity, SEVERITIES } from "../ui";
+import { CopilotPanel } from "../copilot/CopilotPanel";
 import { NameForm } from "./Projects";
 
 export function Overview() {
@@ -34,6 +35,7 @@ export function Overview() {
           )}
         </Q>
       </Panel>
+      <CopilotPanel projectId={projectId} />
       {modelId != null && <ModelOverview modelId={modelId} />}
     </div>
   );

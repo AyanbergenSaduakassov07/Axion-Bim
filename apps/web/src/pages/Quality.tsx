@@ -1,6 +1,6 @@
 import { Boxes, Highlighter, ShieldAlert, X } from "lucide-react";
 import { useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useParams, useSearchParams } from "react-router";
 import type { AuditSummary, Dimension, Finding, Mhi, RuleMeta } from "../api/client";
 import { useAuditSummary, useFindings, useRevision } from "../api/queries";
 import { btn, Empty, fmt, Panel, Q, SEVERITIES, Severity, Status, tokenColor } from "../ui";
@@ -13,7 +13,7 @@ export function Quality() {
   const auditId = rev.data?.latest_audit_id;
   const summary = useAuditSummary(auditId);
   const findings = useFindings(auditId);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(useSearchParams()[0].get("finding"));
   const [viewer, setViewer] = useState<Viewer | null>(null);
   const finding = findings.data?.find((f) => f.identity_key === selected);
   const focus = useFocus(viewer, finding?.global_id);

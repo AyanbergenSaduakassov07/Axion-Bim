@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { api, type Audit, type Change, type Comparison, type FindingEvent, type Quantities, type AuditSummary, type Element, type SpatialTree, type Finding, type Job, type Model, type Project, type Revision, type RevisionSummary } from "./client";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { api, postJson, type CopilotAnswer, type CopilotStatus, type Audit, type Change, type Comparison, type FindingEvent, type Quantities, type AuditSummary, type Element, type SpatialTree, type Finding, type Job, type Model, type Project, type Revision, type RevisionSummary } from "./client";
 
 export const useProjects = () => useQuery({ queryKey: ["projects"], queryFn: () => api<Project[]>("/projects") });
 
@@ -84,3 +84,9 @@ export const useQuantities = (revisionId: number, by: string, against: number | 
     queryFn: () => api<Quantities>(`/revisions/${revisionId}/quantities?by=${by}${against != null ? `&against=${against}` : ""}`),
     staleTime: Infinity,
   });
+
+export const useCopilotStatus = () =>
+  useQuery({ queryKey: ["copilot"], queryFn: () => api<CopilotStatus>("/copilot"), staleTime: Infinity });
+
+export const useCopilotAsk = (projectId: number) =>
+  useMutation({ mutationFn: (question: string) => postJson<CopilotAnswer>("/copilot/query", { project_id: projectId, question }) });

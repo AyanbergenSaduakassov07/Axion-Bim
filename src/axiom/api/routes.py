@@ -15,6 +15,9 @@ from axiom.api.schemas import (
     ChangeOut,
     CompareIn,
     ComparisonOut,
+    CopilotAnswer,
+    CopilotQuery,
+    CopilotStatus,
     ElementPage,
     IdsOut,
     JobOut,
@@ -30,7 +33,7 @@ from axiom.findings import Finding
 from axiom.quantities import GROUPS
 from axiom.report import FORMATS
 from axiom.revision import FindingEvent
-from axiom.services import browse, jobs, projects, quantities, reports, uploads
+from axiom.services import browse, copilot, jobs, projects, quantities, reports, uploads
 
 router = APIRouter()
 MAX_PAGE = 500
@@ -231,3 +234,13 @@ def list_changes(db: Db, comparison_id: int) -> list[dict]:
 @router.get("/comparisons/{comparison_id}/events", response_model=list[FindingEvent])
 def list_events(db: Db, comparison_id: int) -> tuple[FindingEvent, ...]:
     return browse.events(db, comparison_id)
+
+
+@router.get("/copilot", response_model=CopilotStatus)
+def copilot_status() -> dict:
+    return copilot.status()
+
+
+@router.post("/copilot/query", response_model=CopilotAnswer)
+def copilot_query(db: Db, body: CopilotQuery) -> dict:
+    return copilot.query(db, body.project_id, body.question).as_dict()

@@ -143,6 +143,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/copilot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Copilot Status */
+        get: operations["copilot_status_api_v1_copilot_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/copilot/query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Copilot Query */
+        post: operations["copilot_query_api_v1_copilot_query_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ids": {
         parameters: {
             query?: never;
@@ -450,6 +484,17 @@ export interface components {
          * @enum {string}
          */
         CheckStatus: "pass" | "fail" | "warning" | "not_applicable" | "not_evaluated" | "error";
+        /** CitationOut */
+        CitationOut: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string | null;
+            /** Revision Id */
+            revision_id: number | null;
+            /** Type */
+            type: string;
+        };
         /** ClassificationRef */
         ClassificationRef: {
             /** Identification */
@@ -489,6 +534,33 @@ export interface components {
             summary_json: {
                 [key: string]: unknown;
             };
+        };
+        /** CopilotAnswer */
+        CopilotAnswer: {
+            /** Answer */
+            answer: string;
+            /** Citations */
+            citations: components["schemas"]["CitationOut"][];
+            /** Stop Reason */
+            stop_reason: string;
+            /** Tool Calls */
+            tool_calls: components["schemas"]["ToolCallOut"][];
+            /** Unverified */
+            unverified: string[];
+        };
+        /** CopilotQuery */
+        CopilotQuery: {
+            /** Project Id */
+            project_id: number;
+            /** Question */
+            question: string;
+        };
+        /** CopilotStatus */
+        CopilotStatus: {
+            /** Available */
+            available: boolean;
+            /** Model */
+            model: string;
         };
         /** Element */
         Element: {
@@ -779,6 +851,15 @@ export interface components {
             /** Nodes */
             nodes: components["schemas"]["SpatialNodeOut"][];
         };
+        /** ToolCallOut */
+        ToolCallOut: {
+            /** Input */
+            input: {
+                [key: string]: unknown;
+            };
+            /** Name */
+            name: string;
+        };
         /** TreeElement */
         TreeElement: {
             /** Container Global Id */
@@ -1067,6 +1148,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FindingEvent"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    copilot_status_api_v1_copilot_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotStatus"];
+                };
+            };
+        };
+    };
+    copilot_query_api_v1_copilot_query_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CopilotQuery"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotAnswer"];
                 };
             };
             /** @description Validation Error */

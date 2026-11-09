@@ -14,6 +14,9 @@ export type TreeElement = S["TreeElement"];
 export type Element = S["Element"];
 export type Change = S["ChangeOut"];
 export type FindingEvent = S["FindingEvent"];
+export type CopilotStatus = S["CopilotStatus"];
+export type CopilotAnswer = S["CopilotAnswer"];
+export type Citation = S["CitationOut"];
 
 export type ComparisonSummary = {
   changes: Record<string, number>;

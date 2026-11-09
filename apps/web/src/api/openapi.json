@@ -207,6 +207,48 @@
         "title": "CheckStatus",
         "type": "string"
       },
+      "CitationOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "revision_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Id"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "id",
+          "label",
+          "revision_id"
+        ],
+        "title": "CitationOut",
+        "type": "object"
+      },
       "ClassificationRef": {
         "additionalProperties": false,
         "properties": {
@@ -332,6 +374,86 @@
           "created_at"
         ],
         "title": "ComparisonOut",
+        "type": "object"
+      },
+      "CopilotAnswer": {
+        "properties": {
+          "answer": {
+            "title": "Answer",
+            "type": "string"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/CitationOut"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "stop_reason": {
+            "title": "Stop Reason",
+            "type": "string"
+          },
+          "tool_calls": {
+            "items": {
+              "$ref": "#/components/schemas/ToolCallOut"
+            },
+            "title": "Tool Calls",
+            "type": "array"
+          },
+          "unverified": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unverified",
+            "type": "array"
+          }
+        },
+        "required": [
+          "answer",
+          "citations",
+          "tool_calls",
+          "unverified",
+          "stop_reason"
+        ],
+        "title": "CopilotAnswer",
+        "type": "object"
+      },
+      "CopilotQuery": {
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "integer"
+          },
+          "question": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Question",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "question"
+        ],
+        "title": "CopilotQuery",
+        "type": "object"
+      },
+      "CopilotStatus": {
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          }
+        },
+        "required": [
+          "available",
+          "model"
+        ],
+        "title": "CopilotStatus",
         "type": "object"
       },
       "Element": {
@@ -1264,6 +1386,25 @@
         "title": "SpatialTree",
         "type": "object"
       },
+      "ToolCallOut": {
+        "properties": {
+          "input": {
+            "additionalProperties": true,
+            "title": "Input",
+            "type": "object"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "input"
+        ],
+        "title": "ToolCallOut",
+        "type": "object"
+      },
       "TreeElement": {
         "properties": {
           "container_global_id": {
@@ -1783,6 +1924,62 @@
           }
         },
         "summary": "List Events"
+      }
+    },
+    "/api/v1/copilot": {
+      "get": {
+        "operationId": "copilot_status_api_v1_copilot_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CopilotStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Copilot Status"
+      }
+    },
+    "/api/v1/copilot/query": {
+      "post": {
+        "operationId": "copilot_query_api_v1_copilot_query_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CopilotQuery"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CopilotAnswer"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Copilot Query"
       }
     },
     "/api/v1/ids": {

@@ -106,3 +106,11 @@ Property values stored typed (`value_type` + `value_text`/`value_num`), not JSON
 - Identity-unstable comparisons hide per-element impact and property changes and show a banner; modified highlights are suppressed.
 - MHI waterfall: base → dimension contribution changes ≥0.05 pt → re-weighting residual → head; withheld scores show a message, never a bar. Pure step math in `waterfall-steps.ts`, tested with `node --test` (no new dependency).
 - Quantities page shows qto totals by class/storey/material/classification with Δ against the previous revision; method is always shown.
+
+## D-22 · Grounded copilot (P12)
+- Manual tool-use loop over the Anthropic SDK (`axiom/copilot/agent.py`), default `claude-sonnet-5-5` (`AXIOM_COPILOT_MODEL` overrides), max 8 tool rounds, system prompt cached. Key only from `ANTHROPIC_API_KEY`; none → `GET /copilot` reports `available: false`, `POST /copilot/query` returns 503 `copilot_unavailable`, and the web panel is not rendered. Everything else works.
+- 9 strict, read-only tools over existing services (summary, elements, findings, comparisons, events, MHI, quantities). `project_id` comes from the session, never the model; a revision outside the project is "not found". Pages ≤50 rows.
+- Tool results are sent as `{"note": …, "data": …}` JSON so IFC strings (names, descriptions) are data, never instructions. The injection fixture puts an instruction in a wall name.
+- Citations use the markup `[[el:<GlobalId>]]` and `[[finding:<identity_key>]]`. Post-check: every marked id and every bare GUID-like or 40-hex token must have appeared in a tool result this turn. On failure the model gets one corrective retry; anything still unverified is stripped and listed in `unverified`. The UI turns verified ids into chips that open the Explorer (`?focus=`) or the Quality Center (`?finding=`) of the cited revision.
+- Eval: `tests/copilot/evals.yaml` (25 cases: lookups, changes, events, MHI, quantities with unit + method, unanswerable, safety bait, injection), graded deterministically (tools called, ids cited, regex present/forbidden, zero unverified). `uv run python -m axiom.copilot.eval` is billed and runs only with a key; target ≥90% pass and 0 fabricated citations.
+- No auth or rate limit on `/copilot/query` (local-first, single user). Each call spends the key owner's money; add both before any shared deployment.

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useParams, useSearchParams } from "react-router";
 import type { Element, Finding, SpatialTree, TreeElement } from "../api/client";
 import { useElement, useFindings, useRevision, useTree } from "../api/queries";
 import { btn, Empty, fmt, Panel, Q, Severity, Status } from "../ui";
@@ -11,8 +11,9 @@ export function Explorer() {
   const tree = useTree(revisionId);
   const findings = useFindings(rev.data?.latest_audit_id);
   const [viewer, setViewer] = useState<Viewer | null>(null);
-  const [selected, setSelected] = useState<string | null>(null);
-  const [target, setTarget] = useState<string | null>(null); // tree picks fly the camera; 3D clicks only select
+  const initial = useSearchParams()[0].get("focus"); // copilot citation deep link
+  const [selected, setSelected] = useState<string | null>(initial);
+  const [target, setTarget] = useState<string | null>(initial); // tree picks fly the camera; 3D clicks only select
   const focus = useFocus(viewer, target);
 
   useEffect(() => viewer?.onSelect(setSelected), [viewer]);

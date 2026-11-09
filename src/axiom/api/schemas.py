@@ -140,3 +140,33 @@ class ChangeOut(BaseModel):
     path: str | None
     old: Any
     new: Any
+
+
+class CopilotStatus(BaseModel):
+    available: bool
+    model: str
+
+
+class CopilotQuery(BaseModel):
+    project_id: int  # the UI session's project; tools never take a project from the model
+    question: str = Field(min_length=1, max_length=2000)
+
+
+class CitationOut(BaseModel):
+    type: str  # element | finding
+    id: str
+    label: str | None
+    revision_id: int | None
+
+
+class ToolCallOut(BaseModel):
+    name: str
+    input: dict[str, Any]
+
+
+class CopilotAnswer(BaseModel):
+    answer: str
+    citations: list[CitationOut]
+    tool_calls: list[ToolCallOut]
+    unverified: list[str]  # ids the model cited without a tool result; already stripped from `answer`
+    stop_reason: str

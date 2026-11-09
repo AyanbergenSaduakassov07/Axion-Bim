@@ -67,7 +67,9 @@ def classify(
     for key, p in prev.items():
         if key not in seen and head_rules is not None and p.rule_id not in head_rules:
             events.append(_event("uncertain", p, "rule_not_evaluated_in_head"))
-        elif key not in seen and p.rule_id in changed_rules and not uncertain(p):
+        elif (
+            key not in seen and p.rule_id in changed_rules and p.global_id not in removed and not uncertain(p)
+        ):
             events.append(_event("uncertain", p, "rule_version_changed"))
         elif key not in seen:
             note = "element_removed" if p.global_id in removed else None

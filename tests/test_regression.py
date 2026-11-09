@@ -98,3 +98,11 @@ def test_rule_whose_version_changed_gives_uncertain_not_resolved_or_new():
     assert [(e.event, e.note) for e in fresh] == [("uncertain", "rule_version_changed")]
     (same,) = classify([_f("k")], [[_f("k")]], version_changed={"R"})
     assert same.event == "persistent"  # identical output under both versions is still a fact
+
+
+def test_removed_element_resolves_even_when_the_rule_version_changed(ifc_path):
+    a = extract(ifc_path("rev1"))
+    gid = next(e.global_id for e in a.elements if e.name == "W6")
+    d = diff(a, extract(ifc_path("rev2")))
+    (e,) = classify([], [[_f("k", gid=gid)]], d, version_changed={"R"})
+    assert (e.event, e.note) == ("resolved", "element_removed")

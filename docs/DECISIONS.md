@@ -178,4 +178,5 @@ because name and classification belong to the parent (ArchiCAD layer parts are u
 element (it raised SPA-001 containment findings). Schependomlaan result: 705 → 71 findings, MHI 98.4 → 99.7.
 (4) A comparison across audits where a rule's version differs (`summary.rules[].version`) marks that rule's
 new/resolved/changed events `uncertain`, note `rule_version_changed`. Without this, CLS-001 v1→v2 showed as
-model fixes. An identical finding under both versions stays `persistent`.
+model fixes. An identical finding under both versions stays `persistent`; a finding on a removed element stays
+`resolved` (`element_removed`). Clinic r1→r2 across CLS-001 v1→v2: 50 resolved (all element_removed), 4202 persistent.

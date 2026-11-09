@@ -102,3 +102,32 @@ def test_audit_auto_compares_with_previous_revision(ifc_path, tmp_path, monkeypa
     result = runner.invoke(app, ["audit", str(ifc_path("rev2")), "--model", "S"])
     assert result.exit_code == 0, result.output
     assert "vs revision 1" in result.output and "resolved 2" in result.output
+
+
+def test_quantities_by_class_with_geometry_and_delta(ifc_path, tmp_path, monkeypatch):
+    monkeypatch.setenv("AXIOM_DATA_DIR", str(tmp_path / "data"))
+    monkeypatch.delenv("AXIOM_DB_URL", raising=False)
+    out = tmp_path / "q.json"
+    args = [
+        "quantities",
+        str(ifc_path("rev2")),
+        "--against",
+        str(ifc_path("rev1")),
+        "--geometry",
+        "--json",
+        str(out),
+    ]
+    result = runner.invoke(app, args)
+    assert result.exit_code == 0, result.output
+    assert "IfcBeam" in result.output and "geometry" in result.output and "+6" in result.output
+    report = json.loads(out.read_text())
+    beams = {(r["quantity"], r["method"]): r["total"] for r in report["rows"] if r["group"] == "IfcBeam"}
+    assert beams[("Length", "qto")] == 30.0 and round(beams[("Volume", "geometry")], 6) == 4.5
+    delta = {(d["group"], d["quantity"]): (d["old"], d["new"]) for d in report["delta"]}
+    assert delta[("IfcWall", "Length")] == (33.0, 30.0)
+
+
+def test_quantities_rejects_unknown_grouping(ifc_path, tmp_path, monkeypatch):
+    monkeypatch.setenv("AXIOM_DATA_DIR", str(tmp_path / "data"))
+    result = runner.invoke(app, ["quantities", str(ifc_path("clean")), "--by", "colour"])
+    assert result.exit_code == 2 and "unknown grouping" in result.output

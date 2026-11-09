@@ -33,6 +33,7 @@ def test_reproducibility_block_is_complete(ingested):
         "file_sha256",
         "ruleset_version",
         "ids_hash",
+        "geometry",
         "engine_version",
         "scoring_config",
         "created_at",
@@ -86,3 +87,10 @@ def test_duplicate_guid_blocks_the_model(ingested):
     engine, ingest = ingested
     mhi = audits.run_audit(engine, ingest("duplicate_guid")).mhi
     assert mhi.blocked and len(mhi.blocking) == 1
+
+
+def test_geometry_audit_adds_qto_002_and_records_it(ingested, tmp_path):
+    engine, ingest = ingested
+    result = audits.run_audit(engine, ingest("clean"), geometry=True, files_dir=tmp_path / "files")
+    assert result.counts["QTO-002"] == {"pass": 16} and result.reproducibility["geometry"] is True
+    assert "QTO-002" not in audits.run_audit(engine, ingest("clean")).counts

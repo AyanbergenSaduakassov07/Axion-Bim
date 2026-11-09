@@ -14,12 +14,13 @@ from axiom.extract import extract, profile
 from axiom.findings import CheckStatus
 from axiom.repo.db import get_engine, migrate
 from axiom.score import MhiResult
-from axiom.services import audits, comparisons, projects, revisions
+from axiom.services import audits, comparisons, projects, quantities, revisions
 from axiom.services.comparisons import ComparisonResult
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 STATUSES = [s.value for s in CheckStatus]
 ExistingFile = typer.Argument(..., exists=True, dir_okay=False, readable=True)
+GeometryOption = typer.Option(False, "--geometry", help="Also compute volumes from geometry (slower).")
 IdsOption = typer.Option(
     None, "--ids", exists=True, dir_okay=False, readable=True, help="Also check this IDS file."
 )
@@ -70,14 +71,16 @@ def inspect(path: Path = ExistingFile, as_json: bool = typer.Option(False, "--js
 @app.command()
 def audit(
     path: Path = ExistingFile,
+    *,
     project: str = typer.Option("local", help="Project to file the model under."),
     model: str | None = typer.Option(None, help="Model name; defaults to the file stem."),
     json_out: Path | None = typer.Option(None, "--json", help="Write the full JSON report here."),
     ids: Path | None = IdsOption,
+    geometry: bool = GeometryOption,
 ) -> None:
     """Ingest (if new) and audit an IFC file with the built-in rules (and an IDS file, if given)."""
     engine, model_id = _open(project, model or path.stem)
-    ingested, result = _ingest_and_audit(engine, model_id, path, ids)
+    ingested, result = _ingest_and_audit(engine, model_id, path, ids, geometry)
     typer.echo(
         f"revision {ingested.seq} ({'new' if ingested.created else 'already ingested'})  "
         f"audit #{result.audit_run_id}  ruleset {result.reproducibility['ruleset_version']}"
@@ -126,6 +129,53 @@ def compare(
         typer.echo(f"report written to {json_out}")
 
 
+@app.command(name="quantities")
+def quantities_cmd(
+    path: Path = ExistingFile,
+    *,
+    by: str = typer.Option("class", help="Group by class | storey | material | classification."),
+    geometry: bool = GeometryOption,
+    against: Path | None = typer.Option(
+        None, exists=True, dir_okay=False, readable=True, help="Earlier revision: also print totals delta."
+    ),
+    project: str = typer.Option("local"),
+    model: str | None = typer.Option(None, help="Model name; defaults to the file stem."),
+    json_out: Path | None = typer.Option(None, "--json", help="Write rows (and delta) as JSON here."),
+) -> None:
+    """Quantity totals per group from Qto sets (and geometry, if asked); never summed across methods."""
+    engine, model_id = _open(project, model or path.stem)
+    files_dir = load_settings().files_dir
+    head = revisions.ingest(engine, model_id, path, files_dir=files_dir).revision_id
+    base = revisions.ingest(engine, model_id, against, files_dir=files_dir).revision_id if against else None
+    try:
+        rows = quantities.report(engine, head, by, geometry=geometry, files_dir=files_dir)
+        delta = (
+            quantities.delta(engine, base, head, by, geometry=geometry, files_dir=files_dir) if base else ()
+        )
+    except ValueError as e:
+        typer.echo(f"error: {e}", err=True)
+        raise typer.Exit(2) from e
+    _print_quantities(rows, {(d.group, d.qto, d.quantity, d.method): d for d in delta})
+    if json_out:
+        report = {"rows": [asdict(r) for r in rows], "delta": [asdict(d) for d in delta]}
+        json_out.write_text(json.dumps(report, indent=2))
+        typer.echo(f"report written to {json_out}")
+
+
+def _print_quantities(rows, delta: dict) -> None:
+    typer.echo(
+        f"{'group':<22}{'quantity':<42}{'method':<10}{'total':>14} {'unit':<5}{'n':>5}{'missing':>8}  delta"
+    )
+    for r in rows:
+        d = delta.get((r.group, r.qto, r.quantity, r.method))
+        change = "" if d is None or d.old == d.new else f"{(d.new or 0) - (d.old or 0):+.4g}"
+        name = f"{r.qto}.{r.quantity}"
+        typer.echo(
+            f"{r.group[:21]:<22}{name[:41]:<42}{r.method:<10}{r.total:>14.4f} {r.unit or '-':<5}"
+            f"{r.count:>5}{len(r.missing):>8}  {change}"
+        )
+
+
 def _open(project: str, model: str):
     settings = load_settings()
     engine = get_engine(settings.db_url)
@@ -133,11 +183,13 @@ def _open(project: str, model: str):
     return engine, projects.ensure_model(engine, project, model)
 
 
-def _ingest_and_audit(engine, model_id: int, path: Path, ids: Path | None):
+def _ingest_and_audit(engine, model_id: int, path: Path, ids: Path | None, geometry: bool = False):
     files_dir = load_settings().files_dir
     ingested = revisions.ingest(engine, model_id, path, files_dir=files_dir)
     try:
-        return ingested, audits.run_audit(engine, ingested.revision_id, ids_path=ids, files_dir=files_dir)
+        return ingested, audits.run_audit(
+            engine, ingested.revision_id, ids_path=ids, files_dir=files_dir, geometry=geometry
+        )
     except ValueError as e:
         typer.echo(f"error: {e}", err=True)
         raise typer.Exit(2) from e

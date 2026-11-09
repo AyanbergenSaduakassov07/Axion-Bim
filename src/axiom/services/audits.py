@@ -13,10 +13,12 @@ from axiom import __version__
 from axiom.extract import file_sha256
 from axiom.findings import Finding
 from axiom.ids import run_ids
+from axiom.quantities import run_qto_002
 from axiom.repo import audits as repo
 from axiom.rules import run_rules
 from axiom.rules.engine import AuditOutput
 from axiom.score import MhiResult, ScoringConfig, compute_mhi, load_config
+from axiom.services.quantities import volumes_for
 from axiom.services.revisions import load_snapshot, store_file
 
 log = logging.getLogger(__name__)
@@ -39,18 +41,23 @@ def run_audit(
     ids_path: Path | None = None,
     files_dir: Path | None = None,
     scoring_config: ScoringConfig | None = None,
+    geometry: bool = False,
 ) -> AuditResult:
-    """Built-in rules, plus IDS checks when `ids_path` is given (needs `files_dir`, where the IFC lives)."""
+    """Built-in rules, plus IDS checks when `ids_path` is given and QTO-002 when `geometry` is set
+    (both need `files_dir`, where the IFC lives)."""
     snap = load_snapshot(engine, revision_id)
     with engine.connect() as conn:
         model_id = repo.model_id_for_revision(conn, revision_id)
     out, ids_hash = _with_ids(run_rules(snap, model_id), snap.meta.file_sha256, model_id, ids_path, files_dir)
+    if geometry:
+        out = _merge(out, run_qto_002(snap, volumes_for(snap.meta.file_sha256, files_dir), model_id))
     cfg = scoring_config or load_config()
     mhi = compute_mhi(out.counts, out.findings, cfg)
     repro = {
         "file_sha256": snap.meta.file_sha256,
         "ruleset_version": out.ruleset_version,
         "ids_hash": ids_hash,
+        "geometry": geometry,
         "engine_version": __version__,
         "scoring_config": cfg.version,
         "created_at": datetime.now(UTC).isoformat(timespec="seconds"),

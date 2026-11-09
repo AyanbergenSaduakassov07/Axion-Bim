@@ -63,3 +63,10 @@ Property values stored typed (`value_type` + `value_text`/`value_num`), not JSON
 - A rule run on only one side (e.g. IDS used in one audit) cannot resolve or introduce findings: its events are `uncertain` with note `rule_not_evaluated_in_base|head`. Ruleset/IDS hash mismatch is flagged in `comparisons.summary_json`.
 - Impact = non-persistent events on elements that also changed, with the change paths. Not done: "rules whose applicability covers the changed element" (needs applicability introspection), `--ifcdiff` cross-check (optional).
 - `axiom audit` auto-compares with the previous revision of the same `--model`; the default model name is the file stem, so differently named files are separate models unless `--model` is given.
+
+## D-17 · Quantity intelligence details (P07)
+- Totals keyed by (group, qto, quantity, method): two Qto sets never double-count and `qto`/`geometry` values are never summed (`method` is part of the row key; tested). Units are SI labels (m, m2, m3, kg) since `si_value` is already scaled at extraction.
+- `missing` = GlobalIds in the group whose class carries that quantity elsewhere in the group but has no value; never treated as zero.
+- `--geometry` computes volumes for every element (not only those lacking Qto) via `ifcopenshell.geom.iterator` + `util.shape.get_volume`, so Qto and geometry columns can be compared. Geometry area left out: the shape footprint is in local coordinates and would mislead.
+- QTO-002 (D-12) = Qto Gross/NetVolume vs geometry volume, fail outside x2, hint when the ratio is ~1e3/1e6/1e9. Opt-in (`run_audit(geometry=True)`, `axiom audit --geometry`), recorded as `reproducibility.geometry`. Finds both x1000 slabs in the Revit sample. Comparing a geometry audit with a non-geometry one gives `uncertain` QTO-002 events (D-16).
+- Revision deltas: `services.quantities.delta(base, head)` on grouped totals; not yet folded into `comparisons.summary_json` (P11 can call it).

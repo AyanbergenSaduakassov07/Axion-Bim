@@ -1,4 +1,4 @@
-"""Audit reports: one canonical JSON dict, rendered to JSON, CSV (findings) or self-contained HTML."""
+"""Audit reports: one canonical JSON dict, rendered to JSON, CSV (findings), HTML or BCF 3.0."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 FORMAT_VERSION = "axiom-report/1"
-FORMATS = {"json": "application/json", "csv": "text/csv", "html": "text/html"}
+FORMATS = {"json": "application/json", "csv": "text/csv", "html": "text/html", "bcf": "application/zip"}
 CSV_FIELDS = (
     "global_id", "element_name", "ifc_class", "rule_id", "rule_version", "status", "severity",
     "category", "dimension", "expected", "actual", "message", "identity_key",
@@ -24,13 +24,17 @@ _env = Environment(
 )
 
 
-def render(report: dict, fmt: str) -> str:
+def render(report: dict, fmt: str) -> str | bytes:
     if fmt == "json":
         return json.dumps(report, indent=2, default=str)
     if fmt == "csv":
         return _csv(report["findings"])
     if fmt == "html":
         return _env.get_template("report.html.j2").render(r=report)
+    if fmt == "bcf":
+        from axiom.report.bcf import to_bcf  # noqa: PLC0415 - loads bcf-client/xsdata only when asked
+
+        return to_bcf(report)
     raise ValueError(f"unknown report format {fmt!r}; use one of {', '.join(FORMATS)}")
 
 

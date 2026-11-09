@@ -15,6 +15,7 @@ The project includes a Python engine and CLI, a FastAPI service, and a React web
 - Compares revisions by IFC `GlobalId` and tracks findings as new, resolved, persistent, recurring, changed, or uncertain.
 - Compares reported quantities with geometry-derived volumes, keeping quantity methods separate.
 - Provides a 3D model explorer, quality findings, revision history, quantity summaries, and printable reports.
+- Exports open findings as BCF 3.0 issues (one topic per finding, element selected by GlobalId, stable topic GUIDs across revisions) for BIMcollab, Solibri, Revit and other BCF tools.
 - Offers an optional read-only AI copilot. Citation tokens are checked against tool output from that response.
 
 ## Screenshots
@@ -80,6 +81,7 @@ uv run axiom compare \
 
 ```bash
 uv run axiom report <audit-id> --format html --out report.html
+uv run axiom report <audit-id> --format bcf --out issues.bcf   # BCF 3.0 for coordination tools
 ```
 
 The demo revisions show a missing material issue being fixed and later reappearing. Axiom marks the reappearing finding as recurring. See the [demo script](docs/demo-script.md) and [fixture source and license notes](examples/models/SOURCES.md).

@@ -128,3 +128,14 @@ non-GET requests carrying an `Origin` outside that list get 403 (stops blind cro
 not cover simple multipart POSTs). Requests without `Origin` (curl, CLI) pass. IDS files with a DOCTYPE are
 rejected before parsing: IDS needs no DTD, and xmlschema's default `defuse='remote'` still expands internal
 entities. Docker API runs as uid 10001. Deferred: copilot rate limit, SPA CSP (viewer workers/wasm), disk quota.
+
+## D-25 · BCF 3.0 export of open findings
+`format=bcf` on the report route and CLI. One topic per `fail`/`warning` finding; `pass`, `not_applicable`,
+`not_evaluated` are not issues. Topic GUID = uuid5(fixed namespace, finding `identity_key`), so a later
+audit's export updates the same topics in a BCF tool instead of duplicating them (persistent findings keep
+their identity key across revisions). Viewpoint selects the element by GlobalId; project-level findings
+have no viewpoint. BCF 3.0 XSD requires a camera; snapshots store no element positions, so the camera is a
+generic overview of the origin (upgrade: store centroids at extraction). Built on IfcOpenShell's
+`bcf-client` 0.9.0 (xsdata models generated from the official XSDs), pinned directly. Output validated
+against the buildingSMART BCF-XML release_3_0 XSDs (not vendored: licence NOASSERTION). Not yet opened
+in a real viewer (PLAN.md §2 item 8 asks for that).

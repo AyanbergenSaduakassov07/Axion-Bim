@@ -97,6 +97,9 @@ def test_upload_two_revisions_then_browse_findings_and_comparison(client, ifc_pa
     assert html.headers["content-type"].startswith("text/html") and "Model Health Index" in html.text
     csv_ = c.post(f"{V1}/audits/{audit_id}/reports", params={"format": "csv"})
     assert csv_.headers["content-disposition"].startswith("attachment") and csv_.text.startswith("global_id")
+    bcf = c.post(f"{V1}/audits/{audit_id}/reports", params={"format": "bcf"})
+    assert bcf.headers["content-type"] == "application/zip" and bcf.content.startswith(b"PK")
+    assert 'filename="axiom-audit-' in bcf.headers["content-disposition"]
     assert c.post(f"{V1}/audits/{audit_id}/reports", params={"format": "pdf"}).status_code == 422
     assert c.post(f"{V1}/audits/999/reports").status_code == 404
 

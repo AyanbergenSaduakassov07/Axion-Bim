@@ -20,5 +20,6 @@ Each step is run or marked "not run". Nothing here was assumed.
 | 14 | Second real-world model end to end in the UI | — | **not run** (SampleHouse timings for the viewer in `docs/spikes/00-findings.md`) |
 | 15 | CI on GitHub (`.github/workflows/ci.yml`) | — | **not checked** after push; the web job needs WebGL in headless Chromium |
 | 16 | Security review (upload, job runner, file serving, IDS parsing, copilot, Docker) | security-reviewer agent + `tests/test_security.py` | pass: 0 critical/high. Fixed: DNS rebinding (Host allowlist), cross-site writes (Origin check), IDS entity expansion (DOCTYPE rejected), root container, missing nginx headers. Open (low): no rate limit on `/copilot/query`, no SPA CSP, no disk quota |
+| 17 | BCF 3.0 export (`format=bcf`, API + CLI + UI button) | `tests/test_bcf.py`, `test_api`, `test_cli`; XSD check against buildingSMART release_3_0 schemas | pass (project, version, markup, viewpoint all XSD-valid). **Not opened** in BIMcollab Zoom / Solibri yet |
 
 Missing from the repo: `docs/PROPOSAL.md` (original brief was never saved).

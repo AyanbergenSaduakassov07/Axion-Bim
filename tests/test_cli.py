@@ -146,3 +146,8 @@ def test_report_renders_stored_audit_with_comparison(ifc_path, tmp_path, monkeyp
     assert json.loads(as_json.output)["comparison"]["head"]["seq"] == 2
     missing = runner.invoke(app, ["report", "99"])
     assert missing.exit_code == 2 and "not found" in missing.output
+    bcf = tmp_path / "issues.bcf"
+    assert runner.invoke(app, ["report", "1", "--format", "bcf", "--out", str(bcf)]).exit_code == 0
+    assert bcf.read_bytes().startswith(b"PK")  # zip archive
+    no_out = runner.invoke(app, ["report", "1", "--format", "bcf"])
+    assert no_out.exit_code == 2 and "--out" in no_out.output

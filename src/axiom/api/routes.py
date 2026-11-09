@@ -200,7 +200,7 @@ def health_index(db: Db, audit_id: int) -> dict[str, Any]:
 def audit_report(
     db: Db,
     audit_id: int,
-    fmt: Annotated[Literal["json", "csv", "html"], Query(alias="format")] = "json",
+    fmt: Annotated[Literal["json", "csv", "html", "bcf"], Query(alias="format")] = "json",
     comparison_id: int | None = None,
 ) -> Response:
     """Render the audit report (with the comparison headed by this audit, if any). HTML opens inline."""

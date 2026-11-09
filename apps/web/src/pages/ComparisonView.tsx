@@ -286,6 +286,7 @@ function ReportExport({ auditId, comparisonId }: { auditId: number | null; compa
       {form("html", "Printable HTML")}
       {form("json", "JSON")}
       {form("csv", "Findings CSV")}
+      {form("bcf", "BCF 3.0 issues")}
     </div>
   );
 }

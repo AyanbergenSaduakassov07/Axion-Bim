@@ -1002,7 +1002,7 @@ export interface operations {
     audit_report_api_v1_audits__audit_id__reports_post: {
         parameters: {
             query?: {
-                format?: "json" | "csv" | "html";
+                format?: "json" | "csv" | "html" | "bcf";
                 comparison_id?: number | null;
             };
             header?: never;
@@ -1020,6 +1020,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                    "application/zip": unknown;
                     "text/csv": unknown;
                     "text/html": unknown;
                 };

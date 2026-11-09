@@ -15,12 +15,20 @@ export type Viewer = {
   isolate(globalIds: string[] | null): Promise<void>;
   setClassVisibility(ifcClass: string, visible: boolean): Promise<void>;
   onSelect(cb: (globalId: string | null) => void): () => void;
+  /** Camera steps for button/keyboard navigation (trackpads make drag-orbit and pan awkward). */
+  orbit(azimuthDeg: number, polarDeg: number): Promise<void>;
+  /** factor > 1 moves closer, < 1 moves away; proportional to the current distance. */
+  zoom(factor: number): Promise<void>;
+  /** Steps in fractions of the current distance: x right, y up. */
+  pan(x: number, y: number): Promise<void>;
+  fitAll(): Promise<void>;
   dispose(): void;
 };
 
 const FOCUS_COLOR = "#ffb300";
 const NEAR_FAR_RATIO = 1e5; // keeps depth precision without z-fighting on building-scale models
 const FIT_PADDING = 1.5; // single-element boxes frame too tightly without it
+const DEG = Math.PI / 180;
 
 const material = (color: string): FRAGS.MaterialDefinition => ({
   color: new THREE.Color(color),
@@ -45,6 +53,7 @@ function createWorld(el: HTMLElement) {
     fragments.core.update().catch(() => {});
   };
   world.camera.controls.addEventListener("update", onCameraUpdate);
+  world.camera.controls.dollyToCursor = true; // trackpad scroll zooms toward what is under the pointer
   return { components, world, fragments, onCameraUpdate };
 }
 
@@ -164,7 +173,7 @@ export function createViewer(el: HTMLElement): Viewer {
         throw err;
       }
       const stats = { ms: Math.round(performance.now() - t0), cached, bytes };
-      exposeTestHook(viewer, () => focused?.guid ?? null, stats);
+      exposeTestHook(viewer, () => focused?.guid ?? null, stats, () => world.camera.controls.distance);
       return stats;
     },
     async highlight(groups) {
@@ -207,6 +216,20 @@ export function createViewer(el: HTMLElement): Viewer {
       await m.setVisible(Object.values(byCat).flat(), visible);
       await render();
     },
+    async orbit(azimuthDeg, polarDeg) {
+      await world.camera.controls.rotate(azimuthDeg * DEG, polarDeg * DEG, true);
+    },
+    async zoom(factor) {
+      const c = world.camera.controls;
+      await c.dolly(c.distance * (1 - 1 / factor), true);
+    },
+    async pan(x, y) {
+      const c = world.camera.controls;
+      await c.truck(x * c.distance, -y * c.distance, true);
+    },
+    async fitAll() {
+      await fit(await need().getItemsIdsWithGeometry());
+    },
     onSelect(cb) {
       listeners.add(cb);
       return () => listeners.delete(cb);
@@ -228,12 +251,18 @@ export function createViewer(el: HTMLElement): Viewer {
 }
 
 /** Dev-only hook for Playwright and the load/memory measurement (P10 §6). */
-function exposeTestHook(v: Viewer, lastFocused: () => string | null, stats: LoadStats) {
+function exposeTestHook(
+  v: Viewer,
+  lastFocused: () => string | null,
+  stats: LoadStats,
+  distance: () => number,
+) {
   if (!import.meta.env.DEV) return;
   const mem = (performance as { memory?: { usedJSHeapSize: number } }).memory;
   (window as unknown as Record<string, unknown>).__axiomViewer = {
     focus: v.focus,
     lastFocused,
+    distance,
     stats,
     heapMB: mem ? Math.round(mem.usedJSHeapSize / 1e6) : null,
   };

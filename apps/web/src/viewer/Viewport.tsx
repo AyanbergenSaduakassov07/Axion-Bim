@@ -1,6 +1,7 @@
 import { LoaderCircle } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createViewer, type FocusResult, type Viewer } from "./viewer";
+import { handleViewKey, ViewControls } from "./ViewControls";
 
 export type { FocusResult, Viewer } from "./viewer";
 
@@ -22,6 +23,7 @@ export function Viewport({
 }) {
   const el = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<State>({ kind: "loading", progress: 0 });
+  const [viewer, setViewer] = useState<Viewer | null>(null);
   const cb = useRef(onViewer);
   cb.current = onViewer;
 
@@ -33,6 +35,7 @@ export function Viewport({
       .then(() => {
         if (!live) return;
         setState({ kind: "ready" });
+        setViewer(v);
         cb.current(v);
       })
       .catch((e: Error) => {
@@ -43,6 +46,7 @@ export function Viewport({
       });
     return () => {
       live = false;
+      setViewer(null);
       cb.current(null);
       v.dispose();
     };
@@ -50,7 +54,14 @@ export function Viewport({
 
   return (
     <div className={`relative overflow-hidden rounded border border-line bg-panel ${className}`}>
-      <div ref={el} className="absolute inset-0" aria-label="3D model viewer" role="img" />
+      <div
+        ref={el}
+        className="absolute inset-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+        aria-label="3D model viewer. Arrow keys orbit, Shift+arrows pan, plus and minus zoom, F fits the model."
+        role="application"
+        tabIndex={0}
+        onKeyDown={(e) => viewer && handleViewKey(viewer, e) && e.preventDefault()}
+      />
       {state.kind === "loading" && (
         <div className="absolute inset-0 flex items-center justify-center gap-2 text-sm text-muted" aria-live="polite">
           <LoaderCircle size={16} className="animate-spin text-accent" aria-hidden />
@@ -63,6 +74,7 @@ export function Viewport({
         </div>
       )}
       {state.kind === "ready" && overlay}
+      {viewer && <ViewControls viewer={viewer} />}
     </div>
   );
 }

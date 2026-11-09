@@ -43,6 +43,16 @@ test("upload rev1, wait for the job, Quality Center shows the golden findings", 
   await expect.poll(() => page.evaluate(() => (window as any).__axiomViewer.lastFocused())).toBe(gid);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/quality-3d.png`, fullPage: true });
 
+  // navigation buttons + keys move the camera (trackpad users have no easy orbit/pan)
+  const distance = () => page.evaluate(() => (window as any).__axiomViewer.distance() as number);
+  const before = await distance();
+  await page.getByRole("button", { name: "Zoom in" }).click();
+  await expect.poll(distance).toBeLessThan(before * 0.9);
+  await page.getByRole("button", { name: "Fit model" }).click();
+  await expect.poll(distance).toBeGreaterThan(before * 0.99); // fit transition done
+  await page.getByRole("application").press("-");
+  await expect.poll(distance).toBeGreaterThan(before * 1.1);
+
   // Explorer: tree pick shows the element panel with its findings
   await page.getByRole("link", { name: "Model Explorer" }).click();
   await page.getByRole("button", { name: /^C3 IfcColumn/ }).click();

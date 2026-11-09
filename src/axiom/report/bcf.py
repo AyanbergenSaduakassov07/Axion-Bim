@@ -2,8 +2,8 @@
 
 One topic per fail/warning finding. Topic GUIDs derive from the finding identity_key, so re-exporting a later
 audit updates the same topics in a BCF tool instead of duplicating them. Viewpoints select the element by
-GlobalId. BCF 3.0 requires a camera: it looks at the element's placement origin (stored at extraction) from a fixed
-offset, or gives an overview of the model origin when the element has no placement.
+GlobalId. BCF 3.0 requires a camera: it looks at the element's placement origin (stored at extraction)
+from a fixed offset, or gives an overview of the model origin when the element has no placement.
 """
 
 from __future__ import annotations

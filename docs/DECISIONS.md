@@ -141,3 +141,10 @@ fixed ~11 m offset. Placement origin, not geometric centroid: no tessellation in
 `bcf-client` 0.9.0 (xsdata models generated from the official XSDs), pinned directly. Output validated
 against the buildingSMART BCF-XML release_3_0 XSDs (not vendored: licence NOASSERTION). Not yet opened
 in a real viewer (PLAN.md §2 item 8 asks for that).
+
+## D-26 · Copilot query limit
+`/copilot/query` allows one question in flight and 10 started per 60 s; beyond that 429 `copilot_busy`.
+Each question is a multi-call tool loop billed to the key owner (or burning the free tier's 50/day), so
+this caps spend from a stuck client or a script. In-process (`services.copilot.Limiter`, threading lock +
+deque): the API runs one uvicorn worker. Several workers or a shared deployment need a shared limiter
+(Redis) plus auth (D-24). The rest of the API stays unlimited: reads are local, uploads are size-capped.

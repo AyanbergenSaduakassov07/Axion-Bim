@@ -18,7 +18,7 @@ from axiom.config import Settings, load_settings
 from axiom.jobs import Runner
 from axiom.repo.db import get_engine, migrate
 from axiom.services import jobs
-from axiom.services.copilot import CopilotUnavailableError
+from axiom.services.copilot import CopilotBusyError, CopilotUnavailableError
 from axiom.services.uploads import TooLargeError
 
 log = logging.getLogger(__name__)
@@ -96,6 +96,10 @@ def _install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(TooLargeError)
     async def too_large(_: Request, e: TooLargeError) -> JSONResponse:
         return _error(413, "payload_too_large", str(e))
+
+    @app.exception_handler(CopilotBusyError)
+    async def copilot_busy(_: Request, e: CopilotBusyError) -> JSONResponse:
+        return _error(429, "copilot_busy", str(e))
 
     @app.exception_handler(CopilotUnavailableError)
     async def copilot_unavailable(_: Request, e: CopilotUnavailableError) -> JSONResponse:

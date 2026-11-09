@@ -67,3 +67,26 @@ def test_empty_model_env_falls_back_to_default(monkeypatch):
     monkeypatch.setenv("OPENROUTER_API_KEY", "")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test-not-a-key")
     assert agent.model_name() == agent.DEFAULT_MODEL
+
+
+def test_query_rate_limit_returns_429_and_window_frees_up(client, monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-not-a-key")
+    now = [0.0]
+    monkeypatch.setattr(copilot, "LIMIT", copilot.Limiter(per_window=10, window_s=60.0, clock=lambda: now[0]))
+    monkeypatch.setattr(copilot, "_client", lambda: None)
+    monkeypatch.setattr(agent, "ask", lambda *_: agent.Answer("ok", (), (), (), "end_turn"))
+    pid = client.post(f"{V1}/projects", json={"name": "P"}).json()["id"]
+    ask = lambda: client.post(f"{V1}/copilot/query", json={"project_id": pid, "question": "q"})  # noqa: E731
+    assert all(ask().status_code == 200 for _ in range(10))
+    r = ask()
+    assert r.status_code == 429 and r.json()["error"]["code"] == "copilot_busy"
+    now[0] = 61.0
+    assert ask().status_code == 200
+
+
+def test_second_query_while_one_is_running_is_busy(monkeypatch):
+    limiter = copilot.Limiter(per_window=10, window_s=60.0)
+    with limiter.slot(), pytest.raises(copilot.CopilotBusyError), limiter.slot():
+        pass
+    with limiter.slot():  # released after the first finished
+        pass

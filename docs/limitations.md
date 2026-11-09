@@ -41,6 +41,6 @@ This document records the intentional design boundaries, known trade-offs, and o
 ## 4. Single-User & Local Deployment
 
 - **No Multi-Tenant Authentication:**
-  Designed for local-first single-user workflows. The API runs without authentication or per-user rate limits; deploying to an untrusted public network requires placing it behind a reverse proxy with authentication and rate limiting. The API answers only to `Host` names in `AXIOM_ALLOWED_HOSTS` (default `localhost,127.0.0.1,::1,testserver`) and rejects state-changing requests from other origins; add a LAN hostname there to reach it from another machine.
+  Designed for local-first single-user workflows. The API runs without authentication or per-user rate limits (the copilot alone is capped: one question at a time, 10 per minute, per process); deploying to an untrusted public network requires placing it behind a reverse proxy with authentication and rate limiting. The API answers only to `Host` names in `AXIOM_ALLOWED_HOSTS` (default `localhost,127.0.0.1,::1,testserver`) and rejects state-changing requests from other origins; add a LAN hostname there to reach it from another machine.
 - **SQLite Single-Writer Concurrency:**
   Data persistence uses SQLite with SQLAlchemy Core and write-ahead logging (WAL). Concurrent write access is managed via the subprocess job runner queue rather than distributed queues (e.g. Celery / Redis).

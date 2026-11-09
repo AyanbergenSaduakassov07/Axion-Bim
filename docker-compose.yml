@@ -11,7 +11,7 @@ services:
     volumes:
       - axiom-data:/data
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     restart: unless-stopped
 
   web:
@@ -19,7 +19,7 @@ services:
       context: ./apps/web
       dockerfile: Dockerfile
     ports:
-      - "3000:80"
+      - "127.0.0.1:3000:80"
     depends_on:
       - api
     restart: unless-stopped

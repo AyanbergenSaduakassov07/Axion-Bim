@@ -19,6 +19,7 @@ export type Viewer = {
 };
 
 const FOCUS_COLOR = "#ffb300";
+const NEAR_FAR_RATIO = 1e5; // keeps depth precision without z-fighting on building-scale models
 const FIT_PADDING = 1.5; // single-element boxes frame too tightly without it
 
 const material = (color: string): FRAGS.MaterialDefinition => ({
@@ -91,6 +92,11 @@ export function createViewer(el: HTMLElement): Viewer {
   const ids = async (guids: string[]) =>
     (await need().getLocalIdsByGuids(guids)).filter((x): x is number => x != null);
   const render = () => fragments.core.update(true).catch(() => {});
+  // IfcSpace volumes hide the elements inside them and are not elements: the tree lists them instead
+  const hideSpaces = async () => {
+    const byCat = await need().getItemsOfCategories([/^IFCSPACE$/i]);
+    await need().setVisible(Object.values(byCat).flat(), false);
+  };
 
   async function restore(id: number) {
     const color = painted.get(id);
@@ -102,6 +108,13 @@ export function createViewer(el: HTMLElement): Viewer {
     const box = await need().getMergedBox(localIds);
     const sphere = box.getBoundingSphere(new THREE.Sphere());
     sphere.radius *= FIT_PADDING;
+    // the default far plane clips km-scale infrastructure (a 25 km bridge corridor rendered as nothing)
+    const cam = world.camera.three;
+    cam.far = Math.max(cam.far, sphere.radius * 10); // grow only: focusing one element keeps the rest visible
+    cam.near = cam.far / NEAR_FAR_RATIO;
+    cam.updateProjectionMatrix();
+    // ThatOpen caps orbit distance at 300 m, so fitToSphere would stop far short of a km-scale model
+    world.camera.controls.maxDistance = Math.max(world.camera.controls.maxDistance, sphere.radius * 4);
     await world.camera.controls.fitToSphere(sphere, true);
   }
 
@@ -141,6 +154,7 @@ export function createViewer(el: HTMLElement): Viewer {
         model = await fragments.core.load(buf, { modelId: sha, camera: world.camera.three });
         if (disposed) return { ms: 0, cached, bytes };
         world.scene.three.add(model.object);
+        await hideSpaces();
         await fit(await model.getItemsIdsWithGeometry());
         await render();
       } catch (err: unknown) {
@@ -178,8 +192,10 @@ export function createViewer(el: HTMLElement): Viewer {
     },
     async isolate(guids) {
       const m = need();
-      if (guids == null) await m.resetVisible();
-      else {
+      if (guids == null) {
+        await m.resetVisible();
+        await hideSpaces();
+      } else {
         await m.setVisible(undefined, false);
         await m.setVisible(await ids(guids), true);
       }

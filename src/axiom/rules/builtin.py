@@ -76,30 +76,41 @@ def geo_002(ctx: ModelContext) -> Iterable[tuple[Element | None, CheckResult]]:
 
 @rule(
     id="SPA-001",
-    version="1",
-    name="Element is contained in a storey",
+    version="2",
+    name="Element is contained in the spatial structure",
     category="spatial",
     severity="medium",
     dimension="spatial",
     applies_to=("IfcElement",),
-    description="IfcRelContainedInSpatialStructure to an IfcBuildingStorey, directly or via an aggregate.",
+    description=(
+        "Buildings: IfcRelContainedInSpatialStructure to an IfcBuildingStorey, directly or via an aggregate. "
+        "IFC 4.3 infrastructure (no storeys, has IfcFacility/-Part): contained in any spatial element."
+    ),
 )
 def spa_001(el: Element, ctx: ModelContext) -> CheckResult:
     """IFC: IfcRelContainedInSpatialStructure (+ IfcRelAggregates parent chain)."""
-    if not ctx.storey_ids:
-        return CheckResult(
-            CheckStatus.NOT_EVALUATED,
-            "storey:none_in_model",
-            message="model has no IfcBuildingStorey; containment cannot be assessed",
-        )
-    if el.storey_global_id:
-        return PASS
+    if ctx.storey_ids:
+        if el.storey_global_id:
+            return PASS
+        return _uncontained(el, "a storey", "building storey")
+    if ctx.facility_ids:
+        if el.container_global_id:
+            return PASS
+        return _uncontained(el, "a spatial element", "facility or spatial element")
+    return CheckResult(
+        CheckStatus.NOT_EVALUATED,
+        "storey:none_in_model",
+        message="model has no IfcBuildingStorey or IfcFacility; containment cannot be assessed",
+    )
+
+
+def _uncontained(el: Element, expected: str, where: str) -> CheckResult:
     return CheckResult(
         CheckStatus.FAIL,
         "spatial:uncontained",
-        expected="contained in a storey",
+        expected=f"contained in {expected}",
         actual=f"container {el.container_global_id or 'none'}",
-        message=f"{el.ifc_class} is not located in any building storey",
+        message=f"{el.ifc_class} is not located in any {where}",
     )
 
 

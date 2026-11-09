@@ -5,6 +5,7 @@ import pytest
 from axiom.extract import extract
 from axiom.findings import CheckStatus, identity_key
 from axiom.rules import CheckResult, RuleMeta, Scope, builtin_rules, run_rules
+from axiom.rules.engine import is_subclass
 from tests.conftest import load_expected
 from tests.test_fixtures import FIXTURES
 
@@ -89,3 +90,36 @@ def test_subclasses_match_parent_applicability(ifc_path):
 
 def test_check_result_defaults():
     assert CheckResult(CheckStatus.PASS).evidence == {}
+
+
+def test_containment_uses_facility_structure_when_model_has_no_storeys(ifc_path):
+    """IFC 4.3 infrastructure: elements sit in IfcFacility / IfcFacilityPart, never in a storey."""
+    snap = extract(ifc_path("clean"))
+    storey = next(n for n in snap.spatial if n.ifc_class == "IfcBuildingStorey")
+    infra = snap.model_copy(
+        update={
+            "spatial": tuple(
+                n.model_copy(update={"ifc_class": "IfcBridgePart"})
+                if n.ifc_class == "IfcBuildingStorey"
+                else n
+                for n in snap.spatial
+            ),
+            "elements": tuple(
+                e.model_copy(
+                    update={
+                        "storey_global_id": None,
+                        "container_global_id": None if e.name == "C1" else storey.global_id,
+                    }
+                )
+                for e in snap.elements
+            ),
+        }
+    )
+    counts = run_rules(infra, model_id=1).counts["SPA-001"]
+    assert counts == {"pass": 15, "fail": 1}
+
+
+@pytest.mark.parametrize("schema", ["IFC2X3", "IFC4", "IFC4X3", "IFC4X3_ADD2"])
+def test_subclass_check_resolves_every_supported_schema_name(schema):
+    """IFC 4.3 files declare FILE_SCHEMA('IFC4X3'); ifcopenshell registers it as IFC4X3_ADD2."""
+    assert is_subclass(schema, "IfcColumn", "IfcElement")

@@ -129,7 +129,7 @@ export function FindingsTable({
           })}
         </div>
         {t.rows.length === 0 ? (
-          <Empty>{findings.length === 0 ? "No findings reported for this audit." : "No findings match the filters."}</Empty>
+          <Empty>{findings.length === 0 ? "No open issues: nothing failed, warned or errored in this audit." : "No findings match the filters."}</Empty>
         ) : (
           <div
             ref={scroller}

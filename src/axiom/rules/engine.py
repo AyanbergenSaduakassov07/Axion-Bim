@@ -52,6 +52,13 @@ class Rule(NamedTuple):
     fn: Callable
 
 
+FACILITY_CLASSES = frozenset({
+    "IfcFacility", "IfcBridge", "IfcRoad", "IfcRailway", "IfcMarineFacility",
+    "IfcFacilityPart", "IfcFacilityPartCommon", "IfcBridgePart", "IfcRoadPart", "IfcRailwayPart",
+    "IfcMarinePart",
+})  # fmt: skip
+
+
 @dataclass(frozen=True)
 class ModelContext:
     """Indexes built once per audit so rules stay O(1) per element."""
@@ -60,6 +67,7 @@ class ModelContext:
     children: dict[str, tuple[Element, ...]]
     by_global_id: dict[str, tuple[Element, ...]]
     storey_ids: frozenset[str]
+    facility_ids: frozenset[str]  # IFC 4.3 infrastructure spatial structure (facilities and their parts)
 
     @classmethod
     def build(cls, snap: Snapshot) -> ModelContext:
@@ -70,11 +78,13 @@ class ModelContext:
             if e.parent_global_id:
                 children[e.parent_global_id].append(e)
         storeys = frozenset(n.global_id for n in snap.spatial if n.ifc_class == "IfcBuildingStorey")
+        facilities = frozenset(n.global_id for n in snap.spatial if n.ifc_class in FACILITY_CLASSES)
         return cls(
             snap,
             {k: tuple(v) for k, v in children.items()},
             {k: tuple(v) for k, v in by_gid.items()},
             storeys,
+            facilities,
         )
 
 
@@ -113,9 +123,16 @@ def ruleset_version(rules: Iterable[Rule]) -> str:
 
 
 @cache
+def _schema(name: str):  # noqa: ANN202 - ifcopenshell wrapper type
+    """FILE_SCHEMA names the release ('IFC4X3'); ifcopenshell registers the addendum ('IFC4X3_ADD2')."""
+    addenda = sorted(n for n in wrapper.schema_names() if n.upper().startswith(f"{name.upper()}_"))
+    return wrapper.schema_by_name(addenda[-1] if addenda else name)
+
+
+@cache
 def is_subclass(schema: str, ifc_class: str, parent: str) -> bool:
     try:
-        decl = wrapper.schema_by_name(schema).declaration_by_name(ifc_class)
+        decl = _schema(schema).declaration_by_name(ifc_class)
     except (RuntimeError, IndexError):  # unknown class name in this schema
         return ifc_class == parent
     while decl is not None:

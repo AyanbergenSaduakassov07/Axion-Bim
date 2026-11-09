@@ -16,7 +16,17 @@ export function Overview() {
   return (
     <div className="mx-auto max-w-6xl space-y-4">
       <h1 className="text-lg font-semibold">{project?.name ?? `Project ${projectId}`}</h1>
-      <Panel title="Models" actions={<NameForm label="Model" path={`/projects/${projectId}/models`} invalidate={["models", projectId]} />}>
+      <Panel
+        title="Models"
+        actions={
+          <NameForm
+            label="Model"
+            path={`/projects/${projectId}/models`}
+            invalidate={["models", projectId]}
+            onCreated={(id) => setParams({ model: String(id) })}
+          />
+        }
+      >
         <Q q={models} empty={(d) => d.length === 0 && "No models yet. A model holds the revisions of one IFC file."}>
           {(ms: Model[]) => (
             <div role="tablist" className="flex flex-wrap gap-2">

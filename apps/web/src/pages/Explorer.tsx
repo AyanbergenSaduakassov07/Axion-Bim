@@ -167,7 +167,13 @@ function ElementPanel({ revisionId, globalId, findings }: { revisionId: number; 
             <Rows rows={el.quantities.map((x) => [`${x.qto}.${x.name}`, `${fmt(x.value, 3)} ${x.unit ?? "(unit not declared)"} · ${x.method}`])} />
           </Panel>
           <Panel title="Properties">
-            <Rows rows={el.properties.map((p) => [`${p.pset}.${p.name}`, String(p.value ?? "—")])} />
+            {el.properties.length === 0 && <p className="text-muted">None declared.</p>}
+            {[...byPset(el.properties)].map(([pset, props]) => (
+              <div key={pset} className="mb-2 last:mb-0">
+                <div className="mb-0.5 truncate text-xs font-medium" title={pset}>{pset}</div>
+                <Rows rows={props.map((p) => [p.name, value(p.value)])} />
+              </div>
+            ))}
           </Panel>
           <Panel title="Materials">
             <Rows rows={el.materials.map((m) => [m.name, m.kind])} />
@@ -178,14 +184,23 @@ function ElementPanel({ revisionId, globalId, findings }: { revisionId: number; 
   );
 }
 
+function byPset<T extends { pset: string }>(props: T[]): Map<string, T[]> {
+  const m = new Map<string, T[]>();
+  for (const p of props) m.set(p.pset, [...(m.get(p.pset) ?? []), p]);
+  return m;
+}
+
+const value = (v: unknown) =>
+  typeof v === "number" ? v.toLocaleString("en-US", { maximumFractionDigits: 3 }) : String(v ?? "—");
+
 function Rows({ rows }: { rows: [string, string][] }) {
   if (rows.length === 0) return <p className="text-muted">None declared.</p>;
   return (
-    <dl className="grid grid-cols-[1fr_auto] gap-x-2 gap-y-0.5 text-xs">
+    <dl className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-x-2 gap-y-0.5 text-xs">
       {rows.map(([k, v]) => (
         <div key={k} className="contents">
           <dt className="truncate text-muted" title={k}>{k}</dt>
-          <dd className="text-right">{v}</dd>
+          <dd className="break-words text-right">{v}</dd>
         </div>
       ))}
     </dl>

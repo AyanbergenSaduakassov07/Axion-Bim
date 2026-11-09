@@ -1,20 +1,31 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { postJson, type Project } from "../api/client";
 import { useProjects } from "../api/queries";
 import { btnPrimary, date, ErrorState, input, Panel, Q } from "../ui";
 
 /** Create-by-name form shared by projects and models. */
-export function NameForm({ label, path, invalidate }: { label: string; path: string; invalidate: unknown[] }) {
+export function NameForm({
+  label,
+  path,
+  invalidate,
+  onCreated,
+}: {
+  label: string;
+  path: string;
+  invalidate: unknown[];
+  onCreated?: (id: number) => void;
+}) {
   const [name, setName] = useState("");
   const qc = useQueryClient();
   const m = useMutation({
-    mutationFn: (n: string) => postJson(path, { name: n }),
-    onSuccess: () => {
+    mutationFn: (n: string) => postJson<{ id: number }>(path, { name: n }),
+    onSuccess: (created) => {
       setName("");
       qc.invalidateQueries({ queryKey: invalidate });
+      onCreated?.(created.id);
     },
   });
   const submit = (e: { preventDefault(): void }) => {
@@ -45,10 +56,11 @@ export function NameForm({ label, path, invalidate }: { label: string; path: str
 
 export function Projects() {
   const q = useProjects();
+  const navigate = useNavigate();
   return (
     <div className="mx-auto max-w-4xl space-y-4">
       <h1 className="text-lg font-semibold">Projects</h1>
-      <NameForm label="Project" path="/projects" invalidate={["projects"]} />
+      <NameForm label="Project" path="/projects" invalidate={["projects"]} onCreated={(id) => navigate(`/projects/${id}`)} />
       <Panel title="All projects">
         <Q q={q} empty={(d) => d.length === 0 && "No projects yet. Create one above."}>
           {(projects: Project[]) => (

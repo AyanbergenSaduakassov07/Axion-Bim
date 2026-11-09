@@ -157,3 +157,13 @@ anywhere, so no nonces. Found while testing: nginx's mime.types has no `.mjs`, s
 went out as `application/octet-stream` and, with `nosniff`, the browser refused the module worker and the
 viewer hung on "Preparing 3D model". A `location ~ \.mjs$` with `default_type text/javascript` fixes it.
 Browsers that cached the old response need one hard reload.
+
+## D-28 · IFC 4.3 infrastructure models (2026-11-10)
+Found by auditing the buildingSMART Chesapeake Bay Bridge-Tunnel sample (IFC4X3, 25 km, 17.5k elements).
+(1) Files declare `FILE_SCHEMA(('IFC4X3'))` but ifcopenshell registers `IFC4X3_ADD2`, so every subclass check
+raised and element rules were skipped silently. `engine._schema` resolves a release name to its newest
+registered addendum. (2) Infrastructure has no storeys: SPA-001 v2 checks containment in any IfcFacility
+/ facility part when the model has no IfcBuildingStorey, and is not_evaluated only when it has neither.
+(3) Viewer: ThatOpen's camera caps orbit distance at 300 m and the far plane clipped km-scale models, so the
+corridor rendered empty. `fit()` grows `maxDistance` and `far` (near = far / 1e5) to the model's bounding sphere.
+IfcSpace volumes are hidden in 3D (they covered the elements inside and are not elements; picks 404'd).

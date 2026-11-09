@@ -335,7 +335,7 @@
     "file_sha256": "<volatile>",
     "geometry": false,
     "ids_hash": "57148fa81f05d01a105f9151b7e70329a5b2ac49bbb9ac63ba3c3cbd7b52463b",
-    "ruleset_version": "93467e4c74ea691c",
+    "ruleset_version": "0fc8637ff9045ac2",
     "scoring_config": "2026.11-1"
   },
   "rules": [
@@ -434,13 +434,13 @@
         "IfcElement"
       ],
       "category": "spatial",
-      "description": "IfcRelContainedInSpatialStructure to an IfcBuildingStorey, directly or via an aggregate.",
+      "description": "Buildings: IfcRelContainedInSpatialStructure to an IfcBuildingStorey, directly or via an aggregate. IFC 4.3 infrastructure (no storeys, has IfcFacility/-Part): contained in any spatial element.",
       "dimension": "spatial",
       "id": "SPA-001",
-      "name": "Element is contained in a storey",
+      "name": "Element is contained in the spatial structure",
       "scope": "element",
       "severity": "medium",
-      "version": "1"
+      "version": "2"
     },
     {
       "applies_to": [],

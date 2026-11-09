@@ -68,3 +68,37 @@ def test_audit_prints_mhi_table_and_gate(ifc_path, tmp_path, monkeypatch):
     assert "MHI" in result.output and "model_consistency" in result.output
     assert "BLOCKED" in result.output
     assert json.loads(out.read_text())["mhi"]["blocked"] is True
+
+
+def test_compare_three_revisions_reports_events_and_mhi_delta(ifc_path, tmp_path, monkeypatch):
+    monkeypatch.setenv("AXIOM_DATA_DIR", str(tmp_path / "data"))
+    monkeypatch.delenv("AXIOM_DB_URL", raising=False)
+    files = [str(ifc_path(r)) for r in ("rev1", "rev2", "rev3")]
+    out = tmp_path / "cmp.json"
+    ids = "examples/ids/structural-basic.ids"
+    result = runner.invoke(app, ["compare", *files, "--ids", ids, "--json", str(out)])
+    assert result.exit_code == 0, result.output
+    assert "revision 2 -> 3" in result.output and "recurring" in result.output and "MHI" in result.output
+    report = json.loads(out.read_text())
+    assert [c["summary"]["changes"] for c in report] == [
+        {"added": 1, "removed": 1, "modified": 4},
+        {"modified": 2},
+    ]
+    events = {(e["rule_id"], e["element_name"]): e["event"] for e in report[1]["events"]}
+    assert events[("IDS:STR-WALL", "W1")] == "new" and events[("MAT-001", "C2")] == "recurring"
+    assert any(c["path"] == "pset:Pset_WallCommon.FireRating" for c in report[0]["changes"])
+
+
+def test_compare_needs_two_files(ifc_path, tmp_path, monkeypatch):
+    monkeypatch.setenv("AXIOM_DATA_DIR", str(tmp_path / "data"))
+    result = runner.invoke(app, ["compare", str(ifc_path("rev1"))])
+    assert result.exit_code == 2
+
+
+def test_audit_auto_compares_with_previous_revision(ifc_path, tmp_path, monkeypatch):
+    monkeypatch.setenv("AXIOM_DATA_DIR", str(tmp_path / "data"))
+    monkeypatch.delenv("AXIOM_DB_URL", raising=False)
+    runner.invoke(app, ["audit", str(ifc_path("rev1")), "--model", "S"])
+    result = runner.invoke(app, ["audit", str(ifc_path("rev2")), "--model", "S"])
+    assert result.exit_code == 0, result.output
+    assert "vs revision 1" in result.output and "resolved 2" in result.output

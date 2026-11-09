@@ -1,0 +1,26 @@
+# Hand-authored from the fixture specs in factory.py (rev1 = missing_material).
+# rev1->rev2: +B5, -W6, C1 C30/37->S355, C2/C3 material added, W5 FireRating REI60->REI90
+# rev2->rev3: C2 loses material again, W1 loses FireRating
+rev1_rev2:
+  added: [B5]
+  removed: [W6]
+  modified:
+    C1: [material]
+    C2: [material]
+    C3: [material]
+    W5: [pset:Pset_WallCommon.FireRating]
+  events:            # built-in rules
+    MAT-001: {C2: resolved, C3: resolved}
+  ids_events:        # examples/ids/structural-basic.ids
+    IDS:STR-COL: {C2: resolved, C3: resolved}
+rev2_rev3:
+  added: []
+  removed: []
+  modified:
+    C2: [material]
+    W1: [pset:Pset_WallCommon.FireRating]
+  events:
+    MAT-001: {C2: recurring}
+  ids_events:
+    IDS:STR-COL: {C2: recurring}
+    IDS:STR-WALL: {W1: new}

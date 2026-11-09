@@ -174,3 +174,7 @@ def _element(r: Row, children: dict[str, dict[int, list[Row]]]) -> Element:
             ClassificationRef(**_fields(c, ClassificationRef)) for c in children["classifications"][r.id]
         ),
     )
+
+
+def revision_seq(conn: Connection, revision_id: int) -> int:
+    return conn.execute(select(revisions.c.seq).where(revisions.c.id == revision_id)).scalar_one()

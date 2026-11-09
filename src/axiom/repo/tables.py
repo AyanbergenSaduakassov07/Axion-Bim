@@ -183,3 +183,45 @@ findings = Table(
     Column("message", Text, nullable=False),
     Column("evidence_json", JSON, nullable=False),
 )
+
+comparisons = Table(
+    "comparisons",
+    metadata,
+    _id(),
+    _fk("base_revision_id", "revisions"),
+    _fk("head_revision_id", "revisions"),
+    Column("base_audit_run_id", Integer, ForeignKey("audit_runs.id", ondelete="SET NULL")),
+    Column("head_audit_run_id", Integer, ForeignKey("audit_runs.id", ondelete="SET NULL")),
+    Column("identity_unstable", Boolean, nullable=False),
+    Column("summary_json", JSON, nullable=False),  # change/event counts, MHI delta, ids-hash mismatch
+    _created(),
+)
+
+revision_changes = Table(
+    "revision_changes",
+    metadata,
+    _id(),
+    _fk("comparison_id", "comparisons"),
+    Column("kind", String(8), nullable=False),  # added | removed | modified
+    Column("global_id", String(22), nullable=False),
+    Column("ifc_class", String, nullable=False),
+    Column("path", String),
+    Column("old_json", JSON),
+    Column("new_json", JSON),
+)
+
+finding_events = Table(
+    "finding_events",
+    metadata,
+    _id(),
+    _fk("comparison_id", "comparisons"),
+    Column(
+        "event", String(10), nullable=False
+    ),  # new | resolved | persistent | recurring | changed | uncertain
+    Column("identity_key", String(40), nullable=False, index=True),
+    Column("rule_id", String, nullable=False),
+    Column("global_id", String(22)),
+    Column("element_name", String),
+    Column("severity", String(8), nullable=False),
+    Column("note", String),
+)

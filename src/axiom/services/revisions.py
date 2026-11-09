@@ -53,3 +53,8 @@ def ingest(engine: Engine, model_id: int, path: str | Path, *, files_dir: Path) 
 def load_snapshot(engine: Engine, revision_id: int) -> Snapshot:
     with engine.connect() as conn:
         return repo.load_snapshot(conn, revision_id)
+
+
+def revision_seq(engine: Engine, revision_id: int) -> int:
+    with engine.connect() as conn:
+        return repo.revision_seq(conn, revision_id)

@@ -12,7 +12,9 @@ import pytest
 from tests.conftest import EXPECTED_DIR, load_expected
 from tests.fixtures.factory import build_fixture
 
-FIXTURES = sorted(p.stem for p in EXPECTED_DIR.glob("*.yaml"))
+FIXTURES = sorted(
+    p.stem for p in EXPECTED_DIR.glob("*.yaml") if p.stem != "revisions"
+)  # revisions = pair goldens
 STRUCTURAL = ("IfcColumn", "IfcBeam", "IfcSlab")
 
 

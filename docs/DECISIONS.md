@@ -55,3 +55,11 @@ Property values stored typed (`value_type` + `value_text`/`value_num`), not JSON
 - Coverage = (pass+fail+warning)/(that + not_evaluated + error). IDS subtype coverage gaps (D-14) add one `not_evaluated` per skipped entity, so coverage drops instead of hiding them.
 - Score rounded to 6 dp (float-sum noise); null when no dimension evaluated. Critical gate = any `critical` `fail` finding → `blocked`, identity keys listed.
 - MET-001 (naming) and QTO-001 feed `property_completeness`; GEO-002 feeds `model_consistency`.
+
+## D-16 · Revision engine details (P06)
+- Diff matches by GlobalId; duplicated GlobalIds in either snapshot are excluded and listed as uncertain. Quantities compare on `si_value` with `QUANTITY_REL_TOL=1e-6`, so a unit change alone is no change. Removed property → `new=None`.
+- `identity_unstable` when removed AND added both exceed 50% of a class in the base; then every event is `uncertain`.
+- History = latest audit of every audited revision of the model up to base (by seq). `changed` = same identity key, different status/severity/actual/evidence.
+- A rule run on only one side (e.g. IDS used in one audit) cannot resolve or introduce findings: its events are `uncertain` with note `rule_not_evaluated_in_base|head`. Ruleset/IDS hash mismatch is flagged in `comparisons.summary_json`.
+- Impact = non-persistent events on elements that also changed, with the change paths. Not done: "rules whose applicability covers the changed element" (needs applicability introspection), `--ifcdiff` cross-check (optional).
+- `axiom audit` auto-compares with the previous revision of the same `--model`; the default model name is the file stem, so differently named files are separate models unless `--model` is given.

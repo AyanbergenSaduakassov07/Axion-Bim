@@ -11,7 +11,7 @@ Edit only the Status cell. One prompt per session; `/clear` between.
 | P03 | [Rule engine + Finding + `axiom audit`](P03-rules.md) | P02 | done | M1 |
 | P04 | [IDS validation via IfcTester](P04-ids.md) | P03 | done | M1 |
 | P05 | [Model Health Index](P05-mhi.md) | P03 | done | M1 |
-| P06 | [Revision engine + issue regression](P06-revision.md) | P04, P05 | todo | M2 |
+| P06 | [Revision engine + issue regression](P06-revision.md) | P04, P05 | done | M2 |
 | P07 | [Quantity intelligence](P07-quantities.md) | P02 | todo | M2 |
 | P08 | [FastAPI + subprocess job runner](P08-api-jobs.md) | P06 | todo | M3 |
 | P09 | [Web shell + Quality Center](P09-web-quality.md) | P08 | todo | M3 |

@@ -14,11 +14,15 @@ from axiom.extract import extract, profile
 from axiom.findings import CheckStatus
 from axiom.repo.db import get_engine, migrate
 from axiom.score import MhiResult
-from axiom.services import audits, projects, revisions
+from axiom.services import audits, comparisons, projects, revisions
+from axiom.services.comparisons import ComparisonResult
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 STATUSES = [s.value for s in CheckStatus]
 ExistingFile = typer.Argument(..., exists=True, dir_okay=False, readable=True)
+IdsOption = typer.Option(
+    None, "--ids", exists=True, dir_okay=False, readable=True, help="Also check this IDS file."
+)
 
 
 @app.callback()
@@ -69,21 +73,11 @@ def audit(
     project: str = typer.Option("local", help="Project to file the model under."),
     model: str | None = typer.Option(None, help="Model name; defaults to the file stem."),
     json_out: Path | None = typer.Option(None, "--json", help="Write the full JSON report here."),
-    ids: Path | None = typer.Option(
-        None, "--ids", exists=True, dir_okay=False, readable=True, help="Also check this IDS file."
-    ),
+    ids: Path | None = IdsOption,
 ) -> None:
     """Ingest (if new) and audit an IFC file with the built-in rules (and an IDS file, if given)."""
-    settings = load_settings()
-    engine = get_engine(settings.db_url)
-    migrate(engine)
-    model_id = projects.ensure_model(engine, project, model or path.stem)
-    ingested = revisions.ingest(engine, model_id, path, files_dir=settings.files_dir)
-    try:
-        result = audits.run_audit(engine, ingested.revision_id, ids_path=ids, files_dir=settings.files_dir)
-    except ValueError as e:
-        typer.echo(f"error: {e}", err=True)
-        raise typer.Exit(2) from e
+    engine, model_id = _open(project, model or path.stem)
+    ingested, result = _ingest_and_audit(engine, model_id, path, ids)
     typer.echo(
         f"revision {ingested.seq} ({'new' if ingested.created else 'already ingested'})  "
         f"audit #{result.audit_run_id}  ruleset {result.reproducibility['ruleset_version']}"
@@ -97,6 +91,8 @@ def audit(
         if f.expected or f.actual:
             typer.echo(f"           expected: {f.expected or '-'}  |  actual: {f.actual or '-'}")
     _print_mhi(result.mhi)
+    if (cmp := comparisons.compare_with_previous(engine, ingested.revision_id)) is not None:
+        _print_comparison(engine, cmp, events=False)
     if json_out:
         report = {
             "mhi": asdict(result.mhi),
@@ -106,6 +102,93 @@ def audit(
         }
         json_out.write_text(json.dumps(report, indent=2))
         typer.echo(f"report written to {json_out}")
+
+
+@app.command()
+def compare(
+    paths: list[Path] = typer.Argument(..., exists=True, dir_okay=False, readable=True),
+    project: str = typer.Option("local", help="Project to file the model under."),
+    model: str | None = typer.Option(None, help="Model name; defaults to the first file's stem."),
+    ids: Path | None = IdsOption,
+    json_out: Path | None = typer.Option(None, "--json", help="Write the comparisons as JSON here."),
+) -> None:
+    """Audit two or more revisions of one model (in order) and compare each with the one before."""
+    if len(paths) < 2:
+        typer.echo("error: compare needs at least two IFC files", err=True)
+        raise typer.Exit(2)
+    engine, model_id = _open(project, model or paths[0].stem)
+    revs = [_ingest_and_audit(engine, model_id, p, ids)[0].revision_id for p in paths]
+    results = [comparisons.compare(engine, a, b) for a, b in zip(revs, revs[1:], strict=False)]
+    for r in results:
+        _print_comparison(engine, r, events=True)
+    if json_out:
+        json_out.write_text(json.dumps([_comparison_json(r) for r in results], indent=2, default=str))
+        typer.echo(f"report written to {json_out}")
+
+
+def _open(project: str, model: str):
+    settings = load_settings()
+    engine = get_engine(settings.db_url)
+    migrate(engine)
+    return engine, projects.ensure_model(engine, project, model)
+
+
+def _ingest_and_audit(engine, model_id: int, path: Path, ids: Path | None):
+    files_dir = load_settings().files_dir
+    ingested = revisions.ingest(engine, model_id, path, files_dir=files_dir)
+    try:
+        return ingested, audits.run_audit(engine, ingested.revision_id, ids_path=ids, files_dir=files_dir)
+    except ValueError as e:
+        typer.echo(f"error: {e}", err=True)
+        raise typer.Exit(2) from e
+
+
+def _print_comparison(engine, r: ComparisonResult, *, events: bool) -> None:
+    base, head = (
+        revisions.revision_seq(engine, r.base_revision_id),
+        revisions.revision_seq(engine, r.head_revision_id),
+    )
+    s, m = r.summary, r.summary["mhi"]
+    delta = "-" if m["delta"] is None else f"{m['delta']:+.1f}"
+    label = f"revision {base} -> {head}" if events else f"vs revision {base}:"
+    changes = ", ".join(f"{k} {v}" for k, v in sorted(s["changes"].items())) or "no element changes"
+    mhi = f"{_fmt(m['base'], '.1f').strip()} -> {_fmt(m['head'], '.1f').strip()} ({delta})"
+    typer.echo(f"{label}  {changes}  |  MHI {mhi}")
+    typer.echo("  events: " + ", ".join(f"{k} {v}" for k, v in sorted(s["events"].items())))
+    for flag, text in (("ids_mismatch", "IDS file differs"), ("ruleset_mismatch", "rule set differs")):
+        if s[flag]:
+            typer.echo(f"  warning: {text} between the two audits; affected events are uncertain")
+    if r.diff.identity_unstable:
+        classes = ", ".join(s["unstable_classes"])
+        typer.echo(f"  warning: GlobalIds look regenerated for {classes}; all events uncertain")
+    moved = [f"{k} {v:+.1f}" for k, v in m["dimensions"].items() if round(v, 1)]
+    if moved:
+        typer.echo("  MHI by dimension: " + ", ".join(moved))
+    if events:
+        _print_events(r)
+
+
+def _print_events(r: ComparisonResult) -> None:
+    for cls, kinds in r.summary["changes_by_class"].items():
+        typer.echo(f"  {cls:<20} " + ", ".join(f"{k} {v}" for k, v in sorted(kinds.items())))
+    why = {(i["global_id"], i["rule_id"]): ", ".join(i["paths"]) for i in r.summary["impact"]}
+    for e in r.events:
+        if e.event == "persistent":
+            continue
+        cause = why.get((e.global_id, e.rule_id))
+        detail = f"<- {cause} changed" if cause else (e.note or "")
+        typer.echo(f"  {e.event:<10} {e.rule_id:<14} {e.element_name or e.global_id or '-':<8} {detail}")
+
+
+def _comparison_json(r: ComparisonResult) -> dict:
+    return {
+        "comparison_id": r.comparison_id,
+        "base_revision_id": r.base_revision_id,
+        "head_revision_id": r.head_revision_id,
+        "summary": r.summary,
+        "changes": [asdict(c) for c in r.diff.changes],
+        "events": [asdict(e) for e in r.events],
+    }
 
 
 def _fmt(v: float | None, spec: str = ">7.1f") -> str:

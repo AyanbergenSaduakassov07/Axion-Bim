@@ -38,3 +38,23 @@ def test_audit_writes_json_report_with_reproducibility(ifc_path, tmp_path, monke
     assert sorted(f["element_name"] for f in report["findings"]) == ["C2", "C3"]
     assert report["counts"]["MAT-001"] == {"pass": 8, "fail": 2}
     assert (tmp_path / "data" / "axiom.db").exists()
+
+
+def test_audit_with_ids_shows_expected_vs_actual(ifc_path, tmp_path, monkeypatch):
+    monkeypatch.setenv("AXIOM_DATA_DIR", str(tmp_path / "data"))
+    monkeypatch.delenv("AXIOM_DB_URL", raising=False)
+    ids = "examples/ids/structural-basic.ids"
+    result = runner.invoke(app, ["audit", str(ifc_path("missing_props")), "--ids", ids])
+    assert result.exit_code == 0, result.output
+    assert "IDS:STR-WALL" in result.output and "W3" in result.output
+    assert "expected: FireRating data shall be provided in the dataset Pset_WallCommon" in result.output
+    assert "actual: The property set does not contain the required property" in result.output
+
+
+def test_audit_with_invalid_ids_fails_cleanly(ifc_path, tmp_path, monkeypatch):
+    monkeypatch.setenv("AXIOM_DATA_DIR", str(tmp_path / "data"))
+    bad = tmp_path / "bad.ids"
+    bad.write_text("<ids/>")
+    result = runner.invoke(app, ["audit", str(ifc_path("clean")), "--ids", str(bad)])
+    assert result.exit_code == 2
+    assert "invalid IDS" in result.output

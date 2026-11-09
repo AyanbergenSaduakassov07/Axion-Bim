@@ -40,3 +40,11 @@ From P00: Revit-exported Qto values can be off by unit factors (slab GrossVolume
 
 ## D-13 Snapshot storage details — 2026-11-09
 Property values stored typed (`value_type` + `value_text`/`value_num`), not JSON, so rules and SQL compare natively; `load_snapshot(ingest(x)) == extract(x)` is a test invariant. Revisions are unique per (model, file sha256) and numbered `seq` per model. Openings/voids (IfcFeatureElementSubtraction) are excluded from elements. Profile treats material as expected only on primary structural classes; rule sets own the real applicability (P03).
+
+## D-14 IDS adapter mapping — 2026-11-09
+- One IDS spec = one rule `IDS:<identifier or name>`, version = IDS file sha256[:12]; counts are per (applicable entity, requirement facet). Duplicate ids get `#<spec index>`.
+- Status: spec for another schema -> `not_applicable` (`should_filter_version=True`); unevaluated -> `not_evaluated`; zero applicable -> `fail` if required (minOccurs>0) else `not_applicable`; prohibited (maxOccurs=0) -> one `fail` per matching entity.
+- Severity per requirement facet: `optional` cardinality -> medium, else high. Coverage gaps (exact-class entity facet skipping subtypes, e.g. IfcWallStandardCase) -> `warning`/`info`, issue_key `<i>/coverage/subtypes`.
+- IfcTester 0.9.0 drops spec `@identifier`; `load_ids` decodes once and restores it. It also fails the suite case "optional attribute passes if null"; we report its verdict unchanged and track it as a strict xfail.
+- IDS files stored content-addressed next to IFCs (`files/<sha256>.ids`), hash in `audit_runs.ids_hash`. `ruleset_version` still identifies built-in rules only.
+- Conformance subset: 13 buildingSMART IDS test cases vendored unmodified (CC BY-ND 4.0, attribution in NOTICE).

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ids xmlns="http://standards.buildingsmart.org/IDS" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
+  <info>
+    <title>Axiom structural basic</title>
+    <version>1</version>
+    <description>Minimum information for structural members and walls. Information requirements only; says nothing about structural adequacy.</description>
+  </info>
+  <specifications>
+    <specification name="Columns have material and LoadBearing" identifier="STR-COL" ifcVersion="IFC4">
+      <applicability minOccurs="0" maxOccurs="unbounded"><entity><name><simpleValue>IFCCOLUMN</simpleValue></name></entity></applicability>
+      <requirements>
+        <material/>
+        <property dataType="IFCBOOLEAN"><propertySet><simpleValue>Pset_ColumnCommon</simpleValue></propertySet><baseName><simpleValue>LoadBearing</simpleValue></baseName></property>
+      </requirements>
+    </specification>
+    <specification name="Beams have material and LoadBearing" identifier="STR-BEAM" ifcVersion="IFC4">
+      <applicability minOccurs="0" maxOccurs="unbounded"><entity><name><simpleValue>IFCBEAM</simpleValue></name></entity></applicability>
+      <requirements>
+        <material/>
+        <property dataType="IFCBOOLEAN"><propertySet><simpleValue>Pset_BeamCommon</simpleValue></propertySet><baseName><simpleValue>LoadBearing</simpleValue></baseName></property>
+      </requirements>
+    </specification>
+    <specification name="Walls have FireRating" identifier="STR-WALL" ifcVersion="IFC4">
+      <applicability minOccurs="0" maxOccurs="unbounded"><entity><name><simpleValue>IFCWALL</simpleValue></name></entity></applicability>
+      <requirements>
+        <property dataType="IFCLABEL"><propertySet><simpleValue>Pset_WallCommon</simpleValue></propertySet><baseName><simpleValue>FireRating</simpleValue></baseName></property>
+      </requirements>
+    </specification>
+  </specifications>
+</ids>

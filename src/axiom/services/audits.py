@@ -5,14 +5,18 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from pathlib import Path
 
 from sqlalchemy import Engine
 
 from axiom import __version__
+from axiom.extract import file_sha256
 from axiom.findings import Finding
+from axiom.ids import run_ids
 from axiom.repo import audits as repo
 from axiom.rules import run_rules
-from axiom.services.revisions import load_snapshot
+from axiom.rules.engine import AuditOutput
+from axiom.services.revisions import load_snapshot, store_file
 
 log = logging.getLogger(__name__)
 
@@ -26,15 +30,26 @@ class AuditResult:
     reproducibility: dict
 
 
-def run_audit(engine: Engine, revision_id: int) -> AuditResult:
+def run_audit(
+    engine: Engine, revision_id: int, *, ids_path: Path | None = None, files_dir: Path | None = None
+) -> AuditResult:
+    """Built-in rules, plus IDS checks when `ids_path` is given (needs `files_dir`, where the IFC lives)."""
     snap = load_snapshot(engine, revision_id)
     with engine.connect() as conn:
         model_id = repo.model_id_for_revision(conn, revision_id)
     out = run_rules(snap, model_id)
+    ids_hash = None
+    if ids_path is not None:
+        if files_dir is None:
+            raise ValueError("files_dir is required to run IDS checks")
+        ids_hash = file_sha256(Path(ids_path))
+        ifc = files_dir / f"{snap.meta.file_sha256}.ifc"
+        out = _merge(out, run_ids(ifc, ids_path, model_id))
+        store_file(Path(ids_path), files_dir, ids_hash, ".ids")
     repro = {
         "file_sha256": snap.meta.file_sha256,
         "ruleset_version": out.ruleset_version,
-        "ids_hash": None,
+        "ids_hash": ids_hash,
         "engine_version": __version__,
         "scoring_config": None,
         "created_at": datetime.now(UTC).isoformat(timespec="seconds"),
@@ -42,7 +57,7 @@ def run_audit(engine: Engine, revision_id: int) -> AuditResult:
     summary = {"counts": out.counts, "rules": [vars(m) for m in out.rules], "reproducibility": repro}
     row = {
         "ruleset_version": out.ruleset_version,
-        "ids_hash": None,
+        "ids_hash": ids_hash,
         "engine_version": __version__,
         "status": "completed",
         "summary_json": summary,
@@ -51,6 +66,16 @@ def run_audit(engine: Engine, revision_id: int) -> AuditResult:
         run = repo.insert_audit_run(conn, revision_id, row, out.findings)
     log.info("audit %s: %d findings on revision %s", run.id, len(out.findings), revision_id)
     return AuditResult(run.id, revision_id, out.findings, out.counts, repro)
+
+
+def _merge(rules: AuditOutput, checks: AuditOutput) -> AuditOutput:
+    """IDS results join rule results; ruleset_version keeps identifying the built-in rules only."""
+    return AuditOutput(
+        rules.findings + checks.findings,
+        {**rules.counts, **checks.counts},
+        rules.ruleset_version,
+        rules.rules + checks.rules,
+    )
 
 
 def load_findings(engine: Engine, audit_run_id: int) -> tuple[Finding, ...]:

@@ -67,23 +67,33 @@ def audit(
     project: str = typer.Option("local", help="Project to file the model under."),
     model: str | None = typer.Option(None, help="Model name; defaults to the file stem."),
     json_out: Path | None = typer.Option(None, "--json", help="Write the full JSON report here."),
+    ids: Path | None = typer.Option(
+        None, "--ids", exists=True, dir_okay=False, readable=True, help="Also check this IDS file."
+    ),
 ) -> None:
-    """Ingest (if new) and audit an IFC file with the built-in rule set."""
+    """Ingest (if new) and audit an IFC file with the built-in rules (and an IDS file, if given)."""
     settings = load_settings()
     engine = get_engine(settings.db_url)
     migrate(engine)
     model_id = projects.ensure_model(engine, project, model or path.stem)
     ingested = revisions.ingest(engine, model_id, path, files_dir=settings.files_dir)
-    result = audits.run_audit(engine, ingested.revision_id)
+    try:
+        result = audits.run_audit(engine, ingested.revision_id, ids_path=ids, files_dir=settings.files_dir)
+    except ValueError as e:
+        typer.echo(f"error: {e}", err=True)
+        raise typer.Exit(2) from e
     typer.echo(
         f"revision {ingested.seq} ({'new' if ingested.created else 'already ingested'})  "
         f"audit #{result.audit_run_id}  ruleset {result.reproducibility['ruleset_version']}"
     )
-    typer.echo(f"{'rule':<9}" + "".join(f"{s:>15}" for s in STATUSES))
+    width = max(9, *(len(k) + 1 for k in result.counts))
+    typer.echo(f"{'rule':<{width}}" + "".join(f"{s:>15}" for s in STATUSES))
     for rule_id, counts in result.counts.items():
-        typer.echo(f"{rule_id:<9}" + "".join(f"{counts.get(s, 0):>15}" for s in STATUSES))
+        typer.echo(f"{rule_id:<{width}}" + "".join(f"{counts.get(s, 0):>15}" for s in STATUSES))
     for f in result.findings:
         typer.echo(f"  {f.severity:<8} {f.rule_id}  {f.element_name or f.global_id or '-':<16} {f.message}")
+        if f.expected or f.actual:
+            typer.echo(f"           expected: {f.expected or '-'}  |  actual: {f.actual or '-'}")
     if json_out:
         report = {
             "reproducibility": result.reproducibility,

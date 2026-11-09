@@ -7,3 +7,6 @@ Axiom BIM is MIT-licensed (see LICENSE). It depends on, but does not bundle or m
 - three.js — MIT — https://threejs.org
 
 Third-party IFC sample models are not distributed; see examples/models/SOURCES.md for any that are.
+
+tests/fixtures/ids/conformance/ — buildingSMART IDS test cases, (c) buildingSMART International Ltd.,
+CC BY-ND 4.0, redistributed unmodified. See the README in that folder.

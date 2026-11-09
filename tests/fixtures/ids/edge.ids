@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ids xmlns="http://standards.buildingsmart.org/IDS" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
+  <info><title>edge</title></info>
+  <specifications>
+    <specification name="footings required" ifcVersion="IFC4">
+      <applicability minOccurs="1" maxOccurs="unbounded"><entity><name><simpleValue>IFCFOOTING</simpleValue></name></entity></applicability>
+      <requirements><material/></requirements>
+    </specification>
+    <specification name="footings optional" ifcVersion="IFC4">
+      <applicability minOccurs="0" maxOccurs="unbounded"><entity><name><simpleValue>IFCFOOTING</simpleValue></name></entity></applicability>
+      <requirements><material/></requirements>
+    </specification>
+    <specification name="no beams allowed" ifcVersion="IFC4">
+      <applicability minOccurs="0" maxOccurs="0"><entity><name><simpleValue>IFCBEAM</simpleValue></name></entity></applicability>
+    </specification>
+    <specification name="ifc2x3 only" ifcVersion="IFC2X3">
+      <applicability minOccurs="0" maxOccurs="unbounded"><entity><name><simpleValue>IFCWALL</simpleValue></name></entity></applicability>
+      <requirements><attribute cardinality="prohibited"><name><simpleValue>Description</simpleValue></name></attribute></requirements>
+    </specification>
+  </specifications>
+</ids>

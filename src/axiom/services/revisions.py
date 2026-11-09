@@ -24,8 +24,9 @@ class IngestResult:
     created: bool
 
 
-def store_file(path: Path, files_dir: Path, sha256: str) -> Path:
-    dest = files_dir / f"{sha256}.ifc"
+def store_file(path: Path, files_dir: Path, sha256: str, suffix: str = ".ifc") -> Path:
+    """Content-addressed copy: files_dir/<sha256><suffix>."""
+    dest = files_dir / f"{sha256}{suffix}"
     if not dest.exists():
         files_dir.mkdir(parents=True, exist_ok=True)
         tmp = dest.with_suffix(".part")

@@ -54,3 +54,19 @@ def test_ensure_model_is_get_or_create(ingested):
     assert projects.ensure_model(engine, "Demo", "Structure") == projects.ensure_model(
         engine, "Demo", "Structure"
     )
+
+
+def test_audit_with_ids_merges_findings_and_records_hash(ingested, tmp_path):
+    from tests.test_ids import STRUCTURAL  # noqa: PLC0415
+
+    engine, ingest = ingested
+    result = audits.run_audit(
+        engine, ingest("missing_props"), ids_path=STRUCTURAL, files_dir=tmp_path / "files"
+    )
+    ids_hash = result.reproducibility["ids_hash"]
+    assert len(ids_hash) == 64
+    assert (tmp_path / "files" / f"{ids_hash}.ids").read_bytes() == STRUCTURAL.read_bytes()
+    walls = sorted(f.element_name for f in result.findings if f.rule_id == "IDS:STR-WALL")
+    assert walls == ["W1", "W2", "W3"]
+    assert {"GEO-001", "IDS:STR-WALL"} <= set(result.counts)
+    assert audits.load_findings(engine, result.audit_run_id) == result.findings

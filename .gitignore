@@ -4,7 +4,7 @@ __pycache__/
 node_modules/
 dist/
 data/
-spikes/
+/spikes/
 .env
 .DS_Store
 .playwright-mcp/

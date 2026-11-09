@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ids xmlns="http://standards.buildingsmart.org/IDS" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
+  <info><title>Spike requirements</title></info>
+  <specifications>
+    <specification name="Slabs declare LoadBearing" ifcVersion="IFC4">
+      <applicability minOccurs="1" maxOccurs="unbounded"><entity><name><simpleValue>IFCSLAB</simpleValue></name></entity></applicability>
+      <requirements><property dataType="IFCBOOLEAN"><propertySet><simpleValue>Pset_SlabCommon</simpleValue></propertySet><baseName><simpleValue>LoadBearing</simpleValue></baseName></property></requirements>
+    </specification>
+    <specification name="Walls have FireRating" ifcVersion="IFC4">
+      <applicability minOccurs="1" maxOccurs="unbounded"><entity><name><simpleValue>IFCWALL</simpleValue></name></entity></applicability>
+      <requirements><property dataType="IFCLABEL"><propertySet><simpleValue>Pset_WallCommon</simpleValue></propertySet><baseName><simpleValue>FireRating</simpleValue></baseName></property></requirements>
+    </specification>
+    <specification name="Columns have material" ifcVersion="IFC4">
+      <applicability minOccurs="0" maxOccurs="unbounded"><entity><name><simpleValue>IFCCOLUMN</simpleValue></name></entity></applicability>
+      <requirements><material/></requirements>
+    </specification>
+  </specifications>
+</ids>

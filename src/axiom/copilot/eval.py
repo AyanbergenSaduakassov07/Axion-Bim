@@ -1,4 +1,4 @@
-"""Copilot eval: `uv run python -m axiom.copilot.eval` (from the repo root; needs ANTHROPIC_API_KEY).
+"""Copilot eval: `uv run python -m axiom.copilot.eval` (repo root; needs ANTHROPIC_ or OPENROUTER_API_KEY).
 
 Seeds a throwaway project from the test fixtures (rev1..rev3 + an injection model), asks every question in
 tests/copilot/evals.yaml and grades deterministically: tools called, ids cited, phrases present/forbidden,
@@ -8,7 +8,6 @@ and zero unverified citations. Billed: each run makes ~25 agent loops.
 from __future__ import annotations
 
 import logging
-import os
 import re
 import sys
 import tempfile
@@ -64,16 +63,18 @@ def grade(case: dict, answer: dict, guid: Callable[[str], str]) -> list[str]:
     return fails
 
 
-def main() -> int:
-    if not os.environ.get("ANTHROPIC_API_KEY"):
-        log.warning("ANTHROPIC_API_KEY not set; copilot eval skipped")
+def main(only: frozenset[str] = frozenset()) -> int:
+    from axiom.copilot.agent import has_credentials  # noqa: PLC0415
+
+    if not has_credentials():
+        log.warning("no ANTHROPIC_API_KEY or OPENROUTER_API_KEY; copilot eval skipped")
         return 0
     from axiom.copilot.agent import ask, client_from_env  # noqa: PLC0415 - SDK only needed for a live run
     from axiom.copilot.tools import Scope  # noqa: PLC0415
     from axiom.repo.db import get_engine, migrate  # noqa: PLC0415
     from tests.fixtures.factory import build_fixture, stable_guid  # noqa: PLC0415 - fixtures live in tests/
 
-    cases = yaml.safe_load(EVALS.read_text())
+    cases = [c for c in yaml.safe_load(EVALS.read_text()) if not only or c["id"].split("-")[0] in only]
     with tempfile.TemporaryDirectory() as tmp:
         engine = get_engine(f"sqlite:///{Path(tmp) / 'eval.db'}")
         migrate(engine)
@@ -104,4 +105,6 @@ def _report(results: list[tuple[str, list[str], dict]]) -> int:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(message)s")
-    sys.exit(main())
+    # batches keep free tiers under their daily request caps: --only q01,q02
+    only = sys.argv[sys.argv.index("--only") + 1].split(",") if "--only" in sys.argv else []
+    sys.exit(main(frozenset(only)))

@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 from axiom.api import create_app
 from axiom.config import Settings
+from axiom.copilot import agent
 from axiom.services import copilot
 from tests.copilot.test_agent import FakeClient
 
@@ -20,6 +21,7 @@ def client(tmp_path):
 
 def test_without_key_copilot_is_hidden_and_returns_503(client, monkeypatch):
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     assert client.get(f"{V1}/copilot").json()["available"] is False
     pid = client.post(f"{V1}/projects", json={"name": "P"}).json()["id"]
     r = client.post(f"{V1}/copilot/query", json={"project_id": pid, "question": "hi"})
@@ -47,3 +49,13 @@ def test_unknown_project_is_404_and_empty_question_422(client, monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test-not-a-key")
     assert client.post(f"{V1}/copilot/query", json={"project_id": 999, "question": "x"}).status_code == 404
     assert client.post(f"{V1}/copilot/query", json={"project_id": 1, "question": ""}).status_code == 422
+
+
+def test_openrouter_key_enables_copilot_with_free_default_model(client, monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("AXIOM_COPILOT_MODEL", raising=False)
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-not-a-key")
+    body = client.get(f"{V1}/copilot").json()
+    assert body["available"] is True and body["model"].endswith(":free")
+    sdk = agent.client_from_env()
+    assert str(sdk.base_url).startswith("https://openrouter.ai/api")

@@ -16,6 +16,8 @@ from axiom.copilot.tools import TOOLS, Scope, ToolError, render_result, run_tool
 
 log = logging.getLogger(__name__)
 DEFAULT_MODEL = "claude-sonnet-5-5"
+OPENROUTER_URL = "https://openrouter.ai/api"  # Anthropic-Messages-compatible endpoint
+OPENROUTER_MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free"  # strongest free model with tool use, 2026-11
 MAX_ROUNDS = 8
 MAX_TOKENS = 4096
 
@@ -75,14 +77,27 @@ class _Turn:
     calls: list[dict] = field(default_factory=list)
 
 
+def _openrouter() -> bool:
+    """ANTHROPIC_API_KEY wins; otherwise OPENROUTER_API_KEY routes the same SDK through OpenRouter."""
+    return not os.environ.get("ANTHROPIC_API_KEY") and bool(os.environ.get("OPENROUTER_API_KEY"))
+
+
+def has_credentials() -> bool:
+    return bool(os.environ.get("ANTHROPIC_API_KEY")) or _openrouter()
+
+
 def client_from_env() -> Any:
     import anthropic  # noqa: PLC0415 - keep the SDK import off the no-key path
 
+    if _openrouter():
+        return anthropic.Anthropic(
+            base_url=OPENROUTER_URL, auth_token=os.environ["OPENROUTER_API_KEY"], api_key=None
+        )
     return anthropic.Anthropic()  # reads ANTHROPIC_API_KEY
 
 
 def model_name() -> str:
-    return os.environ.get("AXIOM_COPILOT_MODEL", DEFAULT_MODEL)
+    return os.environ.get("AXIOM_COPILOT_MODEL", OPENROUTER_MODEL if _openrouter() else DEFAULT_MODEL)
 
 
 def ask(

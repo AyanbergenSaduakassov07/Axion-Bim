@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import functools
 import logging
-import os
 from typing import Any
 
 import anthropic
@@ -22,7 +21,7 @@ class CopilotUnavailableError(RuntimeError):
 
 
 def available() -> bool:
-    return bool(os.environ.get("ANTHROPIC_API_KEY"))
+    return agent.has_credentials()
 
 
 def status() -> dict:

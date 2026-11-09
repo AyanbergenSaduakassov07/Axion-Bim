@@ -37,3 +37,6 @@ P00 GO for ThatOpen. Pins: three 0.182.0, @thatopen/components 3.6.0, @thatopen/
 
 ## D-12 New candidate rule QTO-002 + IDS coverage hints — 2026-11-09
 From P00: Revit-exported Qto values can be off by unit factors (slab GrossVolume ×1000). Add QTO-002 (Qto vs geometry/declared-dimension plausibility) in P07. IDS adapter reports subtype coverage gaps (exact-class entity facet) and maps zero-applicable specs to `not_applicable`.
+
+## D-13 Snapshot storage details — 2026-11-09
+Property values stored typed (`value_type` + `value_text`/`value_num`), not JSON, so rules and SQL compare natively; `load_snapshot(ingest(x)) == extract(x)` is a test invariant. Revisions are unique per (model, file sha256) and numbered `seq` per model. Openings/voids (IfcFeatureElementSubtraction) are excluded from elements. Profile treats material as expected only on primary structural classes; rule sets own the real applicability (P03).

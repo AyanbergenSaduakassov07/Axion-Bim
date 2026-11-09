@@ -1,0 +1,24 @@
+"""Runtime settings from environment. No secrets here; the copilot key is read where it is used."""
+
+from __future__ import annotations
+
+import os
+from dataclasses import dataclass
+from pathlib import Path
+
+
+@dataclass(frozen=True)
+class Settings:
+    data_dir: Path
+    db_url: str
+
+    @property
+    def files_dir(self) -> Path:
+        return self.data_dir / "files"
+
+
+def load_settings() -> Settings:
+    data_dir = Path(os.environ.get("AXIOM_DATA_DIR", "data"))
+    return Settings(
+        data_dir=data_dir, db_url=os.environ.get("AXIOM_DB_URL", f"sqlite:///{data_dir / 'axiom.db'}")
+    )

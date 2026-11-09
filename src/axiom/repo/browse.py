@@ -4,7 +4,16 @@ from __future__ import annotations
 
 from sqlalchemy import Connection, Row, func, select
 
-from axiom.repo.tables import audit_runs, comparisons, elements, models, projects, revision_changes, revisions
+from axiom.repo.tables import (
+    audit_runs,
+    comparisons,
+    elements,
+    models,
+    projects,
+    revision_changes,
+    revisions,
+    spatial_nodes,
+)
 
 ELEMENT_COLS = (
     elements.c.global_id,
@@ -78,6 +87,17 @@ def elements_page(
     total = conn.execute(select(func.count()).select_from(elements).where(*where)).scalar_one()
     q = select(*ELEMENT_COLS).where(*where).order_by(elements.c.id).limit(limit).offset(offset)
     return total, conn.execute(q).all()
+
+
+def spatial_tree(conn: Connection, revision_id: int) -> tuple[list[Row], list[Row]]:
+    n = spatial_nodes.c
+    nodes = select(n.global_id, n.ifc_class, n.name, n.parent_global_id, n.elevation_m)
+    e = elements.c
+    els = select(e.global_id, e.step_id, e.ifc_class, e.name, e.container_global_id, e.has_geometry)
+    return (
+        conn.execute(nodes.where(n.revision_id == revision_id).order_by(n.id)).all(),
+        conn.execute(els.where(e.revision_id == revision_id).order_by(e.id)).all(),
+    )
 
 
 def list_audits(conn: Connection, revision_id: int) -> list[Row]:

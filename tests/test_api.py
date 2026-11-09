@@ -107,6 +107,22 @@ def test_elements_paginated_filtered_and_by_global_id(client, ifc_path):
     assert any(r["group"] == "IfcWall" and r["unit"] == "m3" for r in q["rows"])
 
 
+def test_serves_stored_ifc_and_spatial_tree(client, ifc_path):
+    c = client
+    src = ifc_path("clean")
+    rev = _upload(c, _model(c), src)["result"]["revision_id"]
+    f = c.get(f"{V1}/revisions/{rev}/file")
+    assert f.status_code == 200 and f.content == src.read_bytes()
+    assert f.headers["cache-control"] == "private, max-age=31536000, immutable"  # content-addressed
+    tree = c.get(f"{V1}/revisions/{rev}/tree").json()
+    storeys = [n["name"] for n in tree["nodes"] if n["ifc_class"] == "IfcBuildingStorey"]
+    assert storeys == ["Level 0", "Level 1"]
+    ids = {n["global_id"] for n in tree["nodes"]}
+    assert len(tree["elements"]) == 16 and all(e["container_global_id"] in ids for e in tree["elements"])
+    assert c.get(f"{V1}/revisions/999/file").status_code == 404
+    assert c.get(f"{V1}/revisions/999/tree").status_code == 404
+
+
 def test_rejects_non_ifc_oversized_and_bad_ids(client, tmp_path):
     c = client
     model_id = _model(c)

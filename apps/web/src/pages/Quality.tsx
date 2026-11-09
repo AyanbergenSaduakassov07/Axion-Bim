@@ -1,9 +1,10 @@
-import { Box, ShieldAlert, X } from "lucide-react";
+import { Boxes, Highlighter, ShieldAlert, X } from "lucide-react";
 import { useState } from "react";
-import { useParams } from "react-router";
+import { Link, useParams } from "react-router";
 import type { AuditSummary, Dimension, Finding, Mhi, RuleMeta } from "../api/client";
 import { useAuditSummary, useFindings, useRevision } from "../api/queries";
-import { btn, Empty, fmt, Panel, Q, Severity, Status } from "../ui";
+import { btn, Empty, fmt, Panel, Q, SEVERITIES, Severity, Status, tokenColor } from "../ui";
+import { useFocus, Viewport, type FocusResult, type Viewer } from "../viewer/Viewport";
 import { FindingsTable } from "./FindingsTable";
 
 export function Quality() {
@@ -13,9 +14,11 @@ export function Quality() {
   const summary = useAuditSummary(auditId);
   const findings = useFindings(auditId);
   const [selected, setSelected] = useState<string | null>(null);
+  const [viewer, setViewer] = useState<Viewer | null>(null);
+  const finding = findings.data?.find((f) => f.identity_key === selected);
+  const focus = useFocus(viewer, finding?.global_id);
 
   if (rev.data && auditId == null) return <Empty>This revision has not been audited yet.</Empty>;
-  const finding = findings.data?.find((f) => f.identity_key === selected);
   return (
     <div className="flex h-[calc(100dvh-4.5rem)] flex-col gap-3">
       <div className="flex items-baseline gap-3">
@@ -25,6 +28,9 @@ export function Quality() {
             r{rev.data.seq} · {String(rev.data.metadata.project_name ?? "")} · audit {auditId}
           </span>
         )}
+        <Link className={`${btn} ml-auto`} to={`/revisions/${revisionId}/explorer`}>
+          <Boxes size={14} aria-hidden /> Model Explorer
+        </Link>
       </div>
       <Q q={summary} rows={4}>
         {(s: AuditSummary) => <HealthHeader mhi={s.mhi} />}
@@ -32,19 +38,69 @@ export function Quality() {
       <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[1fr_400px]">
         <section className="flex min-h-0 flex-col rounded border border-line bg-panel">
           <Q q={findings} rows={8}>
-            {(fs: Finding[]) => <FindingsTable findings={fs} selected={selected} onSelect={setSelected} />}
+            {(fs: Finding[]) => (
+              <FindingsTable findings={fs} selected={selected} onSelect={setSelected} toolbar={(rows) => <HighlightAll viewer={viewer} rows={rows} />} />
+            )}
           </Q>
         </section>
         <aside className="flex min-h-0 flex-col gap-3">
-          {/* reserved for the 3D viewer (P10) */}
-          <div className="flex h-44 shrink-0 flex-col items-center justify-center gap-1 rounded border border-dashed border-line bg-panel text-sm text-muted">
-            <Box size={20} aria-hidden />
-            3D viewer
-          </div>
+          {rev.data && (
+            <Viewport
+              className="h-64 shrink-0"
+              fileUrl={`/api/v1/revisions/${revisionId}/file`}
+              sha={rev.data.file_sha256}
+              onViewer={setViewer}
+              overlay={finding && <FocusNote result={focus} modelLevel={finding.global_id == null} />}
+            />
+          )}
           {finding && <FindingDetail f={finding} rule={summary.data?.rules.find((r) => r.id === finding.rule_id)} onClose={() => setSelected(null)} />}
         </aside>
       </div>
     </div>
+  );
+}
+
+const NOTE: Record<FocusResult, string | null> = {
+  ok: null,
+  no_geometry: "Element has no renderable geometry.",
+  not_found: "Element not found in the 3D model.",
+};
+
+function FocusNote({ result, modelLevel }: { result: FocusResult | null; modelLevel: boolean }) {
+  const text = modelLevel ? "Model-level finding: no element to show." : result && NOTE[result];
+  if (!text) return null;
+  return (
+    <div role="status" className="absolute inset-x-2 bottom-2 rounded border border-line bg-raised px-2 py-1 text-xs">
+      {text}
+    </div>
+  );
+}
+
+/** Colour every element in the current filter by its worst severity; toggle off clears. */
+function HighlightAll({ viewer, rows }: { viewer: Viewer | null; rows: Finding[] }) {
+  const [on, setOn] = useState(false);
+  const toggle = async () => {
+    if (!viewer) return;
+    const groups = new Map<string, string[]>();
+    if (!on) {
+      const worst = new Map<string, number>();
+      for (const f of rows) {
+        if (!f.global_id || f.status === "pass" || f.status === "not_applicable") continue;
+        const rank = SEVERITIES.indexOf(f.severity as (typeof SEVERITIES)[number]);
+        worst.set(f.global_id, Math.min(rank, worst.get(f.global_id) ?? rank));
+      }
+      for (const [gid, rank] of worst) {
+        const color = tokenColor(`sev-${SEVERITIES[rank]}`);
+        groups.set(color, [...(groups.get(color) ?? []), gid]);
+      }
+    }
+    await viewer.highlight(groups);
+    setOn(!on);
+  };
+  return (
+    <button className={`${btn} mb-0.5`} onClick={toggle} disabled={!viewer} aria-pressed={on}>
+      <Highlighter size={14} aria-hidden /> {on ? "Clear highlight" : "Highlight in 3D"}
+    </button>
   );
 }
 

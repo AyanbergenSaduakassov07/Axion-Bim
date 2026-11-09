@@ -34,6 +34,24 @@ test("upload rev1, wait for the job, Quality Center shows the golden findings", 
   await page.getByLabel("GlobalId or name").fill("C3");
   await expect(page.getByTestId("finding-count")).toHaveText("2 of 4 findings");
 
+  // finding row → viewer focuses the same GlobalId (dev-only hook)
+  await page.waitForFunction(() => (window as any).__axiomViewer, null, { timeout: 60_000 });
+  const row = grid.getByRole("row").nth(1);
+  await row.click();
+  const gid = (await row.getByRole("gridcell").nth(5).textContent())!.trim();
+  await expect.poll(() => page.evaluate(() => (window as any).__axiomViewer.lastFocused())).toBe(gid);
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/quality-3d.png`, fullPage: true });
+
+  // Explorer: tree pick shows the element panel with its findings
+  await page.getByRole("link", { name: "Model Explorer" }).click();
+  await page.getByRole("button", { name: /^C3 IfcColumn/ }).click();
+  await expect(page.getByText(gid)).toBeVisible();
+  await expect(page.getByText("Findings (2)")).toBeVisible();
+  await expect
+    .poll(() => page.evaluate(() => (window as any).__axiomViewer?.lastFocused()), { timeout: 60_000 })
+    .toBe(gid); // a pick made while the viewer loads is applied once it is ready
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/explorer.png`, fullPage: true });
+
   if (SHOTS) {
     await page.goto("/projects/1");
     await expect(page.getByText("Elements by class")).toBeVisible();

@@ -9,6 +9,9 @@ export type RevisionSummary = S["RevisionSummary"];
 export type Audit = S["AuditOut"];
 export type Finding = S["Finding"];
 export type Job = S["JobOut"];
+export type SpatialTree = S["SpatialTree"];
+export type TreeElement = S["TreeElement"];
+export type Element = S["Element"];
 
 export type Dimension = {
   score: number | null;

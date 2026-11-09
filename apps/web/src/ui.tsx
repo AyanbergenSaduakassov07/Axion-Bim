@@ -59,6 +59,9 @@ export function Status({ value }: { value: string }) {
   );
 }
 
+/** Resolved token colour (hex) for canvas/WebGL consumers that cannot read CSS variables. */
+export const tokenColor = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(`--color-${name}`).trim();
+
 export const fmt = (n: number | null | undefined, digits = 1) => (n == null ? "—" : n.toFixed(digits));
 export const date = (iso: string) => iso.replace("T", " ").slice(0, 16);
 export const bytes = (n: number) => (n < 1e6 ? `${(n / 1e3).toFixed(1)} kB` : `${(n / 1e6).toFixed(1)} MB`);

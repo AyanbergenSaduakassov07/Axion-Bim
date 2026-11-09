@@ -1186,6 +1186,136 @@
         "title": "Severity",
         "type": "string"
       },
+      "SpatialNodeOut": {
+        "properties": {
+          "elevation_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Elevation M"
+          },
+          "global_id": {
+            "title": "Global Id",
+            "type": "string"
+          },
+          "ifc_class": {
+            "title": "Ifc Class",
+            "type": "string"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "parent_global_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Global Id"
+          }
+        },
+        "required": [
+          "global_id",
+          "ifc_class",
+          "name",
+          "parent_global_id",
+          "elevation_m"
+        ],
+        "title": "SpatialNodeOut",
+        "type": "object"
+      },
+      "SpatialTree": {
+        "properties": {
+          "elements": {
+            "items": {
+              "$ref": "#/components/schemas/TreeElement"
+            },
+            "title": "Elements",
+            "type": "array"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/SpatialNodeOut"
+            },
+            "title": "Nodes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "nodes",
+          "elements"
+        ],
+        "title": "SpatialTree",
+        "type": "object"
+      },
+      "TreeElement": {
+        "properties": {
+          "container_global_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Container Global Id"
+          },
+          "global_id": {
+            "title": "Global Id",
+            "type": "string"
+          },
+          "has_geometry": {
+            "title": "Has Geometry",
+            "type": "boolean"
+          },
+          "ifc_class": {
+            "title": "Ifc Class",
+            "type": "string"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "step_id": {
+            "title": "Step Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "global_id",
+          "step_id",
+          "ifc_class",
+          "name",
+          "container_global_id",
+          "has_geometry"
+        ],
+        "title": "TreeElement",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -2184,6 +2314,38 @@
         "summary": "Get Element"
       }
     },
+    "/api/v1/revisions/{revision_id}/file": {
+      "get": {
+        "operationId": "revision_file_api_v1_revisions__revision_id__file_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "revision_id",
+            "required": true,
+            "schema": {
+              "title": "Revision Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revision File"
+      }
+    },
     "/api/v1/revisions/{revision_id}/quantities": {
       "get": {
         "description": "Qto totals (method=qto). Geometry volumes need IFC processing: use `axiom audit --geometry`.",
@@ -2250,6 +2412,46 @@
           }
         },
         "summary": "Get Quantities"
+      }
+    },
+    "/api/v1/revisions/{revision_id}/tree": {
+      "get": {
+        "description": "Spatial structure + every element's container, for the explorer tree (no IFC processing).",
+        "operationId": "spatial_tree_api_v1_revisions__revision_id__tree_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "revision_id",
+            "required": true,
+            "schema": {
+              "title": "Revision Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpatialTree"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Spatial Tree"
       }
     }
   }

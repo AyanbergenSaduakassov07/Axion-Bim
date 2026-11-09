@@ -3,6 +3,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router";
 import "./index.css";
+import { Explorer } from "./pages/Explorer";
 import { Overview } from "./pages/Overview";
 import { Projects } from "./pages/Projects";
 import { Quality } from "./pages/Quality";
@@ -21,6 +22,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="projects/:projectId" element={<Overview />} />
             <Route path="models/:modelId/upload" element={<Upload />} />
             <Route path="revisions/:revisionId/quality" element={<Quality />} />
+            <Route path="revisions/:revisionId/explorer" element={<Explorer />} />
             <Route path="*" element={<Empty>Page not found.</Empty>} />
           </Route>
         </Routes>

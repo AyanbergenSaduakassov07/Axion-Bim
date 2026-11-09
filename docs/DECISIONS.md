@@ -88,3 +88,11 @@ Property values stored typed (`value_type` + `value_text`/`value_num`), not JSON
 - Findings are filtered/sorted client-side (one fetch per audit, immutable, `staleTime: Infinity`); the server filters stay for the CLI/copilot. Revisit when an audit exceeds ~50k findings.
 - `not_evaluated` is drawn hatched grey with a dashed icon and never in a fail colour; severity and status always pair an icon with text.
 - Smoke test: `npm run e2e` starts a fresh API (`apps/web/.e2e/`, gitignored) and Vite, uploads generated `rev1` + `structural-basic.ids`, asserts 4 findings and MHI 95.2. `AXIOM_SHOTS=<dir>` saves screenshots.
+
+## D-20 · 3D viewer and Model Explorer (P10)
+- `apps/web/src/viewer/` is the only code that imports ThatOpen/three. Its API speaks GlobalIds (`load`, `highlight(Map<colour, gids>)`, `focus → ok|no_geometry|not_found`, `isolate`, `setClassVisibility`, `onSelect`); localIds never leave the module.
+- IFC → Fragments runs in a module web worker (`FRAGS.IfcImporter`). The result is cached in IndexedDB under `<file_sha256>:frag-<version>`; bump `FORMAT` in `cache.ts` with any fragments upgrade. Every cache call degrades to "no cache".
+- The source IFC comes from `GET /revisions/{id}/file` (content-addressed, `immutable` cache header); the tree from `GET /revisions/{id}/tree`. The element panel uses `/elements/{gid}` plus the latest audit's findings, so the viewer never computes anything.
+- web-ifc wasm and the fragments worker are copied from the pinned packages into gitignored `public/` by a Vite plugin in the `config` hook (before the dev server indexes `public/`). Never unpkg (D-08).
+- `window.__axiomViewer` (`focus`, `lastFocused`, `stats`, `heapMB`) exists only in dev builds, for Playwright and measurements; disposing a viewer removes it.
+- "Highlight in 3D" colours each element of the current filter by its worst non-pass severity, using the theme's severity tokens.

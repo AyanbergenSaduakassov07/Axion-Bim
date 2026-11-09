@@ -25,3 +25,5 @@ data/
 apps/web/.e2e/
 apps/web/test-results/
 apps/web/playwright-report/
+apps/web/public/wasm/
+apps/web/public/fragments-worker.mjs

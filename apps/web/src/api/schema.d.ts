@@ -296,6 +296,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/revisions/{revision_id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Revision File */
+        get: operations["revision_file_api_v1_revisions__revision_id__file_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/revisions/{revision_id}/quantities": {
         parameters: {
             query?: never;
@@ -308,6 +325,26 @@ export interface paths {
          * @description Qto totals (method=qto). Geometry volumes need IFC processing: use `axiom audit --geometry`.
          */
         get: operations["get_quantities_api_v1_revisions__revision_id__quantities_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/revisions/{revision_id}/tree": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Spatial Tree
+         * @description Spatial structure + every element's container, for the explorer tree (no IFC processing).
+         */
+        get: operations["spatial_tree_api_v1_revisions__revision_id__tree_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -702,6 +739,41 @@ export interface components {
          * @enum {string}
          */
         Severity: "critical" | "high" | "medium" | "low" | "info";
+        /** SpatialNodeOut */
+        SpatialNodeOut: {
+            /** Elevation M */
+            elevation_m: number | null;
+            /** Global Id */
+            global_id: string;
+            /** Ifc Class */
+            ifc_class: string;
+            /** Name */
+            name: string | null;
+            /** Parent Global Id */
+            parent_global_id: string | null;
+        };
+        /** SpatialTree */
+        SpatialTree: {
+            /** Elements */
+            elements: components["schemas"]["TreeElement"][];
+            /** Nodes */
+            nodes: components["schemas"]["SpatialNodeOut"][];
+        };
+        /** TreeElement */
+        TreeElement: {
+            /** Container Global Id */
+            container_global_id: string | null;
+            /** Global Id */
+            global_id: string;
+            /** Has Geometry */
+            has_geometry: boolean;
+            /** Ifc Class */
+            ifc_class: string;
+            /** Name */
+            name: string | null;
+            /** Step Id */
+            step_id: number;
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -1363,6 +1435,35 @@ export interface operations {
             };
         };
     };
+    revision_file_api_v1_revisions__revision_id__file_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                revision_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_quantities_api_v1_revisions__revision_id__quantities_get: {
         parameters: {
             query?: {
@@ -1386,6 +1487,37 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    spatial_tree_api_v1_revisions__revision_id__tree_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                revision_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpatialTree"];
                 };
             };
             /** @description Validation Error */

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from sqlalchemy import Engine, Row
 
 from axiom.extract.snapshot import Element
@@ -61,6 +63,22 @@ def elements_page(engine: Engine, revision_id: int, filters: dict, limit: int, o
         _found(repo.get_revision(conn, revision_id), "revision", revision_id)
         total, rows = repo.elements_page(conn, revision_id, filters, limit, offset)
     return {"total": total, "limit": limit, "offset": offset, "items": [r._asdict() for r in rows]}
+
+
+def revision_file(engine: Engine, files_dir: Path, revision_id: int) -> Path:
+    with engine.connect() as conn:
+        rev = _found(repo.get_revision(conn, revision_id), "revision", revision_id)
+    path = files_dir / f"{rev.file_sha256}.ifc"
+    if not path.is_file():
+        raise LookupError(f"stored file for revision {revision_id} not found")
+    return path
+
+
+def spatial_tree(engine: Engine, revision_id: int) -> dict:
+    with engine.connect() as conn:
+        _found(repo.get_revision(conn, revision_id), "revision", revision_id)
+        nodes, els = repo.spatial_tree(conn, revision_id)
+    return {"nodes": [r._asdict() for r in nodes], "elements": [r._asdict() for r in els]}
 
 
 def get_element(engine: Engine, revision_id: int, global_id: str) -> Element:

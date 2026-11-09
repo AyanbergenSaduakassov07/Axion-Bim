@@ -6,6 +6,7 @@ from dataclasses import asdict
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile
+from fastapi.responses import FileResponse
 from sqlalchemy import Engine
 
 from axiom.api.schemas import (
@@ -22,6 +23,7 @@ from axiom.api.schemas import (
     ProjectOut,
     RevisionOut,
     RevisionSummary,
+    SpatialTree,
 )
 from axiom.extract.snapshot import Element
 from axiom.findings import Finding
@@ -101,6 +103,24 @@ def get_job(db: Db, job_id: int) -> dict:
 @router.get("/revisions/{revision_id}", response_model=RevisionSummary)
 def revision_summary(db: Db, revision_id: int) -> dict:
     return browse.revision_summary(db, revision_id)
+
+
+@router.get("/revisions/{revision_id}/file", response_class=FileResponse)
+def revision_file(request: Request, revision_id: int) -> FileResponse:
+    s = request.app.state
+    path = browse.revision_file(s.engine, s.settings.files_dir, revision_id)
+    return FileResponse(
+        path,
+        media_type="application/x-step",
+        filename=f"revision-{revision_id}.ifc",
+        headers={"cache-control": "private, max-age=31536000, immutable"},  # content-addressed by sha256
+    )
+
+
+@router.get("/revisions/{revision_id}/tree", response_model=SpatialTree)
+def spatial_tree(db: Db, revision_id: int) -> dict:
+    """Spatial structure + every element's container, for the explorer tree (no IFC processing)."""
+    return browse.spatial_tree(db, revision_id)
 
 
 @router.get("/revisions/{revision_id}/elements", response_model=ElementPage)

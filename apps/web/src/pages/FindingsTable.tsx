@@ -52,10 +52,13 @@ export function FindingsTable({
   findings,
   selected,
   onSelect,
+  toolbar,
 }: {
   findings: Finding[];
   selected: string | null;
   onSelect: (key: string | null) => void;
+  /** Extra controls that act on the currently filtered rows. */
+  toolbar?: (rows: Finding[]) => ReactNode;
 }) {
   const t = useFiltered(findings);
   const scroller = useRef<HTMLDivElement>(null);
@@ -104,6 +107,7 @@ export function FindingsTable({
           <span className="block">GlobalId or name</span>
           <input type="search" className={`${input} w-56 text-fg`} value={t.search} onChange={(e) => t.setSearch(e.target.value)} />
         </label>
+        {toolbar?.(t.rows)}
         <span className="ml-auto pb-1.5 text-xs text-muted" aria-live="polite" data-testid="finding-count">
           {t.rows.length} of {findings.length} findings
         </span>

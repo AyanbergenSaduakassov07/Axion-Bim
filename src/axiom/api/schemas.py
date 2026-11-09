@@ -75,6 +75,28 @@ class ElementRow(BaseModel):
     has_geometry: bool
 
 
+class SpatialNodeOut(BaseModel):
+    global_id: str
+    ifc_class: str
+    name: str | None
+    parent_global_id: str | None
+    elevation_m: float | None
+
+
+class TreeElement(BaseModel):
+    global_id: str
+    step_id: int
+    ifc_class: str
+    name: str | None
+    container_global_id: str | None
+    has_geometry: bool
+
+
+class SpatialTree(BaseModel):
+    nodes: list[SpatialNodeOut]
+    elements: list[TreeElement]
+
+
 class ElementPage(BaseModel):
     total: int
     limit: int

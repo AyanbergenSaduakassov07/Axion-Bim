@@ -57,3 +57,14 @@ Spike code copied to `docs/spikes/` (s1_parse.py, s2_ids.py, s3_diff.py, req.ids
 | Fixtures (16 elements) | ~40 KB | 16 | < 0.01 s each |
 
 Observation for P03: the sample's 2 `IfcCurtainWall` have no own representation; geometry sits on aggregated members/plates. The geometry-presence rule must treat an aggregate parent with geometric children as satisfied, or it produces false positives on every curtain wall, stair and roof assembly.
+
+## Appendix — P10 viewer load (2026-11-09)
+
+Apple M5, Playwright Chromium, Vite dev server, `window.__axiomViewer.stats` (load = fetch IFC + convert in worker + load fragments + fit camera).
+
+| Model | IFC | Fragments | Cold load (convert) | Warm load (IndexedDB) | JS heap after load |
+|---|---|---|---|---|---|
+| Ifc4_SampleHouse.ifc | 2.27 MB | 202 kB | 1.90 s | 1.36 s | 112 MB (148 MB after 10 focus ops) |
+| Fixture rev1 (16 elements) | ~40 KB | — | < 1 s | — | — |
+
+Finding → element on SampleHouse: 10/10 finding rows focused the same GlobalId. Both curtain walls (aggregate, no own representation) return `no_geometry`; the UI says "Element has no renderable geometry." The warm path still pays fragments worker start-up and camera fit, so caching saves conversion (~0.5 s here) and will matter more on large models.

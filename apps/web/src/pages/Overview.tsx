@@ -131,11 +131,16 @@ function RevisionStats({ r }: { r: RevisionSummary }) {
           </table>
         </div>
       </div>
-      {r.latest_audit_id != null && (
-        <Link className={btn} to={`/revisions/${r.id}/quality`}>
-          Open Quality Center
+      <div className="flex gap-2">
+        {r.latest_audit_id != null && (
+          <Link className={btn} to={`/revisions/${r.id}/quality`}>
+            Open Quality Center
+          </Link>
+        )}
+        <Link className={btn} to={`/revisions/${r.id}/explorer`}>
+          Open Model Explorer
         </Link>
-      )}
+      </div>
     </div>
   );
 }

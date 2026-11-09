@@ -80,19 +80,38 @@ def main(only: frozenset[str] = frozenset()) -> int:
         migrate(engine)
         seeded = seed_project(engine, Path(tmp) / "files", lambda n: build_fixture(n, Path(tmp)))
         scope, client = Scope(engine, seeded.project_id), client_from_env()
-        results = []
-        for case in cases:
-            answer = ask(client, scope, case["question"]).as_dict()
-            fails = grade(case, answer, stable_guid)
-            results.append((case["id"], fails, answer))
-            log.info("%s %s %s", "PASS" if not fails else "FAIL", case["id"], "; ".join(fails))
-    return _report(results)
+        results, not_run = run_cases(
+            cases, lambda c: ask(client, scope, c["question"]).as_dict(), stable_guid
+        )
+    return _report(results, not_run)
 
 
-def _report(results: list[tuple[str, list[str], dict]]) -> int:
+Result = tuple[str, list[str], dict]
+
+
+def run_cases(
+    cases: list[dict], answer: Callable[[dict], dict], guid: Callable[[str], str]
+) -> tuple[list[Result], list[str]]:
+    """Grade each case; on a provider rate limit stop and return the ids not run (free tiers cap per day)."""
+    import anthropic  # noqa: PLC0415
+
+    results: list[Result] = []
+    for i, case in enumerate(cases):
+        try:
+            a = answer(case)
+        except anthropic.RateLimitError as e:
+            log.warning("rate limited at %s, stopping: %s", case["id"], e.message)
+            return results, [c["id"] for c in cases[i:]]
+        fails = grade(case, a, guid)
+        results.append((case["id"], fails, a))
+        log.info("%s %s %s", "PASS" if not fails else "FAIL", case["id"], "; ".join(fails))
+    return results, []
+
+
+def _report(results: list[Result], not_run: list[str] | None = None) -> int:
     passed = sum(1 for _, f, _ in results if not f)
     fabricated = sum(len(a["unverified"]) for _, _, a in results)
-    rate = passed / len(results)
+    rate = passed / len(results) if results else 0.0
     sys.stdout.write(
         f"\ncopilot eval: {passed}/{len(results)} passed ({rate:.0%}), fabricated citations: "
         f"{fabricated}, target ≥{PASS_TARGET:.0%} with 0 fabricated\n"
@@ -100,7 +119,9 @@ def _report(results: list[tuple[str, list[str], dict]]) -> int:
     for cid, fails, _ in results:
         if fails:
             sys.stdout.write(f"  {cid}: {'; '.join(fails)}\n")
-    return 0 if rate >= PASS_TARGET and fabricated == 0 else 1
+    if not_run:
+        sys.stdout.write(f"  not run (rate limit): {','.join(c.split('-')[0] for c in not_run)}\n")
+    return 0 if rate >= PASS_TARGET and fabricated == 0 and not not_run else 1
 
 
 if __name__ == "__main__":

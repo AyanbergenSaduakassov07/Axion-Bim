@@ -57,3 +57,28 @@ def test_grade_passes_a_grounded_answer():
         ],
     )
     assert grade(case, answer, lambda n: f"g-{n}") == []
+
+
+def test_rate_limit_stops_the_run_and_keeps_partial_results():
+    import anthropic  # noqa: PLC0415
+    import httpx  # noqa: PLC0415
+
+    from axiom.copilot.eval import run_cases  # noqa: PLC0415
+
+    def answer(case: dict) -> dict:
+        if case["id"] == "q02":
+            resp = httpx.Response(429, request=httpx.Request("POST", "https://example.invalid"))
+            raise anthropic.RateLimitError("free-models-per-day", response=resp, body=None)
+        return {"answer": "x", "citations": [], "tool_calls": [], "unverified": []}
+
+    cases = [{"id": i, "question": "?"} for i in ("q01", "q02", "q03")]
+    results, not_run = run_cases(cases, answer, lambda _: "")
+    assert [cid for cid, _, _ in results] == ["q01"]
+    assert not_run == ["q02", "q03"]
+
+
+def test_report_with_no_results_does_not_divide_by_zero(capsys):
+    from axiom.copilot.eval import _report  # noqa: PLC0415
+
+    assert _report([], not_run=["q01"]) == 1
+    assert "not run" in capsys.readouterr().out

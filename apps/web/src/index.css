@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+/* Semantic tokens. Dark graphite is the default workspace; light follows the OS. */
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --color-bg: #15171a;
+  --color-panel: #1c1f23;
+  --color-raised: #24282d;
+  --color-line: #343a41;
+  --color-fg: #e5e8ec;
+  --color-muted: #9ca4af;
+  --color-accent: #5aa2db;
+  --color-accent-fg: #0b1620;
+
+  --color-sev-critical: #ff7070;
+  --color-sev-high: #f5a04a;
+  --color-sev-medium: #e2c64f;
+  --color-sev-low: #86bdea;
+  --color-sev-info: #9ca4af;
+  --color-ok: #52c78f;
+  --color-ne: #7d8590;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-bg: #f3f4f6;
+    --color-panel: #ffffff;
+    --color-raised: #eceef1;
+    --color-line: #d3d8de;
+    --color-fg: #1a1e23;
+    --color-muted: #555d67;
+    --color-accent: #1d6aad;
+    --color-accent-fg: #ffffff;
+
+    --color-sev-critical: #b42318;
+    --color-sev-high: #a8500a;
+    --color-sev-medium: #7f6500;
+    --color-sev-low: #1d5f9e;
+    --color-sev-info: #555d67;
+    --color-ok: #1b7a4b;
+    --color-ne: #6b727c;
+  }
+}
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+/* not_evaluated is a coverage gap, not a failure: hatched, never a fail colour */
+.hatch {
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--color-ne) 0 2px,
+    transparent 2px 6px
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

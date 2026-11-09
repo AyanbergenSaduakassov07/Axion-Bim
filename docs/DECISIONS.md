@@ -80,3 +80,11 @@ Property values stored typed (`value_type` + `value_text`/`value_num`), not JSON
 - Quantities over HTTP are Qto-only; geometry volumes need IFC processing and stay in `axiom audit --geometry` until a job kind is needed (P11).
 - Errors: `{error: {code, message}}` for 400/404/413/422/500; 422 lists field names, never echoes input.
 - OpenAPI: `uv run python scripts/export_openapi.py` -> `apps/web/src/api/openapi.json`; P09 runs `npx openapi-typescript src/api/openapi.json -o src/api/schema.d.ts`.
+
+## D-19 · Web shell + Quality Center (P09)
+- `apps/web`: Vite 8, React 19, Tailwind 4 (`@theme` tokens in `src/index.css`, dark graphite default, light via `prefers-color-scheme`), TanStack Query + Virtual, React Router 8 (declarative mode). TypeScript is pinned to 5.9: TS 7 ships no JS compiler API, which openapi-typescript needs.
+- Types come only from `src/api/schema.d.ts` (generated); `client.ts` adds hand types for the untyped `/audits/{id}` summary (`mhi`, `rules`). CI fails if `openapi.json` or `schema.d.ts` drift from the backend.
+- No CORS on the API: the Vite dev proxy forwards `/api` (`AXIOM_API`, default :8000). Production serving is decided in P13.
+- Findings are filtered/sorted client-side (one fetch per audit, immutable, `staleTime: Infinity`); the server filters stay for the CLI/copilot. Revisit when an audit exceeds ~50k findings.
+- `not_evaluated` is drawn hatched grey with a dashed icon and never in a fail colour; severity and status always pair an icon with text.
+- Smoke test: `npm run e2e` starts a fresh API (`apps/web/.e2e/`, gitignored) and Vite, uploads generated `rev1` + `structural-basic.ids`, asserts 4 findings and MHI 95.2. `AXIOM_SHOTS=<dir>` saves screenshots.

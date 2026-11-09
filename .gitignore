@@ -20,3 +20,8 @@ data/
 /CLAUDE.md
 /docs/spikes/*
 !/docs/spikes/00-findings.md
+
+# web
+apps/web/.e2e/
+apps/web/test-results/
+apps/web/playwright-report/

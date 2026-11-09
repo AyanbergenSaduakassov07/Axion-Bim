@@ -39,9 +39,17 @@ def build(engine: Engine, audit_run_id: int, comparison_id: int | None = None) -
             "mhi": summary["mhi"],
             "counts": summary["counts"],
             "rules": summary["rules"],
-            "findings": [f.model_dump() for f in audit_repo.load_findings(conn, audit_run_id)],
+            "findings": _findings(conn, audit_run_id, audit.revision_id),
             "comparison": _comparison(conn, cmp) if cmp else None,
         }
+
+
+def _findings(conn: Connection, audit_run_id: int, revision_id: int) -> list[dict]:
+    origins = repo.element_origins(conn, revision_id)  # for BCF viewpoints
+    return [
+        {**f.model_dump(), "origin_m": origins.get(f.step_id)}
+        for f in audit_repo.load_findings(conn, audit_run_id)
+    ]
 
 
 def _revision(conn: Connection, revision_id: int) -> dict:

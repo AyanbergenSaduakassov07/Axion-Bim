@@ -128,3 +128,14 @@ def list_changes(conn: Connection, comparison_id: int) -> list[Row]:
 def latest_comparison_for_audit(conn: Connection, audit_run_id: int) -> Row | None:
     q = select(comparisons).where(comparisons.c.head_audit_run_id == audit_run_id)
     return conn.execute(q.order_by(comparisons.c.id.desc())).first()
+
+
+def element_origins(conn: Connection, revision_id: int) -> dict[int, tuple[float, float, float]]:
+    """step_id -> world placement origin in metres, for elements that have one."""
+    e = elements.c
+    rows = conn.execute(
+        select(e.step_id, e.origin_x, e.origin_y, e.origin_z).where(
+            e.revision_id == revision_id, e.origin_x.is_not(None)
+        )
+    )
+    return {r.step_id: (r.origin_x, r.origin_y, r.origin_z) for r in rows}

@@ -2,14 +2,15 @@
 
 import zipfile
 
+import pytest
 from bcf.v3.bcfxml import BcfXml
 
 from axiom.report import render
 from axiom.report.bcf import topic_guid
 
 
-def _finding(status: str, gid: str | None, key: str) -> dict:
-    return {
+def _finding(status: str, gid: str | None, key: str, origin=None) -> dict:
+    return {"origin_m": origin,
         "global_id": gid, "element_name": "C2", "ifc_class": "IfcColumn", "rule_id": "MAT-001",
         "rule_version": "1", "status": status, "severity": "high", "category": "material",
         "dimension": "completeness", "expected": "a material", "actual": "none",
@@ -20,7 +21,7 @@ def _finding(status: str, gid: str | None, key: str) -> dict:
 REPORT = {
     "audit": {"id": 7, "revision": {"project_name": "Tower", "seq": 2}},
     "findings": [
-        _finding("fail", "2O2Fr$t4X7Zf8NOew3FLOH", "k-fail"),
+        _finding("fail", "2O2Fr$t4X7Zf8NOew3FLOH", "k-fail", (10.0, 20.0, 3.0)),
         _finding("warning", None, "k-warn"),
         _finding("pass", "3cUkl32yn9qRSPvBJVyWYp", "k-pass"),
     ],
@@ -53,3 +54,16 @@ def test_bcf_is_version_3_and_topic_guids_are_stable(tmp_path):
     with zipfile.ZipFile(tmp_path / "b.bcf") as z:
         assert 'VersionId="3.0"' in z.read("bcf.version").decode()
     assert set(_load(tmp_path, render(REPORT, "bcf")).topics) == set(_load(tmp_path, body).topics)
+
+
+def test_camera_looks_at_the_element_origin(tmp_path):
+    bcf = _load(tmp_path, render(REPORT, "bcf"))
+    (vp,) = bcf.topics[topic_guid("k-fail")].viewpoints.values()
+    cam = vp.visualization_info.perspective_camera
+    pos = cam.camera_view_point
+    d = cam.camera_direction
+    # camera sits off the element and points straight at (10, 20, 3)
+    to_target = (10.0 - pos.x, 20.0 - pos.y, 3.0 - pos.z)
+    norm = sum(c * c for c in to_target) ** 0.5
+    assert 3.0 < norm < 30.0  # close-up, not the 52 m origin overview
+    assert (d.x, d.y, d.z) == pytest.approx(tuple(c / norm for c in to_target))

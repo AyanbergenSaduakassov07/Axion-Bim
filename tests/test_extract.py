@@ -79,3 +79,10 @@ def test_missing_data_is_none_not_invented(ifc_path):
     b3 = by_name(snap, "B3")
     assert (b3.has_representation, b3.representation_types) == (False, ())
     assert by_name(extract(ifc_path("missing_material")), "C2").materials == ()
+
+
+@pytest.mark.parametrize("name", ["clean", "weird_units"])  # weird_units stores lengths in mm
+def test_element_origin_is_world_placement_in_metres(name, ifc_path):
+    snap = extract(ifc_path(name))
+    assert by_name(snap, "W1").origin_m == pytest.approx((0.0, 0.0, 3.0))
+    assert by_name(snap, "S1").origin_m == pytest.approx((3.0, 3.0, -0.2))

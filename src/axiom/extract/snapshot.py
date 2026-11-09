@@ -55,6 +55,7 @@ class Element(Frozen):
     quantities: tuple[Quantity, ...]
     materials: tuple[MaterialRef, ...]
     classifications: tuple[ClassificationRef, ...]
+    origin_m: tuple[float, float, float] | None = None  # world placement origin; old snapshots lack it
 
 
 class SpatialNode(Frozen):

@@ -9,6 +9,7 @@ from pathlib import Path
 import ifcopenshell
 import ifcopenshell.util.classification as uc
 import ifcopenshell.util.element as ue
+import ifcopenshell.util.placement as up
 import ifcopenshell.util.unit as uu
 
 from axiom.extract.snapshot import (
@@ -41,7 +42,9 @@ def extract(path: str | Path) -> Snapshot:
     f = ifcopenshell.open(str(path))
     length_scale = uu.calculate_unit_scale(f)
     elements = tuple(
-        _element(f, el) for el in f.by_type("IfcElement") if not any(el.is_a(c) for c in EXCLUDED_CLASSES)
+        _element(f, el, length_scale)
+        for el in f.by_type("IfcElement")
+        if not any(el.is_a(c) for c in EXCLUDED_CLASSES)
     )
     log.info("extracted %d elements from %s", len(elements), path.name)
     return Snapshot(meta=_meta(f, path, length_scale), spatial=_spatial(f, length_scale), elements=elements)
@@ -106,7 +109,7 @@ def _spatial(f: ifcopenshell.file, length_scale: float) -> tuple[SpatialNode, ..
     return tuple(nodes)
 
 
-def _element(f: ifcopenshell.file, el: ifcopenshell.entity_instance) -> Element:
+def _element(f: ifcopenshell.file, el: ifcopenshell.entity_instance, length_scale: float) -> Element:
     container = ue.get_container(el)
     storey = ue.get_container(el, ifc_class="IfcBuildingStorey")
     parent = ue.get_aggregate(el)
@@ -128,7 +131,15 @@ def _element(f: ifcopenshell.file, el: ifcopenshell.entity_instance) -> Element:
         quantities=_quantities(f, el),
         materials=_materials(el),
         classifications=_classifications(el),
+        origin_m=_origin(el, length_scale),
     )
+
+
+def _origin(el: ifcopenshell.entity_instance, length_scale: float) -> tuple[float, float, float] | None:
+    if el.ObjectPlacement is None:
+        return None
+    x, y, z = up.get_local_placement(el.ObjectPlacement)[:3, 3] * length_scale
+    return (round(float(x), 4), round(float(y), 4), round(float(z), 4))  # 0.1 mm: stable JSON
 
 
 def _properties(f: ifcopenshell.file, el: ifcopenshell.entity_instance) -> tuple[PropertyValue, ...]:

@@ -82,3 +82,11 @@ def test_unknown_format_and_missing_audit_raise(rev2_audit):
         reports.render(reports.build(engine, audit_id), "pdf")
     with pytest.raises(LookupError):
         reports.build(engine, 999)
+
+
+def test_findings_carry_element_origin_for_viewpoints(rev2_audit):
+    engine, audit_id = rev2_audit
+    findings = reports.build(engine, audit_id - 1)["findings"]  # rev1 has element-level failures
+    placed = [f for f in findings if f["global_id"]]
+    assert placed and all(len(f["origin_m"]) == 3 for f in placed)
+    assert all(f["origin_m"] is None for f in findings if not f["global_id"])

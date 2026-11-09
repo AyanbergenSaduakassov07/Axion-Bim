@@ -99,6 +99,9 @@ elements = Table(
     Column("parent_global_id", String(22)),
     Column("has_geometry", Boolean, nullable=False),
     Column("representation_types", String, nullable=False),  # comma-joined, e.g. "SweptSolid,Axis"
+    Column("origin_x", Float),  # world placement origin, metres (NULL: no placement / pre-0005)
+    Column("origin_y", Float),
+    Column("origin_z", Float),
     Index("ix_elements_revision_global", "revision_id", "global_id"),
 )
 

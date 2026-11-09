@@ -2,8 +2,8 @@
 
 One topic per fail/warning finding. Topic GUIDs derive from the finding identity_key, so re-exporting a later
 audit updates the same topics in a BCF tool instead of duplicating them. Viewpoints select the element by
-GlobalId. BCF 3.0 requires a camera; snapshots store no element positions, so it is a generic overview of
-the model origin (shortcut: per-element camera needs centroids stored at extraction; add them there).
+GlobalId. BCF 3.0 requires a camera: it looks at the element's placement origin (stored at extraction) from a fixed
+offset, or gives an overview of the model origin when the element has no placement.
 """
 
 from __future__ import annotations
@@ -25,6 +25,7 @@ OPEN = frozenset({"fail", "warning"})
 NAMESPACE = uuid.UUID("6f7d2c1e-3b4a-4f0e-9a8b-41c0f1e2d3a4")  # fixed: same finding -> same topic GUID
 AUTHOR = "Axiom BIM"
 OVERVIEW_OFFSET_M = np.array((30.0, 30.0, 30.0))
+CLOSE_UP_OFFSET_M = np.array((6.0, -8.0, 5.0))  # ~11 m away, from the south-east, above
 
 
 def topic_guid(identity_key: str) -> str:
@@ -65,14 +66,15 @@ def _topic(f: dict, now: XmlDateTime, audit_id: int) -> TopicHandler:
         vi = mdl.VisualizationInfo(
             guid=str(uuid.uuid4()),
             components=build_components(f["global_id"]),
-            perspective_camera=_overview_camera(),
+            perspective_camera=_camera(f.get("origin_m")),
         )
         handler.add_visinfo_handler(VisualizationInfoHandler(visualization_info=vi))
     return handler
 
 
-def _overview_camera() -> mdl.PerspectiveCamera:
-    return build_camera_from_vectors(*camera_vectors_from_target_position(np.zeros(3), OVERVIEW_OFFSET_M))
+def _camera(origin: list[float] | None) -> mdl.PerspectiveCamera:
+    target, offset = (np.array(origin), CLOSE_UP_OFFSET_M) if origin else (np.zeros(3), OVERVIEW_OFFSET_M)
+    return build_camera_from_vectors(*camera_vectors_from_target_position(target, offset))
 
 
 def _description(f: dict, audit_id: int) -> str:

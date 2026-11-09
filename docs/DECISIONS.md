@@ -134,8 +134,10 @@ entities. Docker API runs as uid 10001. Deferred: copilot rate limit, SPA CSP (v
 `not_evaluated` are not issues. Topic GUID = uuid5(fixed namespace, finding `identity_key`), so a later
 audit's export updates the same topics in a BCF tool instead of duplicating them (persistent findings keep
 their identity key across revisions). Viewpoint selects the element by GlobalId; project-level findings
-have no viewpoint. BCF 3.0 XSD requires a camera; snapshots store no element positions, so the camera is a
-generic overview of the origin (upgrade: store centroids at extraction). Built on IfcOpenShell's
+have no viewpoint. BCF 3.0 XSD requires a camera: it looks at the element's world placement origin
+(`elements.origin_x/y/z`, migration 0005, extracted via `ifcopenshell.util.placement`, metres) from a
+fixed ~11 m offset. Placement origin, not geometric centroid: no tessellation in extraction; long elements
+(beams, walls) are framed from their start point. Revisions ingested before 0005 fall back to an overview. Built on IfcOpenShell's
 `bcf-client` 0.9.0 (xsdata models generated from the official XSDs), pinned directly. Output validated
 against the buildingSMART BCF-XML release_3_0 XSDs (not vendored: licence NOASSERTION). Not yet opened
 in a real viewer (PLAN.md §2 item 8 asks for that).

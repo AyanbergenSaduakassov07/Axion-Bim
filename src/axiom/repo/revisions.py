@@ -27,6 +27,7 @@ from axiom.repo.tables import (
     spatial_nodes,
 )
 
+ORIGIN_COLS = ("origin_x", "origin_y", "origin_z")
 CHILD_TABLES = (property_values, quantities, material_assocs, classifications)
 
 
@@ -95,6 +96,7 @@ def _element_row(revision_id: int, e: Element) -> dict:
         "parent_global_id": e.parent_global_id,
         "has_geometry": e.has_representation,
         "representation_types": ",".join(e.representation_types),
+        **dict(zip(ORIGIN_COLS, e.origin_m or (None, None, None), strict=True)),
     }
 
 
@@ -167,6 +169,7 @@ def _element(r: Row, children: dict[str, dict[int, list[Row]]]) -> Element:
         },
         has_representation=r.has_geometry,
         representation_types=tuple(t for t in r.representation_types.split(",") if t),
+        origin_m=(r.origin_x, r.origin_y, r.origin_z) if r.origin_x is not None else None,
         properties=tuple(
             PropertyValue(pset=p.pset, name=p.name, value=_decode_value(p), unit=p.unit)
             for p in children["property_values"][r.id]

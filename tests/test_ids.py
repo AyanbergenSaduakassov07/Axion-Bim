@@ -66,6 +66,7 @@ def test_subtype_coverage_gap_is_flagged(tmp_path, ifc_path):
     hint = [x for x in out.findings if x.issue_key == "2/coverage/subtypes"]
     assert len(hint) == 1 and hint[0].status == "warning" and hint[0].severity == "info"
     assert hint[0].evidence["uncovered"] == {"IfcWallStandardCase": 1}
+    assert out.counts["IDS:STR-WALL"] == {"pass": 6, "warning": 1, "not_evaluated": 1}
     assert _failed(out, "IDS:STR-WALL") == []
 
 

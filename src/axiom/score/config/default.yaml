@@ -1,0 +1,20 @@
+# MHI scoring config (PLAN §3 "MHI (v1)", D-15). Bump `version` on any change: it is stored with every audit.
+version: "2026.11-1"
+weights:
+  property_completeness: 0.20
+  ids_compliance: 0.20
+  geometry_integrity: 0.15
+  spatial_integrity: 0.15
+  material_completeness: 0.15
+  classification_quality: 0.05
+  model_consistency: 0.10
+# rule id (fnmatch pattern) -> dimension; first match wins, in file order
+rules:
+  QTO-*: property_completeness
+  MET-*: property_completeness
+  IDS:*: ids_compliance
+  GEO-001: geometry_integrity
+  SPA-*: spatial_integrity
+  MAT-*: material_completeness
+  CLS-*: classification_quality
+  GEO-002: model_consistency

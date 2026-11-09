@@ -58,3 +58,13 @@ def test_audit_with_invalid_ids_fails_cleanly(ifc_path, tmp_path, monkeypatch):
     result = runner.invoke(app, ["audit", str(ifc_path("clean")), "--ids", str(bad)])
     assert result.exit_code == 2
     assert "invalid IDS" in result.output
+
+
+def test_audit_prints_mhi_table_and_gate(ifc_path, tmp_path, monkeypatch):
+    monkeypatch.setenv("AXIOM_DATA_DIR", str(tmp_path / "data"))
+    out = tmp_path / "r.json"
+    result = runner.invoke(app, ["audit", str(ifc_path("duplicate_guid")), "--json", str(out)])
+    assert result.exit_code == 0, result.output
+    assert "MHI" in result.output and "model_consistency" in result.output
+    assert "BLOCKED" in result.output
+    assert json.loads(out.read_text())["mhi"]["blocked"] is True

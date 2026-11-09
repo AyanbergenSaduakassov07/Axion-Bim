@@ -3,6 +3,7 @@
 import json
 import logging
 import time
+from dataclasses import asdict
 from pathlib import Path
 
 import typer
@@ -12,6 +13,7 @@ from axiom.config import load_settings
 from axiom.extract import extract, profile
 from axiom.findings import CheckStatus
 from axiom.repo.db import get_engine, migrate
+from axiom.score import MhiResult
 from axiom.services import audits, projects, revisions
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
@@ -94,11 +96,28 @@ def audit(
         typer.echo(f"  {f.severity:<8} {f.rule_id}  {f.element_name or f.global_id or '-':<16} {f.message}")
         if f.expected or f.actual:
             typer.echo(f"           expected: {f.expected or '-'}  |  actual: {f.actual or '-'}")
+    _print_mhi(result.mhi)
     if json_out:
         report = {
+            "mhi": asdict(result.mhi),
             "reproducibility": result.reproducibility,
             "counts": result.counts,
             "findings": [f.model_dump(mode="json") for f in result.findings],
         }
         json_out.write_text(json.dumps(report, indent=2))
         typer.echo(f"report written to {json_out}")
+
+
+def _fmt(v: float | None, spec: str = ">7.1f") -> str:
+    return f"{'-':>7}" if v is None else format(v, spec)
+
+
+def _print_mhi(mhi: MhiResult) -> None:
+    gate = f"BLOCKED by {len(mhi.blocking)} critical finding(s)" if mhi.blocked else "not blocked"
+    typer.echo(f"MHI {_fmt(mhi.score, '.1f').strip()}  coverage {_fmt(mhi.coverage, '.0f').strip()}%  {gate}")
+    typer.echo(f"  {'dimension':<24}{'score':>7}{'weight':>8}{'contrib':>9}{'coverage':>10}")
+    for name, d in mhi.dimensions.items():
+        cov = _fmt(d.coverage, ">9.0f")
+        typer.echo(f"  {name:<24}{_fmt(d.score)}{d.effective_weight:>8.2f}{d.contribution:>9.1f}{cov}%")
+    for note in mhi.notes:
+        typer.echo(f"  note: {note}")

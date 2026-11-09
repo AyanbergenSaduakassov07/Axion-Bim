@@ -175,6 +175,9 @@ def _coverage(i: int, spec: ids.Specification, model: ifcopenshell.file) -> Iter
                 actual=f"{sum(uncovered.values())} subtype entities skipped",
                 evidence={"entity": facet.name, "uncovered": dict(sorted(uncovered.items()))},
             )  # fmt: skip
+            # skipped entities are coverage gaps: tallied, never reported as findings
+            skipped = IdsResult(CheckStatus.NOT_EVALUATED, f"{i}/coverage/subtypes")
+            yield from [skipped] * sum(uncovered.values())
 
 
 def _finding(model_id: int, meta: RuleMeta, spec: ids.Specification, r: IdsResult) -> Finding:

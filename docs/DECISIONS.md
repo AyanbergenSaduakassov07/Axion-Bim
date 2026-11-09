@@ -48,3 +48,10 @@ Property values stored typed (`value_type` + `value_text`/`value_num`), not JSON
 - IfcTester 0.9.0 drops spec `@identifier`; `load_ids` decodes once and restores it. It also fails the suite case "optional attribute passes if null"; we report its verdict unchanged and track it as a strict xfail.
 - IDS files stored content-addressed next to IFCs (`files/<sha256>.ids`), hash in `audit_runs.ids_hash`. `ruleset_version` still identifies built-in rules only.
 - Conformance subset: 13 buildingSMART IDS test cases vendored unmodified (CC BY-ND 4.0, attribution in NOTICE).
+
+## D-15 MHI v1 scoring details — 2026-11-09
+- Config `src/axiom/score/config/default.yaml` (versioned; stored per audit in `audit_runs.scoring_config_json`, version in the reproducibility block). Rule→dimension by fnmatch pattern, first match wins; unmapped rules are noted, not scored.
+- `s_i = pass/(pass+fail)`. `warning` counts as evaluated for coverage but not in the score, so a model without classification gets a null `classification_quality` (noted, weight redistributed) rather than a fail. `not_applicable` is neither score nor coverage gap.
+- Coverage = (pass+fail+warning)/(that + not_evaluated + error). IDS subtype coverage gaps (D-14) add one `not_evaluated` per skipped entity, so coverage drops instead of hiding them.
+- Score rounded to 6 dp (float-sum noise); null when no dimension evaluated. Critical gate = any `critical` `fail` finding → `blocked`, identity keys listed.
+- MET-001 (naming) and QTO-001 feed `property_completeness`; GEO-002 feeds `model_consistency`.

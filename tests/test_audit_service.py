@@ -70,3 +70,19 @@ def test_audit_with_ids_merges_findings_and_records_hash(ingested, tmp_path):
     assert walls == ["W1", "W2", "W3"]
     assert {"GEO-001", "IDS:STR-WALL"} <= set(result.counts)
     assert audits.load_findings(engine, result.audit_run_id) == result.findings
+
+
+def test_clean_model_scores_100_and_persists_scoring_config(ingested):
+    engine, ingest = ingested
+    result = audits.run_audit(engine, ingest("clean"))
+    assert result.mhi.score == 100 and result.mhi.coverage == 100 and not result.mhi.blocked
+    assert result.mhi.dimensions["ids_compliance"].score is None  # no IDS given: flagged, not scored
+    assert result.reproducibility["scoring_config"] == result.mhi.config_version
+    stored = audits.load_audit_summary(engine, result.audit_run_id)
+    assert stored["mhi"]["score"] == 100 and stored["scoring_config"]["version"] == result.mhi.config_version
+
+
+def test_duplicate_guid_blocks_the_model(ingested):
+    engine, ingest = ingested
+    mhi = audits.run_audit(engine, ingest("duplicate_guid")).mhi
+    assert mhi.blocked and len(mhi.blocking) == 1

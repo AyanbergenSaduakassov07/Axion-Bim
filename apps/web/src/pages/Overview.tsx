@@ -44,9 +44,12 @@ function ModelOverview({ modelId }: { modelId: number }) {
   const latest = revisions.data?.at(-1);
   return (
     <>
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
         <Link className={btnPrimary} to={`/models/${modelId}/upload`}>
           <Upload size={14} aria-hidden /> Upload revision
+        </Link>
+        <Link className={btn} to={`/models/${modelId}/revisions`}>
+          Revision intelligence
         </Link>
       </div>
       <Q q={revisions} empty={(d) => d.length === 0 && "No revisions yet. Upload an IFC file to start."}>
@@ -139,6 +142,9 @@ function RevisionStats({ r }: { r: RevisionSummary }) {
         )}
         <Link className={btn} to={`/revisions/${r.id}/explorer`}>
           Open Model Explorer
+        </Link>
+        <Link className={btn} to={`/revisions/${r.id}/quantities`}>
+          Quantities
         </Link>
       </div>
     </div>

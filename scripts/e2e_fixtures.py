@@ -8,5 +8,5 @@ from factory import build_fixture  # noqa: E402
 
 out = Path(sys.argv[1])
 out.mkdir(parents=True, exist_ok=True)
-for name in ("rev1", "rev2"):
+for name in ("rev1", "rev2", "rev3"):
     build_fixture(name, out)

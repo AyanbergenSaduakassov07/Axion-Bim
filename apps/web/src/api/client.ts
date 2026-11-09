@@ -12,6 +12,26 @@ export type Job = S["JobOut"];
 export type SpatialTree = S["SpatialTree"];
 export type TreeElement = S["TreeElement"];
 export type Element = S["Element"];
+export type Change = S["ChangeOut"];
+export type FindingEvent = S["FindingEvent"];
+
+export type ComparisonSummary = {
+  changes: Record<string, number>;
+  changes_by_class: Record<string, Record<string, number>>;
+  events: Record<string, number>;
+  mhi: { base: number | null; head: number | null; delta: number | null; dimensions: Record<string, number> };
+  impact: { global_id: string; element_name: string | null; rule_id: string; event: string; paths: string[] }[];
+  ids_mismatch: boolean;
+  ruleset_mismatch: boolean;
+  unstable_classes: string[];
+  uncertain_global_ids: string[];
+};
+export type Comparison = Omit<S["ComparisonOut"], "summary_json"> & { summary_json: ComparisonSummary };
+
+type QuantityKey = { group: string; qto: string; quantity: string; method: "qto" | "geometry"; unit: string | null };
+export type QuantityRow = QuantityKey & { total: number; count: number; missing: string[] };
+export type QuantityDelta = QuantityKey & { old: number | null; new: number | null };
+export type Quantities = { rows: QuantityRow[]; delta: QuantityDelta[] };
 
 export type Dimension = {
   score: number | null;

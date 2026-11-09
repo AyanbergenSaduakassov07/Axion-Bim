@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { api, type Audit, type AuditSummary, type Element, type SpatialTree, type Finding, type Job, type Model, type Project, type Revision, type RevisionSummary } from "./client";
+import { api, type Audit, type Change, type Comparison, type FindingEvent, type Quantities, type AuditSummary, type Element, type SpatialTree, type Finding, type Job, type Model, type Project, type Revision, type RevisionSummary } from "./client";
 
 export const useProjects = () => useQuery({ queryKey: ["projects"], queryFn: () => api<Project[]>("/projects") });
 
@@ -61,5 +61,26 @@ export const useElement = (revisionId: number, globalId: string | null) =>
     queryKey: ["element", revisionId, globalId],
     queryFn: () => api<Element>(`/revisions/${revisionId}/elements/${encodeURIComponent(globalId!)}`),
     enabled: globalId != null,
+    staleTime: Infinity,
+  });
+
+export const useComparisons = (revisionId: number | undefined) =>
+  useQuery({
+    queryKey: ["comparisons", revisionId],
+    queryFn: () => api<Comparison[]>(`/revisions/${revisionId}/comparisons`),
+    enabled: revisionId != null,
+  });
+
+// comparisons are immutable once written
+export const useChanges = (comparisonId: number) =>
+  useQuery({ queryKey: ["changes", comparisonId], queryFn: () => api<Change[]>(`/comparisons/${comparisonId}/changes`), staleTime: Infinity });
+
+export const useEvents = (comparisonId: number) =>
+  useQuery({ queryKey: ["events", comparisonId], queryFn: () => api<FindingEvent[]>(`/comparisons/${comparisonId}/events`), staleTime: Infinity });
+
+export const useQuantities = (revisionId: number, by: string, against: number | undefined) =>
+  useQuery({
+    queryKey: ["quantities", revisionId, by, against],
+    queryFn: () => api<Quantities>(`/revisions/${revisionId}/quantities?by=${by}${against != null ? `&against=${against}` : ""}`),
     staleTime: Infinity,
   });

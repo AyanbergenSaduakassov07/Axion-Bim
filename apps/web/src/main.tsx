@@ -7,6 +7,8 @@ import { Explorer } from "./pages/Explorer";
 import { Overview } from "./pages/Overview";
 import { Projects } from "./pages/Projects";
 import { Quality } from "./pages/Quality";
+import { Quantities } from "./pages/Quantities";
+import { Revisions } from "./pages/Revisions";
 import { Upload } from "./pages/Upload";
 import { Empty, Shell } from "./ui";
 
@@ -23,6 +25,8 @@ createRoot(document.getElementById("root")!).render(
             <Route path="models/:modelId/upload" element={<Upload />} />
             <Route path="revisions/:revisionId/quality" element={<Quality />} />
             <Route path="revisions/:revisionId/explorer" element={<Explorer />} />
+            <Route path="revisions/:revisionId/quantities" element={<Quantities />} />
+            <Route path="models/:modelId/revisions" element={<Revisions />} />
             <Route path="*" element={<Empty>Page not found.</Empty>} />
           </Route>
         </Routes>

@@ -96,3 +96,13 @@ Property values stored typed (`value_type` + `value_text`/`value_num`), not JSON
 - web-ifc wasm and the fragments worker are copied from the pinned packages into gitignored `public/` by a Vite plugin in the `config` hook (before the dev server indexes `public/`). Never unpkg (D-08).
 - `window.__axiomViewer` (`focus`, `lastFocused`, `stats`, `heapMB`) exists only in dev builds, for Playwright and measurements; disposing a viewer removes it.
 - "Highlight in 3D" colours each element of the current filter by its worst non-pass severity, using the theme's severity tokens.
+
+## D-21 · Reports + Revision Intelligence UI (P11)
+- One canonical report dict (`services/reports.build`, `format: axiom-report/1`) rendered three ways: JSON, CSV (one row per finding), self-contained HTML (Jinja2, autoescape, inline CSS, `@media print`, no scripts or external URLs). PDF = browser print of the HTML.
+- `POST /audits/{id}/reports?format=` renders on demand from stored results; nothing is stored, no IFC is opened. CLI `axiom report` uses the same service.
+- Golden test (`tests/fixtures/expected/report_rev1_rev2.json`) masks only run-specific values (row ids, timestamps, file hash/size); `UPDATE_GOLDEN=1` regenerates. Rule ids and GlobalIds stay asserted.
+- Revision page `/models/{id}/revisions?base=&head=`: uses the stored comparison when one exists, otherwise offers "Compare" (job). Uploads already compare with the previous revision.
+- Comparison view: events ordered recurring → new → changed → uncertain → resolved, persistent collapsed; each event focuses its GlobalId in the head model. Removed elements are not drawn (no ghost of the base model); their count is shown.
+- Identity-unstable comparisons hide per-element impact and property changes and show a banner; modified highlights are suppressed.
+- MHI waterfall: base → dimension contribution changes ≥0.05 pt → re-weighting residual → head; withheld scores show a message, never a bar. Pure step math in `waterfall-steps.ts`, tested with `node --test` (no new dependency).
+- Quantities page shows qto totals by class/storey/material/classification with Δ against the previous revision; method is always shown.

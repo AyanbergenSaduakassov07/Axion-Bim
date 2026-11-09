@@ -70,3 +70,13 @@ Property values stored typed (`value_type` + `value_text`/`value_num`), not JSON
 - `--geometry` computes volumes for every element (not only those lacking Qto) via `ifcopenshell.geom.iterator` + `util.shape.get_volume`, so Qto and geometry columns can be compared. Geometry area left out: the shape footprint is in local coordinates and would mislead.
 - QTO-002 (D-12) = Qto Gross/NetVolume vs geometry volume, fail outside x2, hint when the ratio is ~1e3/1e6/1e9. Opt-in (`run_audit(geometry=True)`, `axiom audit --geometry`), recorded as `reproducibility.geometry`. Finds both x1000 slabs in the Revit sample. Comparing a geometry audit with a non-geometry one gives `uncertain` QTO-002 events (D-16).
 - Revision deltas: `services.quantities.delta(base, head)` on grouped totals; not yet folded into `comparisons.summary_json` (P11 can call it).
+
+## D-18 · API + job runner details (P08)
+- Job kinds are an allowlist `kind -> "module:function"` (`services.jobs.KINDS`); the spawned child imports only that target. Tests add kinds (`tests/jobkinds.py`) through `create_app(kinds=...)`; nothing user-supplied ever names code.
+- Child result/error comes back over a Pipe; `poll(timeout)` also returns on EOF, so a native crash is detected immediately, a hang at `AXIOM_JOB_TIMEOUT_S` (child killed). Messages are user-safe: `ValueError` text (our services' user-facing errors) or a generic line; tracebacks only in the log. `running` jobs at startup -> `error` ("server restarted").
+- `RLIMIT_AS` is applied best-effort: macOS ignores/refuses it (logged at debug), Linux enforces it. The wall-clock timeout is the guard that always holds.
+- Settings stay a frozen dataclass read from env (no pydantic-settings dependency); added `AXIOM_MAX_UPLOAD_MB`, `AXIOM_JOB_TIMEOUT_S`, `AXIOM_JOB_MEM_MB`.
+- Upload intake (`services.uploads`): extension, size (streamed count, 413), `ISO-10303-21;` header, sha256 content address, then a `pipeline` job (ingest -> audit -> compare with previous). IDS uploads are XSD-validated in the request (XML only, no IFC) and referenced later by `ids_hash` (regex-checked, must exist).
+- Quantities over HTTP are Qto-only; geometry volumes need IFC processing and stay in `axiom audit --geometry` until a job kind is needed (P11).
+- Errors: `{error: {code, message}}` for 400/404/413/422/500; 422 lists field names, never echoes input.
+- OpenAPI: `uv run python scripts/export_openapi.py` -> `apps/web/src/api/openapi.json`; P09 runs `npx openapi-typescript src/api/openapi.json -o src/api/schema.d.ts`.

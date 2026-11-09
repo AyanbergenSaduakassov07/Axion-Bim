@@ -225,3 +225,18 @@ finding_events = Table(
     Column("severity", String(8), nullable=False),
     Column("note", String),
 )
+
+jobs = Table(
+    "jobs",
+    metadata,
+    _id(),
+    Column("kind", String, nullable=False),
+    Column("payload_json", JSON, nullable=False),
+    Column("status", String(16), nullable=False, index=True),  # queued | running | done | error
+    Column("progress", Float, nullable=False, default=0.0),
+    Column("result_json", JSON),
+    Column("error_message", Text),  # user-safe; full detail goes to the server log only
+    _created(),
+    Column("started_at", DateTime(timezone=True)),
+    Column("finished_at", DateTime(timezone=True)),
+)

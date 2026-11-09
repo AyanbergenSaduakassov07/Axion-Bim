@@ -16,13 +16,20 @@ dependencies = [
     "sqlalchemy>=2.0",
     "alembic>=1.14",
     "numpy>=2.5.4",
+    "fastapi>=0.162.2",
+    "uvicorn>=0.54.0",
+    "python-multipart>=0.0.33",
 ]
 
 [project.scripts]
 axiom = "axiom.cli:app"
 
 [dependency-groups]
-dev = ["pytest>=8", "ruff>=0.7"]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=8",
+    "ruff>=0.7",
+]
 
 [build-system]
 requires = ["uv_build>=0.11.24,<0.12.0"]

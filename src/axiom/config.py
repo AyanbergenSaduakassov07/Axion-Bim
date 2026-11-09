@@ -11,6 +11,9 @@ from pathlib import Path
 class Settings:
     data_dir: Path
     db_url: str
+    max_upload_mb: int = 500
+    job_timeout_s: float = 900.0
+    job_mem_mb: int = 8192
 
     @property
     def files_dir(self) -> Path:
@@ -20,5 +23,9 @@ class Settings:
 def load_settings() -> Settings:
     data_dir = Path(os.environ.get("AXIOM_DATA_DIR", "data"))
     return Settings(
-        data_dir=data_dir, db_url=os.environ.get("AXIOM_DB_URL", f"sqlite:///{data_dir / 'axiom.db'}")
+        data_dir=data_dir,
+        db_url=os.environ.get("AXIOM_DB_URL", f"sqlite:///{data_dir / 'axiom.db'}"),
+        max_upload_mb=int(os.environ.get("AXIOM_MAX_UPLOAD_MB", "500")),
+        job_timeout_s=float(os.environ.get("AXIOM_JOB_TIMEOUT_S", "900")),
+        job_mem_mb=int(os.environ.get("AXIOM_JOB_MEM_MB", "8192")),
     )

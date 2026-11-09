@@ -35,6 +35,19 @@ def _root(verbose: bool = typer.Option(False, "--verbose", "-v")) -> None:
 
 
 @app.command()
+def serve(
+    host: str = typer.Option("127.0.0.1", help="Bind address; keep local unless behind a proxy."),
+    port: int = typer.Option(8000),
+) -> None:
+    """Run the HTTP API (docs at /docs) with the background job runner."""
+    import uvicorn  # noqa: PLC0415  (server deps load only for this command)
+
+    from axiom.api import create_app  # noqa: PLC0415
+
+    uvicorn.run(create_app(), host=host, port=port)
+
+
+@app.command()
 def version() -> None:
     """Print the Axiom engine version."""
     typer.echo(__version__)

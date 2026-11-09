@@ -1,0 +1,2256 @@
+{
+  "components": {
+    "schemas": {
+      "Accepted": {
+        "properties": {
+          "job_id": {
+            "title": "Job Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "job_id"
+        ],
+        "title": "Accepted",
+        "type": "object"
+      },
+      "AuditOut": {
+        "properties": {
+          "blocked": {
+            "title": "Blocked",
+            "type": "boolean"
+          },
+          "coverage": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coverage"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "engine_version": {
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "ids_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ids Hash"
+          },
+          "revision_id": {
+            "title": "Revision Id",
+            "type": "integer"
+          },
+          "ruleset_version": {
+            "title": "Ruleset Version",
+            "type": "string"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "revision_id",
+          "ruleset_version",
+          "ids_hash",
+          "status",
+          "engine_version",
+          "created_at",
+          "score",
+          "coverage",
+          "blocked"
+        ],
+        "title": "AuditOut",
+        "type": "object"
+      },
+      "Body_upload_ids_api_v1_ids_post": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_ids_api_v1_ids_post",
+        "type": "object"
+      },
+      "Body_upload_revision_api_v1_models__model_id__revisions_post": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          },
+          "geometry": {
+            "default": false,
+            "title": "Geometry",
+            "type": "boolean"
+          },
+          "ids_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ids Hash"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_revision_api_v1_models__model_id__revisions_post",
+        "type": "object"
+      },
+      "Category": {
+        "enum": [
+          "geometry",
+          "identity",
+          "spatial",
+          "material",
+          "metadata",
+          "classification",
+          "quantity",
+          "information"
+        ],
+        "title": "Category",
+        "type": "string"
+      },
+      "ChangeOut": {
+        "properties": {
+          "global_id": {
+            "title": "Global Id",
+            "type": "string"
+          },
+          "ifc_class": {
+            "title": "Ifc Class",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "new": {
+            "title": "New"
+          },
+          "old": {
+            "title": "Old"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          }
+        },
+        "required": [
+          "kind",
+          "global_id",
+          "ifc_class",
+          "path",
+          "old",
+          "new"
+        ],
+        "title": "ChangeOut",
+        "type": "object"
+      },
+      "CheckStatus": {
+        "enum": [
+          "pass",
+          "fail",
+          "warning",
+          "not_applicable",
+          "not_evaluated",
+          "error"
+        ],
+        "title": "CheckStatus",
+        "type": "string"
+      },
+      "ClassificationRef": {
+        "additionalProperties": false,
+        "properties": {
+          "identification": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Identification"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "system": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "System"
+          }
+        },
+        "required": [
+          "system",
+          "identification",
+          "name"
+        ],
+        "title": "ClassificationRef",
+        "type": "object"
+      },
+      "CompareIn": {
+        "properties": {
+          "base_revision_id": {
+            "title": "Base Revision Id",
+            "type": "integer"
+          },
+          "head_revision_id": {
+            "title": "Head Revision Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "base_revision_id",
+          "head_revision_id"
+        ],
+        "title": "CompareIn",
+        "type": "object"
+      },
+      "ComparisonOut": {
+        "properties": {
+          "base_audit_run_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Audit Run Id"
+          },
+          "base_revision_id": {
+            "title": "Base Revision Id",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "head_audit_run_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Head Audit Run Id"
+          },
+          "head_revision_id": {
+            "title": "Head Revision Id",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "identity_unstable": {
+            "title": "Identity Unstable",
+            "type": "boolean"
+          },
+          "summary_json": {
+            "additionalProperties": true,
+            "title": "Summary Json",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "base_revision_id",
+          "head_revision_id",
+          "base_audit_run_id",
+          "head_audit_run_id",
+          "identity_unstable",
+          "summary_json",
+          "created_at"
+        ],
+        "title": "ComparisonOut",
+        "type": "object"
+      },
+      "Element": {
+        "additionalProperties": false,
+        "properties": {
+          "classifications": {
+            "items": {
+              "$ref": "#/components/schemas/ClassificationRef"
+            },
+            "title": "Classifications",
+            "type": "array"
+          },
+          "container_global_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Container Global Id"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "global_id": {
+            "title": "Global Id",
+            "type": "string"
+          },
+          "has_representation": {
+            "title": "Has Representation",
+            "type": "boolean"
+          },
+          "ifc_class": {
+            "title": "Ifc Class",
+            "type": "string"
+          },
+          "materials": {
+            "items": {
+              "$ref": "#/components/schemas/MaterialRef"
+            },
+            "title": "Materials",
+            "type": "array"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "object_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Object Type"
+          },
+          "parent_global_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Global Id"
+          },
+          "predefined_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Predefined Type"
+          },
+          "properties": {
+            "items": {
+              "$ref": "#/components/schemas/PropertyValue"
+            },
+            "title": "Properties",
+            "type": "array"
+          },
+          "quantities": {
+            "items": {
+              "$ref": "#/components/schemas/Quantity"
+            },
+            "title": "Quantities",
+            "type": "array"
+          },
+          "representation_types": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Representation Types",
+            "type": "array"
+          },
+          "step_id": {
+            "title": "Step Id",
+            "type": "integer"
+          },
+          "storey_global_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Storey Global Id"
+          }
+        },
+        "required": [
+          "global_id",
+          "step_id",
+          "ifc_class",
+          "name",
+          "description",
+          "object_type",
+          "predefined_type",
+          "container_global_id",
+          "storey_global_id",
+          "parent_global_id",
+          "has_representation",
+          "representation_types",
+          "properties",
+          "quantities",
+          "materials",
+          "classifications"
+        ],
+        "title": "Element",
+        "type": "object"
+      },
+      "ElementPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ElementRow"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "limit",
+          "offset",
+          "items"
+        ],
+        "title": "ElementPage",
+        "type": "object"
+      },
+      "ElementRow": {
+        "properties": {
+          "global_id": {
+            "title": "Global Id",
+            "type": "string"
+          },
+          "has_geometry": {
+            "title": "Has Geometry",
+            "type": "boolean"
+          },
+          "ifc_class": {
+            "title": "Ifc Class",
+            "type": "string"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "step_id": {
+            "title": "Step Id",
+            "type": "integer"
+          },
+          "storey_global_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Storey Global Id"
+          }
+        },
+        "required": [
+          "global_id",
+          "step_id",
+          "ifc_class",
+          "name",
+          "storey_global_id",
+          "has_geometry"
+        ],
+        "title": "ElementRow",
+        "type": "object"
+      },
+      "Finding": {
+        "additionalProperties": false,
+        "properties": {
+          "actual": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual"
+          },
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "dimension": {
+            "title": "Dimension",
+            "type": "string"
+          },
+          "element_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Element Name"
+          },
+          "evidence": {
+            "additionalProperties": true,
+            "title": "Evidence",
+            "type": "object"
+          },
+          "expected": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected"
+          },
+          "global_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Global Id"
+          },
+          "identity_key": {
+            "title": "Identity Key",
+            "type": "string"
+          },
+          "ifc_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ifc Class"
+          },
+          "issue_key": {
+            "title": "Issue Key",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "rule_id": {
+            "title": "Rule Id",
+            "type": "string"
+          },
+          "rule_version": {
+            "title": "Rule Version",
+            "type": "string"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/Severity"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CheckStatus"
+          },
+          "step_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Step Id"
+          }
+        },
+        "required": [
+          "identity_key",
+          "rule_id",
+          "rule_version",
+          "status",
+          "severity",
+          "category",
+          "dimension",
+          "issue_key",
+          "global_id",
+          "step_id",
+          "ifc_class",
+          "element_name",
+          "expected",
+          "actual",
+          "message",
+          "evidence"
+        ],
+        "title": "Finding",
+        "type": "object"
+      },
+      "FindingEvent": {
+        "properties": {
+          "element_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Element Name"
+          },
+          "event": {
+            "title": "Event",
+            "type": "string"
+          },
+          "global_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Global Id"
+          },
+          "identity_key": {
+            "title": "Identity Key",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "rule_id": {
+            "title": "Rule Id",
+            "type": "string"
+          },
+          "severity": {
+            "title": "Severity",
+            "type": "string"
+          }
+        },
+        "required": [
+          "event",
+          "identity_key",
+          "rule_id",
+          "global_id",
+          "element_name",
+          "severity"
+        ],
+        "title": "FindingEvent",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "IdsOut": {
+        "properties": {
+          "ids_hash": {
+            "title": "Ids Hash",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ids_hash"
+        ],
+        "title": "IdsOut",
+        "type": "object"
+      },
+      "JobOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "progress": {
+            "title": "Progress",
+            "type": "number"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "progress",
+          "result",
+          "error_message",
+          "created_at",
+          "started_at",
+          "finished_at"
+        ],
+        "title": "JobOut",
+        "type": "object"
+      },
+      "MaterialRef": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "kind"
+        ],
+        "title": "MaterialRef",
+        "type": "object"
+      },
+      "ModelOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "created_at",
+          "project_id"
+        ],
+        "title": "ModelOut",
+        "type": "object"
+      },
+      "NameIn": {
+        "properties": {
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "NameIn",
+        "type": "object"
+      },
+      "ProjectOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "created_at"
+        ],
+        "title": "ProjectOut",
+        "type": "object"
+      },
+      "PropertyValue": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "pset": {
+            "title": "Pset",
+            "type": "string"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "pset",
+          "name",
+          "value"
+        ],
+        "title": "PropertyValue",
+        "type": "object"
+      },
+      "Quantity": {
+        "additionalProperties": false,
+        "properties": {
+          "method": {
+            "default": "qto",
+            "title": "Method",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "qto": {
+            "title": "Qto",
+            "type": "string"
+          },
+          "si_value": {
+            "title": "Si Value",
+            "type": "number"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "qto",
+          "name",
+          "value",
+          "unit",
+          "si_value"
+        ],
+        "title": "Quantity",
+        "type": "object"
+      },
+      "RevisionOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "file_sha256": {
+            "title": "File Sha256",
+            "type": "string"
+          },
+          "file_size": {
+            "title": "File Size",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "model_id": {
+            "title": "Model Id",
+            "type": "integer"
+          },
+          "schema_name": {
+            "title": "Schema Name",
+            "type": "string"
+          },
+          "seq": {
+            "title": "Seq",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "model_id",
+          "seq",
+          "file_sha256",
+          "file_size",
+          "schema_name",
+          "status",
+          "created_at"
+        ],
+        "title": "RevisionOut",
+        "type": "object"
+      },
+      "RevisionSummary": {
+        "properties": {
+          "class_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Class Counts",
+            "type": "object"
+          },
+          "file_sha256": {
+            "title": "File Sha256",
+            "type": "string"
+          },
+          "file_size": {
+            "title": "File Size",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "latest_audit_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Audit Id"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "title": "Metadata",
+            "type": "object"
+          },
+          "model_id": {
+            "title": "Model Id",
+            "type": "integer"
+          },
+          "schema_name": {
+            "title": "Schema Name",
+            "type": "string"
+          },
+          "seq": {
+            "title": "Seq",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "model_id",
+          "seq",
+          "file_sha256",
+          "file_size",
+          "status",
+          "schema_name",
+          "metadata",
+          "class_counts",
+          "latest_audit_id"
+        ],
+        "title": "RevisionSummary",
+        "type": "object"
+      },
+      "Severity": {
+        "enum": [
+          "critical",
+          "high",
+          "medium",
+          "low",
+          "info"
+        ],
+        "title": "Severity",
+        "type": "string"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "Axiom BIM",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/audits/{audit_id}": {
+      "get": {
+        "operationId": "audit_summary_api_v1_audits__audit_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "audit_id",
+            "required": true,
+            "schema": {
+              "title": "Audit Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Audit Summary Api V1 Audits  Audit Id  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Audit Summary"
+      }
+    },
+    "/api/v1/audits/{audit_id}/findings": {
+      "get": {
+        "operationId": "list_findings_api_v1_audits__audit_id__findings_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "audit_id",
+            "required": true,
+            "schema": {
+              "title": "Audit Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "severity",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Severity"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "in": "query",
+            "name": "rule",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Rule"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Finding"
+                  },
+                  "title": "Response List Findings Api V1 Audits  Audit Id  Findings Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Findings"
+      }
+    },
+    "/api/v1/audits/{audit_id}/health-index": {
+      "get": {
+        "operationId": "health_index_api_v1_audits__audit_id__health_index_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "audit_id",
+            "required": true,
+            "schema": {
+              "title": "Audit Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Health Index Api V1 Audits  Audit Id  Health Index Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Health Index"
+      }
+    },
+    "/api/v1/comparisons": {
+      "post": {
+        "operationId": "request_comparison_api_v1_comparisons_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompareIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Accepted"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Request Comparison"
+      }
+    },
+    "/api/v1/comparisons/{comparison_id}": {
+      "get": {
+        "operationId": "get_comparison_api_v1_comparisons__comparison_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "comparison_id",
+            "required": true,
+            "schema": {
+              "title": "Comparison Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComparisonOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Comparison"
+      }
+    },
+    "/api/v1/comparisons/{comparison_id}/changes": {
+      "get": {
+        "operationId": "list_changes_api_v1_comparisons__comparison_id__changes_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "comparison_id",
+            "required": true,
+            "schema": {
+              "title": "Comparison Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeOut"
+                  },
+                  "title": "Response List Changes Api V1 Comparisons  Comparison Id  Changes Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Changes"
+      }
+    },
+    "/api/v1/comparisons/{comparison_id}/events": {
+      "get": {
+        "operationId": "list_events_api_v1_comparisons__comparison_id__events_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "comparison_id",
+            "required": true,
+            "schema": {
+              "title": "Comparison Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/FindingEvent"
+                  },
+                  "title": "Response List Events Api V1 Comparisons  Comparison Id  Events Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Events"
+      }
+    },
+    "/api/v1/ids": {
+      "post": {
+        "operationId": "upload_ids_api_v1_ids_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_ids_api_v1_ids_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload Ids"
+      }
+    },
+    "/api/v1/jobs/{job_id}": {
+      "get": {
+        "operationId": "get_job_api_v1_jobs__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Job"
+      }
+    },
+    "/api/v1/models/{model_id}/revisions": {
+      "get": {
+        "operationId": "list_revisions_api_v1_models__model_id__revisions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "model_id",
+            "required": true,
+            "schema": {
+              "title": "Model Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RevisionOut"
+                  },
+                  "title": "Response List Revisions Api V1 Models  Model Id  Revisions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Revisions"
+      },
+      "post": {
+        "operationId": "upload_revision_api_v1_models__model_id__revisions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "model_id",
+            "required": true,
+            "schema": {
+              "title": "Model Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_revision_api_v1_models__model_id__revisions_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Accepted"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload Revision"
+      }
+    },
+    "/api/v1/projects": {
+      "get": {
+        "operationId": "list_projects_api_v1_projects_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectOut"
+                  },
+                  "title": "Response List Projects Api V1 Projects Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Projects"
+      },
+      "post": {
+        "operationId": "create_project_api_v1_projects_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NameIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Project"
+      }
+    },
+    "/api/v1/projects/{project_id}/models": {
+      "get": {
+        "operationId": "list_models_api_v1_projects__project_id__models_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ModelOut"
+                  },
+                  "title": "Response List Models Api V1 Projects  Project Id  Models Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Models"
+      },
+      "post": {
+        "operationId": "create_model_api_v1_projects__project_id__models_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NameIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Model"
+      }
+    },
+    "/api/v1/revisions/{revision_id}": {
+      "get": {
+        "operationId": "revision_summary_api_v1_revisions__revision_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "revision_id",
+            "required": true,
+            "schema": {
+              "title": "Revision Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisionSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revision Summary"
+      }
+    },
+    "/api/v1/revisions/{revision_id}/audits": {
+      "get": {
+        "operationId": "list_audits_api_v1_revisions__revision_id__audits_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "revision_id",
+            "required": true,
+            "schema": {
+              "title": "Revision Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AuditOut"
+                  },
+                  "title": "Response List Audits Api V1 Revisions  Revision Id  Audits Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Audits"
+      }
+    },
+    "/api/v1/revisions/{revision_id}/comparisons": {
+      "get": {
+        "operationId": "list_comparisons_api_v1_revisions__revision_id__comparisons_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "revision_id",
+            "required": true,
+            "schema": {
+              "title": "Revision Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ComparisonOut"
+                  },
+                  "title": "Response List Comparisons Api V1 Revisions  Revision Id  Comparisons Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Comparisons"
+      }
+    },
+    "/api/v1/revisions/{revision_id}/elements": {
+      "get": {
+        "operationId": "list_elements_api_v1_revisions__revision_id__elements_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "revision_id",
+            "required": true,
+            "schema": {
+              "title": "Revision Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ifc_class",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ifc Class"
+            }
+          },
+          {
+            "in": "query",
+            "name": "storey",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Storey"
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Search"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ElementPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Elements"
+      }
+    },
+    "/api/v1/revisions/{revision_id}/elements/{global_id}": {
+      "get": {
+        "operationId": "get_element_api_v1_revisions__revision_id__elements__global_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "revision_id",
+            "required": true,
+            "schema": {
+              "title": "Revision Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "global_id",
+            "required": true,
+            "schema": {
+              "title": "Global Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Element"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Element"
+      }
+    },
+    "/api/v1/revisions/{revision_id}/quantities": {
+      "get": {
+        "description": "Qto totals (method=qto). Geometry volumes need IFC processing: use `axiom audit --geometry`.",
+        "operationId": "get_quantities_api_v1_revisions__revision_id__quantities_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "revision_id",
+            "required": true,
+            "schema": {
+              "title": "Revision Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "by",
+            "required": false,
+            "schema": {
+              "default": "class",
+              "title": "By",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "against",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Against"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Quantities Api V1 Revisions  Revision Id  Quantities Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Quantities"
+      }
+    }
+  }
+}

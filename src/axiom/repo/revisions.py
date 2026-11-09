@@ -130,7 +130,7 @@ def load_snapshot(conn: Connection, revision_id: int) -> Snapshot:
     el_rows = conn.execute(
         select(elements).where(elements.c.revision_id == revision_id).order_by(elements.c.id)
     ).all()
-    children = {t.name: _children(conn, t, revision_id) for t in CHILD_TABLES}
+    children = {t.name: _children(conn, t, elements.c.revision_id == revision_id) for t in CHILD_TABLES}
     return Snapshot(
         meta=RevisionMeta.model_validate(rev.metadata_json),
         spatial=tuple(SpatialNode(**_fields(r, SpatialNode)) for r in spatial),
@@ -138,13 +138,16 @@ def load_snapshot(conn: Connection, revision_id: int) -> Snapshot:
     )
 
 
-def _children(conn: Connection, table, revision_id: int) -> dict[int, list[Row]]:
-    q = (
-        select(table)
-        .join(elements, table.c.element_id == elements.c.id)
-        .where(elements.c.revision_id == revision_id)
-        .order_by(table.c.id)
-    )
+def load_element(conn: Connection, revision_id: int, global_id: str) -> Element | None:
+    q = select(elements).where(elements.c.revision_id == revision_id, elements.c.global_id == global_id)
+    r = conn.execute(q.order_by(elements.c.id).limit(1)).first()
+    if r is None:
+        return None
+    return _element(r, {t.name: _children(conn, t, elements.c.id == r.id) for t in CHILD_TABLES})
+
+
+def _children(conn: Connection, table, where) -> dict[int, list[Row]]:
+    q = select(table).join(elements, table.c.element_id == elements.c.id).where(where).order_by(table.c.id)
     out: dict[int, list[Row]] = defaultdict(list)
     for r in conn.execute(q):
         out[r.element_id].append(r)

@@ -40,8 +40,11 @@ function createWorld(el: HTMLElement) {
   components.get(OBC.Grids).create(world);
   const fragments = components.get(OBC.FragmentsManager);
   fragments.init("/fragments-worker.mjs");
-  world.camera.controls.addEventListener("update", () => fragments.core.update());
-  return { components, world, fragments };
+  const onCameraUpdate = () => {
+    fragments.core.update().catch(() => {});
+  };
+  world.camera.controls.addEventListener("update", onCameraUpdate);
+  return { components, world, fragments, onCameraUpdate };
 }
 
 function convert(bytes: ArrayBuffer, onProgress?: (p: number) => void): Promise<Uint8Array> {
@@ -64,11 +67,22 @@ async function fetchBytes(url: string): Promise<ArrayBuffer> {
 }
 
 export function createViewer(el: HTMLElement): Viewer {
-  const { components, world, fragments } = createWorld(el);
+  const { components, world, fragments, onCameraUpdate } = createWorld(el);
+  let disposed = false;
   let model: FRAGS.FragmentsModel | null = null;
   let painted = new Map<number, string>(); // localId → highlight colour, so focus can restore it
   let focused: { id: number; guid: string } | null = null;
   const listeners = new Set<(g: string | null) => void>();
+
+  const isModelNotFound = (err: unknown) =>
+    String((err as Error)?.message ?? err).includes("Fragments: Model not found");
+
+  const onUnhandledRejection = (event: PromiseRejectionEvent) => {
+    if (disposed && isModelNotFound(event.reason)) {
+      event.preventDefault();
+    }
+  };
+  window.addEventListener("unhandledrejection", onUnhandledRejection);
 
   const need = () => {
     if (!model) throw new Error("No model loaded.");
@@ -76,7 +90,7 @@ export function createViewer(el: HTMLElement): Viewer {
   };
   const ids = async (guids: string[]) =>
     (await need().getLocalIdsByGuids(guids)).filter((x): x is number => x != null);
-  const render = () => fragments.core.update(true);
+  const render = () => fragments.core.update(true).catch(() => {});
 
   async function restore(id: number) {
     const color = painted.get(id);
@@ -112,18 +126,29 @@ export function createViewer(el: HTMLElement): Viewer {
 
   const viewer: Viewer = {
     async load(fileUrl, sha, onProgress) {
+      if (disposed) return { ms: 0, cached: false, bytes: 0 };
       const t0 = performance.now();
       let buf = await getCached(sha);
       const cached = buf != null;
       if (!buf) {
         buf = await convert(await fetchBytes(fileUrl), onProgress);
+        if (disposed) return { ms: 0, cached: false, bytes: 0 };
         await putCached(sha, buf);
       }
+      if (disposed) return { ms: 0, cached: false, bytes: 0 };
       const bytes = buf.byteLength;
-      model = await fragments.core.load(buf, { modelId: sha, camera: world.camera.three });
-      world.scene.three.add(model.object);
-      await fit(await model.getItemsIdsWithGeometry());
-      await render();
+      try {
+        model = await fragments.core.load(buf, { modelId: sha, camera: world.camera.three });
+        if (disposed) return { ms: 0, cached, bytes };
+        world.scene.three.add(model.object);
+        await fit(await model.getItemsIdsWithGeometry());
+        await render();
+      } catch (err: unknown) {
+        if (disposed && isModelNotFound(err)) {
+          return { ms: 0, cached, bytes };
+        }
+        throw err;
+      }
       const stats = { ms: Math.round(performance.now() - t0), cached, bytes };
       exposeTestHook(viewer, () => focused?.guid ?? null, stats);
       return stats;
@@ -171,10 +196,16 @@ export function createViewer(el: HTMLElement): Viewer {
       return () => listeners.delete(cb);
     },
     dispose() {
+      if (disposed) return;
+      disposed = true;
       canvas.removeEventListener("click", onClick);
+      world.camera.controls.removeEventListener("update", onCameraUpdate);
       listeners.clear();
       if (import.meta.env.DEV) delete (window as unknown as Record<string, unknown>).__axiomViewer;
       components.dispose();
+      setTimeout(() => {
+        window.removeEventListener("unhandledrejection", onUnhandledRejection);
+      }, 5000);
     },
   };
   return viewer;

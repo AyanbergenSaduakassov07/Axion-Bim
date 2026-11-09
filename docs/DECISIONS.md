@@ -115,3 +115,8 @@ Property values stored typed (`value_type` + `value_text`/`value_num`), not JSON
 - Eval: `tests/copilot/evals.yaml` (25 cases: lookups, changes, events, MHI, quantities with unit + method, unanswerable, safety bait, injection), graded deterministically (tools called, ids cited, regex present/forbidden, zero unverified). `uv run python -m axiom.copilot.eval` is billed and runs only with a key; target ≥90% pass and 0 fabricated citations.
 - Eval on free OpenRouter model (`nvidia/nemotron-3-ultra-550b-a55b:free`): 6 cases evaluated before daily limit (50 requests/day, HTTP 429). Score: 4/6 passed (67%), 0 fabricated citations (q01 pass, q02 pass, q03 pass, q04 fail [element citations], q05 fail [findings tool not called], q24 pass). Prompt tuned to explicitly guide missing properties/materials to `findings`.
 - No auth or rate limit on `/copilot/query` (local-first, single user). Each call spends the key owner's money; add both before any shared deployment.
+
+## D-23 · Dropped ifcdiff dependency (P13)
+- `ifcdiff==0.9.0` was originally listed in D-03 as an optional cross-check and geometry-change signal.
+- In practice, snapshot-based diffing (`axiom.revision.diff`) is pure Python/SQL, 100x faster, deterministic, and operates at the exact property and finding granularity needed for MHI and regression events.
+- `ifcdiff` remained unused across all production and test modules, pulling in heavy dependencies (`deepdiff`, `orderly-set`, `cachebox`). Removed in P13 to reduce build time and attack surface.

@@ -35,7 +35,12 @@ export function Viewport({
         setState({ kind: "ready" });
         cb.current(v);
       })
-      .catch((e: Error) => live && setState({ kind: "error", message: e.message }));
+      .catch((e: Error) => {
+        if (!live && String(e?.message ?? e).includes("Fragments: Model not found")) {
+          return;
+        }
+        if (live) setState({ kind: "error", message: e.message });
+      });
     return () => {
       live = false;
       cb.current(null);
@@ -69,7 +74,13 @@ export function useFocus(viewer: Viewer | null, globalId: string | null | undefi
     setResult(null);
     if (!viewer || !globalId) return;
     let live = true;
-    viewer.focus(globalId).then((r) => live && setResult(r));
+    viewer.focus(globalId)
+      .then((r) => live && setResult(r))
+      .catch((e: Error) => {
+        if (!live && String(e?.message ?? e).includes("Fragments: Model not found")) {
+          return;
+        }
+      });
     return () => {
       live = false;
     };

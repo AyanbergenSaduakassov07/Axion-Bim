@@ -12,6 +12,7 @@ export default defineConfig({
       // fresh data dir + generated fixtures on every run; IFC fixtures are never committed outside tests/
       command: `rm -rf apps/web/.e2e && uv run python scripts/e2e_fixtures.py apps/web/.e2e && AXIOM_DATA_DIR=apps/web/.e2e/data uv run axiom serve --port ${API_PORT}`,
       cwd: "../..",
+      env: { ANTHROPIC_API_KEY: "", OPENROUTER_API_KEY: "" },
       url: `http://127.0.0.1:${API_PORT}/api/v1/projects`,
       reuseExistingServer: false,
       timeout: 60_000,

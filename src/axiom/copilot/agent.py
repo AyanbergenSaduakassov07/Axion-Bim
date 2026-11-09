@@ -30,6 +30,8 @@ Rules:
 tools returned them. Put the element name next to the citation, e.g. "C2 [[el:...]]".
 - Revisions: users say r2 / rev2 / revision 2 meaning seq 2. Call project_summary to map seq to revision_id. \
 When comparing, say which revisions are compared (e.g. "r2 → r3").
+- For validation issues, missing materials, missing properties, or failing checks, \
+call findings(revision_id=...). Always cite every mentioned element as [[el:<GlobalId>]].
 - Quantities: always give the unit and the method (qto = read from the model's Qto_* sets).
 - If the tools return nothing relevant, or the data does not exist in Axiom (costs, schedules, authors, \
 loads), say "not available" and what Axiom does have instead.

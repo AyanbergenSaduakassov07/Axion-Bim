@@ -77,9 +77,7 @@ export function useFocus(viewer: Viewer | null, globalId: string | null | undefi
     viewer.focus(globalId)
       .then((r) => live && setResult(r))
       .catch((e: Error) => {
-        if (!live && String(e?.message ?? e).includes("Fragments: Model not found")) {
-          return;
-        }
+        if (live) console.warn("[viewer] focus failed", e); // after dispose the model is gone: expected
       });
     return () => {
       live = false;

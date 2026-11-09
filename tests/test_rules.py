@@ -123,3 +123,28 @@ def test_containment_uses_facility_structure_when_model_has_no_storeys(ifc_path)
 def test_subclass_check_resolves_every_supported_schema_name(schema):
     """IFC 4.3 files declare FILE_SCHEMA('IFC4X3'); ifcopenshell registers it as IFC4X3_ADD2."""
     assert is_subclass(schema, "IfcColumn", "IfcElement")
+
+
+def test_aggregated_parts_take_name_and_classification_from_their_parent(ifc_path):
+    """ArchiCAD layer parts (IfcBuildingElementPart in an IfcRelAggregates) are unnamed by design."""
+    snap = extract(ifc_path("clean"))
+    parent = next(e for e in snap.elements if e.name == "W1")
+    part = parent.model_copy(
+        update={"global_id": "0PartOfW1xxxxxxxxxxxxx", "step_id": 999999,
+                "ifc_class": "IfcBuildingElementPart", "name": None, "classifications": (),
+                "parent_global_id": parent.global_id}
+    )  # fmt: skip
+    counts = run_rules(snap.model_copy(update={"elements": (*snap.elements, part)}), model_id=1).counts
+    assert counts["MET-001"].get("not_applicable") == 1 and "fail" not in counts["MET-001"]
+    assert counts["CLS-001"].get("not_applicable") == 1
+
+
+def test_virtual_elements_are_not_extracted(tmp_path):
+    import ifcopenshell.api  # noqa: PLC0415
+
+    f = ifcopenshell.api.run("project.create_file", version="IFC4")
+    ifcopenshell.api.run("root.create_entity", f, ifc_class="IfcProject", name="P")
+    ifcopenshell.api.run("root.create_entity", f, ifc_class="IfcVirtualElement")
+    ifcopenshell.api.run("root.create_entity", f, ifc_class="IfcWall", name="W")
+    f.write(str(tmp_path / "v.ifc"))
+    assert [e.ifc_class for e in extract(tmp_path / "v.ifc").elements] == ["IfcWall"]

@@ -40,7 +40,7 @@ def compare(engine: Engine, base_revision_id: int, head_revision_id: int) -> Com
         current = audit_repo.load_findings(conn, head_run.id)
     d = diff(load_snapshot(engine, base_revision_id), load_snapshot(engine, head_revision_id))
     evaluated = (set(base_run.summary_json["counts"]), set(head_run.summary_json["counts"]))
-    events = classify(current, history, d, evaluated)
+    events = classify(current, history, d, evaluated, _version_changed(base_run, head_run))
     summary = _summary(d, events, base_run, head_run)
     row = {
         "base_revision_id": base_revision_id,
@@ -69,6 +69,11 @@ def compare_with_previous(engine: Engine, revision_id: int) -> ComparisonResult 
 def load_events(engine: Engine, comparison_id: int) -> tuple[FindingEvent, ...]:
     with engine.connect() as conn:
         return repo.load_events(conn, comparison_id)
+
+
+def _version_changed(base_run, head_run) -> set[str]:
+    base, head = ({m["id"]: m["version"] for m in r.summary_json["rules"]} for r in (base_run, head_run))
+    return {k for k, v in head.items() if base.get(k, v) != v}
 
 
 def _audit(conn: Connection, revision_id: int):

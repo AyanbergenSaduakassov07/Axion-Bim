@@ -25,8 +25,9 @@ from axiom.extract.snapshot import (
 )
 
 log = logging.getLogger(__name__)
-# Subtraction features (openings, voids) are geometry operations, not model elements users audit.
-EXCLUDED_CLASSES = ("IfcFeatureElementSubtraction",)
+# Subtraction features (openings, voids) are geometry operations and virtual elements are imaginary
+# boundaries (space-boundary helpers): neither is a model element users audit.
+EXCLUDED_CLASSES = ("IfcFeatureElementSubtraction", "IfcVirtualElement")
 
 
 def file_sha256(path: Path) -> str:

@@ -335,7 +335,7 @@
     "file_sha256": "<volatile>",
     "geometry": false,
     "ids_hash": "57148fa81f05d01a105f9151b7e70329a5b2ac49bbb9ac63ba3c3cbd7b52463b",
-    "ruleset_version": "0fc8637ff9045ac2",
+    "ruleset_version": "7c2166b34235c512",
     "scoring_config": "2026.11-1"
   },
   "rules": [
@@ -344,13 +344,13 @@
         "IfcElement"
       ],
       "category": "classification",
-      "description": "IfcRelAssociatesClassification present. Warning only: many valid models omit it.",
+      "description": "IfcRelAssociatesClassification present. Warning only: many valid models omit it. Aggregated IfcBuildingElementPart: not applicable (the parent is classified).",
       "dimension": "classification",
       "id": "CLS-001",
       "name": "Element has a classification reference",
       "scope": "element",
       "severity": "low",
-      "version": "1"
+      "version": "2"
     },
     {
       "applies_to": [
@@ -403,13 +403,13 @@
         "IfcElement"
       ],
       "category": "metadata",
-      "description": "IfcRoot.Name is non-empty.",
+      "description": "IfcRoot.Name is non-empty. Aggregated IfcBuildingElementPart: not applicable.",
       "dimension": "naming",
       "id": "MET-001",
       "name": "Element has a name",
       "scope": "element",
       "severity": "low",
-      "version": "1"
+      "version": "2"
     },
     {
       "applies_to": [

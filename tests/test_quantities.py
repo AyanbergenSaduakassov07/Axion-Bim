@@ -102,3 +102,18 @@ def test_qto_002_passes_consistent_volumes_and_flags_unit_scale_errors(ifc_path)
 def test_qto_002_without_geometry_is_not_evaluated(ifc_path):
     snap = extract(ifc_path("clean"))
     assert run_qto_002(snap, {}, model_id=1).counts == {"QTO-002": {"not_evaluated": 16}}
+
+
+def test_qto_002_prefers_net_volume_since_geometry_has_openings_cut(ifc_path):
+    # ArchiCAD slab with holes: GrossVolume 42.6 (holes ignored), NetVolume 9.425 = geometry
+    path = ifc_path("clean")
+    snap, volumes = extract(path), geometry_volumes(path)
+    s1 = next(e for e in snap.elements if e.name == "S1")
+    gross = next(q for q in s1.quantities if q.name == "GrossVolume")
+    net = gross.model_copy(update={"name": "NetVolume"})
+    holed = gross.model_copy(update={"value": gross.value * 4.5, "si_value": gross.si_value * 4.5})
+    s1_holed = s1.model_copy(
+        update={"quantities": (*(q for q in s1.quantities if q is not gross), holed, net)}
+    )
+    snap = snap.model_copy(update={"elements": tuple(s1_holed if e is s1 else e for e in snap.elements)})
+    assert run_qto_002(snap, volumes, model_id=1).counts == {"QTO-002": {"pass": 16}}

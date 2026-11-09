@@ -167,3 +167,15 @@ registered addendum. (2) Infrastructure has no storeys: SPA-001 v2 checks contai
 (3) Viewer: ThatOpen's camera caps orbit distance at 300 m and the far plane clipped km-scale models, so the
 corridor rendered empty. `fit()` grows `maxDistance` and `far` (near = far / 1e5) to the model's bounding sphere.
 IfcSpace volumes are hidden in 3D (they covered the elements inside and are not elements; picks 404'd).
+
+## D-29 · ArchiCAD composites and rule-version changes across revisions (2026-11-10)
+Found by auditing buildingSMART Schependomlaan (ArchiCAD IFC2X3): 705 findings, about 600 of them false.
+(1) QTO-002 v2 compares Qto `NetVolume` first and falls back to `GrossVolume`. The tessellated geometry has
+openings cut, so Gross differed by up to the opening volume on every wall that had a window.
+(2) MET-001 / CLS-001 v2: an `IfcBuildingElementPart` aggregated into a parent element is not_applicable,
+because name and classification belong to the parent (ArchiCAD layer parts are unnamed by design).
+(3) `IfcVirtualElement` is not extracted. Like opening elements, it is an imaginary boundary, not a building
+element (it raised SPA-001 containment findings). Schependomlaan result: 705 → 71 findings, MHI 98.4 → 99.7.
+(4) A comparison across audits where a rule's version differs (`summary.rules[].version`) marks that rule's
+new/resolved/changed events `uncertain`, note `rule_version_changed`. Without this, CLS-001 v1→v2 showed as
+model fixes. An identical finding under both versions stays `persistent`.

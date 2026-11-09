@@ -10,6 +10,7 @@ from axiom.findings import CheckStatus
 from axiom.rules.engine import CheckResult, ModelContext, Scope, rule
 
 PASS = CheckResult(CheckStatus.PASS)
+NOT_APPLICABLE = CheckResult(CheckStatus.NOT_APPLICABLE)
 GEOMETRIC = ("IfcWall", "IfcColumn", "IfcBeam", "IfcSlab", "IfcMember", "IfcFooting")
 STRUCTURAL = ("IfcColumn", "IfcBeam", "IfcSlab", "IfcFooting", "IfcMember")
 
@@ -189,16 +190,18 @@ def mat_001(el: Element, ctx: ModelContext) -> CheckResult:
 
 @rule(
     id="MET-001",
-    version="1",
+    version="2",
     name="Element has a name",
     category="metadata",
     severity="low",
     dimension="naming",
     applies_to=("IfcElement",),
-    description="IfcRoot.Name is non-empty.",
+    description="IfcRoot.Name is non-empty. Aggregated IfcBuildingElementPart: not applicable.",
 )
 def met_001(el: Element, ctx: ModelContext) -> CheckResult:
     """IFC: IfcRoot.Name."""
+    if _is_part(el):
+        return NOT_APPLICABLE
     if el.name and el.name.strip():
         return PASS
     return CheckResult(
@@ -212,16 +215,21 @@ def met_001(el: Element, ctx: ModelContext) -> CheckResult:
 
 @rule(
     id="CLS-001",
-    version="1",
+    version="2",
     name="Element has a classification reference",
     category="classification",
     severity="low",
     dimension="classification",
     applies_to=("IfcElement",),
-    description="IfcRelAssociatesClassification present. Warning only: many valid models omit it.",
+    description=(
+        "IfcRelAssociatesClassification present. Warning only: many valid models omit it. "
+        "Aggregated IfcBuildingElementPart: not applicable (the parent is classified)."
+    ),
 )
 def cls_001(el: Element, ctx: ModelContext) -> CheckResult:
     """IFC: IfcRelAssociatesClassification -> IfcClassificationReference."""
+    if _is_part(el):
+        return NOT_APPLICABLE
     if el.classifications:
         return PASS
     return CheckResult(
@@ -231,6 +239,11 @@ def cls_001(el: Element, ctx: ModelContext) -> CheckResult:
         actual="none",
         message=f"{el.ifc_class} has no classification reference",
     )
+
+
+def _is_part(el: Element) -> bool:
+    # layer/component parts of an aggregate (ArchiCAD composites): identity lives on the parent element
+    return el.ifc_class == "IfcBuildingElementPart" and el.parent_global_id is not None
 
 
 def _is_base_qto(name: str) -> bool:

@@ -25,10 +25,14 @@ def classify(
     history: Sequence[Iterable[Finding]],
     d: DiffResult | None = None,
     evaluated: tuple[set[str], set[str]] | None = None,
+    version_changed: Iterable[str] = (),
 ) -> tuple[FindingEvent, ...]:
     """history: reported findings of earlier revisions, oldest first; history[-1] is the compared one.
     evaluated: (rule ids run on base, rule ids run on head). A rule run on one side only cannot
-    resolve or introduce a finding, so its events are uncertain."""
+    resolve or introduce a finding, so its events are uncertain.
+    version_changed: rule ids whose version differs between the audits; their new/resolved/changed
+    events may come from the rule, not the model, so they are uncertain."""
+    changed_rules = set(version_changed)
     base_rules, head_rules = evaluated or (None, None)
     prev = {f.identity_key: f for f in history[-1]} if history else {}
     earlier = {f.identity_key for h in history[:-1] for f in h}
@@ -56,10 +60,15 @@ def classify(
             kind = "persistent" if same else "changed"
         else:
             kind = "recurring" if f.identity_key in earlier else "new"
+        if kind not in {"persistent", "uncertain"} and f.rule_id in changed_rules:
+            events.append(_event("uncertain", f, "rule_version_changed"))
+            continue
         events.append(_event(kind, f))
     for key, p in prev.items():
         if key not in seen and head_rules is not None and p.rule_id not in head_rules:
             events.append(_event("uncertain", p, "rule_not_evaluated_in_head"))
+        elif key not in seen and p.rule_id in changed_rules and not uncertain(p):
+            events.append(_event("uncertain", p, "rule_version_changed"))
         elif key not in seen:
             note = "element_removed" if p.global_id in removed else None
             events.append(_event("uncertain" if uncertain(p) else "resolved", p, note))

@@ -88,3 +88,13 @@ def test_impact_links_events_to_the_changes_on_their_element(revs):
         ("C2", "MAT-001"): ("resolved", ("material",)),
         ("C3", "MAT-001"): ("resolved", ("material",)),
     }
+
+
+def test_rule_whose_version_changed_gives_uncertain_not_resolved_or_new():
+    # CLS-001 v1 -> v2 stopped flagging parts: that is the rule changing, not the model being fixed
+    gone = classify([], [[_f("k")]], version_changed={"R"})
+    assert [(e.event, e.note) for e in gone] == [("uncertain", "rule_version_changed")]
+    fresh = classify([_f("k")], [[]], version_changed={"R"})
+    assert [(e.event, e.note) for e in fresh] == [("uncertain", "rule_version_changed")]
+    (same,) = classify([_f("k")], [[_f("k")]], version_changed={"R"})
+    assert same.event == "persistent"  # identical output under both versions is still a fact

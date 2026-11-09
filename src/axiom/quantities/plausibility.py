@@ -13,18 +13,18 @@ from axiom.rules.engine import AuditOutput, CheckResult, ModelContext, Rule, Rul
 RATIO_LIMIT = 2.0  # Gross vs net (openings) stays well inside x2; unit-scale errors are x1000+
 MIN_GEOMETRY_M3 = 1e-9  # open shells tessellate to ~0 volume: not measurable
 UNIT_SCALES = (1e3, 1e6, 1e9)  # mm->m on a length, area, volume
-VOLUME_NAMES = ("GrossVolume", "NetVolume")
+VOLUME_NAMES = ("NetVolume", "GrossVolume")  # geometry has openings cut: compare net first
 
 META = RuleMeta(
     id="QTO-002",
-    version="1",
+    version="2",
     name="Declared volume matches geometry",
     category="quantity",
     severity="medium",
     dimension="quantity",
     scope=Scope.ELEMENT,
     applies_to=GEOMETRIC,
-    description=f"Qto GrossVolume (or NetVolume) within x{RATIO_LIMIT:g} of the geometry volume.",
+    description=f"Qto NetVolume (or GrossVolume) within x{RATIO_LIMIT:g} of the geometry volume.",
 )
 
 

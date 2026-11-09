@@ -148,3 +148,12 @@ Each question is a multi-call tool loop billed to the key owner (or burning the 
 this caps spend from a stuck client or a script. In-process (`services.copilot.Limiter`, threading lock +
 deque): the API runs one uvicorn worker. Several workers or a shared deployment need a shared limiter
 (Redis) plus auth (D-24). The rest of the API stays unlimited: reads are local, uploads are size-capped.
+
+## D-27 · SPA Content-Security-Policy in nginx (2026-11-10)
+nginx sends a same-origin CSP on every response: `script-src 'self' 'wasm-unsafe-eval'` (web-ifc compiles
+wasm), `worker-src 'self' blob:`, `style-src 'self' 'unsafe-inline'` (React style props, the HTML report's
+`<style>`), `connect-src 'self' blob: data:`, `object-src 'none'`, `frame-ancestors 'none'`. No inline scripts
+anywhere, so no nonces. Found while testing: nginx's mime.types has no `.mjs`, so `/fragments-worker.mjs`
+went out as `application/octet-stream` and, with `nosniff`, the browser refused the module worker and the
+viewer hung on "Preparing 3D model". A `location ~ \.mjs$` with `default_type text/javascript` fixes it.
+Browsers that cached the old response need one hard reload.

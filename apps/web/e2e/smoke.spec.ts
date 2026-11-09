@@ -11,6 +11,7 @@ test("upload rev1, wait for the job, Quality Center shows the golden findings", 
   await page.getByLabel("Project name").fill("Smoke Tower");
   await page.getByRole("button", { name: "Create project" }).click();
   await page.getByRole("link", { name: "Smoke Tower" }).click();
+  const projectUrl = page.url();
 
   await page.getByLabel("Model name").fill("Structure");
   await page.getByRole("button", { name: "Create model" }).click();
@@ -53,7 +54,7 @@ test("upload rev1, wait for the job, Quality Center shows the golden findings", 
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/explorer.png`, fullPage: true });
 
   if (SHOTS) {
-    await page.goto("/projects/1");
+    await page.goto(projectUrl);
     await expect(page.getByText("Elements by class")).toBeVisible();
     await page.screenshot({ path: `${SHOTS}/overview.png`, fullPage: true });
   }

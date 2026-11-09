@@ -36,4 +36,5 @@ test("copilot answer renders citation chips that deep-link to viewer and finding
   await expect(page.getByRole("link", { name: "MAT-001 C2" })).toHaveAttribute("href", "/revisions/7/quality?finding=ab12");
   await expect(page.getByRole("alert")).toContainText("1 citation(s) could not be verified");
   await expect(page.getByText("1 tool call(s)")).toBeVisible();
+  if (process.env.AXIOM_SHOTS) await page.screenshot({ path: `${process.env.AXIOM_SHOTS}/copilot.png`, fullPage: true });
 });

@@ -8,3 +8,9 @@ spikes/
 .env
 .DS_Store
 .playwright-mcp/
+.ruff_cache/
+.pytest_cache/
+# IFC models: generated or third-party; only committed under these paths
+*.ifc
+!tests/fixtures/**/*.ifc
+!examples/models/**/*.ifc

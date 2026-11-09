@@ -1,0 +1,6 @@
+schema: IFC4
+storeys: [Level 0, Level 1]
+length_scale: 0.001
+counts: {IfcColumn: 4, IfcBeam: 4, IfcWall: 6, IfcSlab: 2}
+materials: {C1: C30/37}
+defects: {missing_material: [], missing_fire_rating: [], no_geometry: [], uncontained: [], duplicate_guid: []}

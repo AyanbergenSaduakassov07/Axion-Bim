@@ -1,0 +1,7 @@
+# vs rev1: +B5, -W6, C1 C30/37->S355, C2/C3 material fixed, W5 FireRating REI60->REI90
+schema: IFC4
+storeys: [Level 0, Level 1]
+length_scale: 1.0
+counts: {IfcColumn: 4, IfcBeam: 5, IfcWall: 5, IfcSlab: 2}
+materials: {C1: S355, C2: C30/37, C3: C30/37, B5: C30/37}
+defects: {missing_material: [], missing_fire_rating: [], no_geometry: [], uncontained: [], duplicate_guid: []}

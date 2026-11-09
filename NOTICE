@@ -1,0 +1,9 @@
+Axiom BIM is MIT-licensed (see LICENSE). It depends on, but does not bundle or modify, these components:
+
+- IfcOpenShell (ifcopenshell, ifctester, ifcdiff) — LGPL-3.0-or-later — https://ifcopenshell.org
+  Used as an unmodified, dynamically installed Python dependency.
+- That Open Company (@thatopen/components, @thatopen/fragments) — MIT — https://thatopen.com
+- web-ifc — MPL-2.0 — https://github.com/ThatOpen/engine_web-ifc
+- three.js — MIT — https://threejs.org
+
+Third-party IFC sample models are not distributed; see examples/models/SOURCES.md for any that are.

@@ -1,0 +1,7 @@
+# vs rev2: C2 loses material again (recurring), W1 loses FireRating (new)
+schema: IFC4
+storeys: [Level 0, Level 1]
+length_scale: 1.0
+counts: {IfcColumn: 4, IfcBeam: 5, IfcWall: 5, IfcSlab: 2}
+materials: {C1: S355, C3: C30/37}
+defects: {missing_material: [C2], missing_fire_rating: [W1], no_geometry: [], uncontained: [], duplicate_guid: []}

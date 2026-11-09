@@ -1,0 +1,38 @@
+[project]
+name = "axiom"
+version = "0.1.0"
+description = "Engineering model intelligence for IFC: validation, model health, revision-aware QA"
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "Ayanbergen Saduakassov" }]
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "ifcopenshell==0.9.0.post1",
+    "ifctester==0.9.0",
+    "ifcdiff==0.9.0",
+    "pydantic>=2.9",
+    "typer>=0.12",
+    "pyyaml>=6",
+]
+
+[project.scripts]
+axiom = "axiom.cli:app"
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.7"]
+
+[build-system]
+requires = ["uv_build>=0.11.24,<0.12.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+extend-exclude = ["spikes", "docs/spikes"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "PL"]
+ignore = ["PLR2004", "PLR0913"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

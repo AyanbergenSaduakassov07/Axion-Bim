@@ -1,0 +1,490 @@
+{
+  "audit": {
+    "id": "<volatile>",
+    "revision": {
+      "authoring_app": "IfcOpenShell 0.9.0.post1",
+      "file_sha256": "<volatile>",
+      "id": "<volatile>",
+      "project_name": "Axiom Fixture Project",
+      "schema_name": "IFC4",
+      "seq": 2
+    },
+    "status": "completed"
+  },
+  "comparison": {
+    "base": {
+      "authoring_app": "IfcOpenShell 0.9.0.post1",
+      "file_sha256": "<volatile>",
+      "id": "<volatile>",
+      "project_name": "Axiom Fixture Project",
+      "schema_name": "IFC4",
+      "seq": 1
+    },
+    "changes": [
+      {
+        "global_id": "34EVJAaYfM4Pu034BX1G4t",
+        "ifc_class": "IfcWall",
+        "kind": "removed",
+        "new": null,
+        "old": null,
+        "path": null
+      },
+      {
+        "global_id": "25DVLMuenHLuuZeBYznyH6",
+        "ifc_class": "IfcBeam",
+        "kind": "added",
+        "new": null,
+        "old": null,
+        "path": null
+      },
+      {
+        "global_id": "17QbFV0FvN2ufiD$_uh8iq",
+        "ifc_class": "IfcWall",
+        "kind": "modified",
+        "new": "REI90",
+        "old": "REI60",
+        "path": "pset:Pset_WallCommon.FireRating"
+      },
+      {
+        "global_id": "2JvLAyfPPIwOgM7zzGhTGm",
+        "ifc_class": "IfcColumn",
+        "kind": "modified",
+        "new": [
+          "C30/37"
+        ],
+        "old": [],
+        "path": "material"
+      },
+      {
+        "global_id": "3B72ys8DLM3hpB6Bw_7cdX",
+        "ifc_class": "IfcColumn",
+        "kind": "modified",
+        "new": [
+          "C30/37"
+        ],
+        "old": [],
+        "path": "material"
+      },
+      {
+        "global_id": "3ByfM6SKnR9O_1AJF_Gx0b",
+        "ifc_class": "IfcColumn",
+        "kind": "modified",
+        "new": [
+          "S355"
+        ],
+        "old": [
+          "C30/37"
+        ],
+        "path": "material"
+      }
+    ],
+    "events": [
+      {
+        "element_name": "C2",
+        "event": "resolved",
+        "global_id": "2JvLAyfPPIwOgM7zzGhTGm",
+        "identity_key": "76273755e471e1a16e303c8338377a0e0056588c",
+        "note": null,
+        "rule_id": "MAT-001",
+        "severity": "high"
+      },
+      {
+        "element_name": "C3",
+        "event": "resolved",
+        "global_id": "3B72ys8DLM3hpB6Bw_7cdX",
+        "identity_key": "2e9cb73fb418fcd110de64f541c4243a4f3e3ecc",
+        "note": null,
+        "rule_id": "MAT-001",
+        "severity": "high"
+      },
+      {
+        "element_name": "C2",
+        "event": "resolved",
+        "global_id": "2JvLAyfPPIwOgM7zzGhTGm",
+        "identity_key": "f11632e6f59efd9dfad6a8d3955c22ef89f53c23",
+        "note": null,
+        "rule_id": "IDS:STR-COL",
+        "severity": "high"
+      },
+      {
+        "element_name": "C3",
+        "event": "resolved",
+        "global_id": "3B72ys8DLM3hpB6Bw_7cdX",
+        "identity_key": "1ee9abbb86c21287c54492fa2f2492e3b065de76",
+        "note": null,
+        "rule_id": "IDS:STR-COL",
+        "severity": "high"
+      }
+    ],
+    "head": {
+      "authoring_app": "IfcOpenShell 0.9.0.post1",
+      "file_sha256": "<volatile>",
+      "id": "<volatile>",
+      "project_name": "Axiom Fixture Project",
+      "schema_name": "IFC4",
+      "seq": 2
+    },
+    "id": "<volatile>",
+    "identity_unstable": false,
+    "summary": {
+      "changes": {
+        "added": 1,
+        "modified": 4,
+        "removed": 1
+      },
+      "changes_by_class": {
+        "IfcBeam": {
+          "added": 1
+        },
+        "IfcColumn": {
+          "modified": 3
+        },
+        "IfcWall": {
+          "modified": 1,
+          "removed": 1
+        }
+      },
+      "events": {
+        "resolved": 4
+      },
+      "ids_mismatch": false,
+      "impact": [
+        {
+          "element_name": "C2",
+          "event": "resolved",
+          "global_id": "2JvLAyfPPIwOgM7zzGhTGm",
+          "paths": [
+            "material"
+          ],
+          "rule_id": "MAT-001"
+        },
+        {
+          "element_name": "C3",
+          "event": "resolved",
+          "global_id": "3B72ys8DLM3hpB6Bw_7cdX",
+          "paths": [
+            "material"
+          ],
+          "rule_id": "MAT-001"
+        },
+        {
+          "element_name": "C2",
+          "event": "resolved",
+          "global_id": "2JvLAyfPPIwOgM7zzGhTGm",
+          "paths": [
+            "material"
+          ],
+          "rule_id": "IDS:STR-COL"
+        },
+        {
+          "element_name": "C3",
+          "event": "resolved",
+          "global_id": "3B72ys8DLM3hpB6Bw_7cdX",
+          "paths": [
+            "material"
+          ],
+          "rule_id": "IDS:STR-COL"
+        }
+      ],
+      "mhi": {
+        "base": 95.181818,
+        "delta": 4.818182,
+        "dimensions": {
+          "classification_quality": 0.0,
+          "geometry_integrity": 0.0,
+          "ids_compliance": 1.818182,
+          "material_completeness": 3.0,
+          "model_consistency": 0.0,
+          "property_completeness": 0.0,
+          "spatial_integrity": 0.0
+        },
+        "head": 100.0
+      },
+      "ruleset_mismatch": false,
+      "uncertain_global_ids": [],
+      "unstable_classes": []
+    }
+  },
+  "counts": {
+    "CLS-001": {
+      "pass": 16
+    },
+    "GEO-001": {
+      "pass": 16
+    },
+    "GEO-002": {
+      "pass": 16
+    },
+    "IDS:STR-BEAM": {
+      "pass": 10
+    },
+    "IDS:STR-COL": {
+      "pass": 8
+    },
+    "IDS:STR-WALL": {
+      "pass": 5
+    },
+    "MAT-001": {
+      "pass": 11
+    },
+    "MET-001": {
+      "pass": 16
+    },
+    "QTO-001": {
+      "pass": 16
+    },
+    "SPA-001": {
+      "pass": 16
+    },
+    "SPA-002": {
+      "pass": 2
+    }
+  },
+  "findings": [],
+  "format": "axiom-report/1",
+  "mhi": {
+    "blocked": false,
+    "blocking": [],
+    "config_version": "2026.11-1",
+    "coverage": 100.0,
+    "dimensions": {
+      "classification_quality": {
+        "contribution": 5.0,
+        "effective_weight": 0.05,
+        "errors": 0,
+        "failed": 0,
+        "not_evaluated": 0,
+        "passed": 16,
+        "score": 100.0,
+        "warnings": 0,
+        "weight": 0.05
+      },
+      "geometry_integrity": {
+        "contribution": 15.0,
+        "effective_weight": 0.15,
+        "errors": 0,
+        "failed": 0,
+        "not_evaluated": 0,
+        "passed": 16,
+        "score": 100.0,
+        "warnings": 0,
+        "weight": 0.15
+      },
+      "ids_compliance": {
+        "contribution": 20.0,
+        "effective_weight": 0.2,
+        "errors": 0,
+        "failed": 0,
+        "not_evaluated": 0,
+        "passed": 23,
+        "score": 100.0,
+        "warnings": 0,
+        "weight": 0.2
+      },
+      "material_completeness": {
+        "contribution": 15.0,
+        "effective_weight": 0.15,
+        "errors": 0,
+        "failed": 0,
+        "not_evaluated": 0,
+        "passed": 11,
+        "score": 100.0,
+        "warnings": 0,
+        "weight": 0.15
+      },
+      "model_consistency": {
+        "contribution": 10.0,
+        "effective_weight": 0.1,
+        "errors": 0,
+        "failed": 0,
+        "not_evaluated": 0,
+        "passed": 16,
+        "score": 100.0,
+        "warnings": 0,
+        "weight": 0.1
+      },
+      "property_completeness": {
+        "contribution": 20.0,
+        "effective_weight": 0.2,
+        "errors": 0,
+        "failed": 0,
+        "not_evaluated": 0,
+        "passed": 32,
+        "score": 100.0,
+        "warnings": 0,
+        "weight": 0.2
+      },
+      "spatial_integrity": {
+        "contribution": 15.0,
+        "effective_weight": 0.15,
+        "errors": 0,
+        "failed": 0,
+        "not_evaluated": 0,
+        "passed": 18,
+        "score": 100.0,
+        "warnings": 0,
+        "weight": 0.15
+      }
+    },
+    "notes": [],
+    "score": 100.0
+  },
+  "reproducibility": {
+    "created_at": "<volatile>",
+    "engine_version": "0.1.0",
+    "file_sha256": "<volatile>",
+    "geometry": false,
+    "ids_hash": "57148fa81f05d01a105f9151b7e70329a5b2ac49bbb9ac63ba3c3cbd7b52463b",
+    "ruleset_version": "93467e4c74ea691c",
+    "scoring_config": "2026.11-1"
+  },
+  "rules": [
+    {
+      "applies_to": [
+        "IfcElement"
+      ],
+      "category": "classification",
+      "description": "IfcRelAssociatesClassification present. Warning only: many valid models omit it.",
+      "dimension": "classification",
+      "id": "CLS-001",
+      "name": "Element has a classification reference",
+      "scope": "element",
+      "severity": "low",
+      "version": "1"
+    },
+    {
+      "applies_to": [
+        "IfcWall",
+        "IfcColumn",
+        "IfcBeam",
+        "IfcSlab",
+        "IfcMember",
+        "IfcFooting"
+      ],
+      "category": "geometry",
+      "description": "IfcProduct.Representation present; an aggregate (IfcRelAggregates) passes if a part has it.",
+      "dimension": "geometry",
+      "id": "GEO-001",
+      "name": "Element has a body representation",
+      "scope": "element",
+      "severity": "high",
+      "version": "1"
+    },
+    {
+      "applies_to": [],
+      "category": "identity",
+      "description": "IfcRoot.GlobalId must be unique in the file; duplicates break revision tracking.",
+      "dimension": "identity",
+      "id": "GEO-002",
+      "name": "GlobalId is unique",
+      "scope": "model",
+      "severity": "critical",
+      "version": "1"
+    },
+    {
+      "applies_to": [
+        "IfcColumn",
+        "IfcBeam",
+        "IfcSlab",
+        "IfcFooting",
+        "IfcMember"
+      ],
+      "category": "material",
+      "description": "IfcRelAssociatesMaterial present (material, layer/profile/constituent set or list).",
+      "dimension": "material",
+      "id": "MAT-001",
+      "name": "Structural element has a material",
+      "scope": "element",
+      "severity": "high",
+      "version": "1"
+    },
+    {
+      "applies_to": [
+        "IfcElement"
+      ],
+      "category": "metadata",
+      "description": "IfcRoot.Name is non-empty.",
+      "dimension": "naming",
+      "id": "MET-001",
+      "name": "Element has a name",
+      "scope": "element",
+      "severity": "low",
+      "version": "1"
+    },
+    {
+      "applies_to": [
+        "IfcWall",
+        "IfcColumn",
+        "IfcBeam",
+        "IfcSlab",
+        "IfcMember",
+        "IfcFooting"
+      ],
+      "category": "quantity",
+      "description": "IfcElementQuantity named Qto_*BaseQuantities with at least one quantity.",
+      "dimension": "quantity",
+      "id": "QTO-001",
+      "name": "Element has base quantities",
+      "scope": "element",
+      "severity": "medium",
+      "version": "1"
+    },
+    {
+      "applies_to": [
+        "IfcElement"
+      ],
+      "category": "spatial",
+      "description": "IfcRelContainedInSpatialStructure to an IfcBuildingStorey, directly or via an aggregate.",
+      "dimension": "spatial",
+      "id": "SPA-001",
+      "name": "Element is contained in a storey",
+      "scope": "element",
+      "severity": "medium",
+      "version": "1"
+    },
+    {
+      "applies_to": [],
+      "category": "spatial",
+      "description": "IfcBuildingStorey.Name unique and IfcBuildingStorey.Elevation distinct.",
+      "dimension": "spatial",
+      "id": "SPA-002",
+      "name": "Storeys have unique names and elevations",
+      "scope": "model",
+      "severity": "high",
+      "version": "1"
+    },
+    {
+      "applies_to": [],
+      "category": "information",
+      "description": "",
+      "dimension": "information",
+      "id": "IDS:STR-COL",
+      "name": "Columns have material and LoadBearing",
+      "scope": "model",
+      "severity": "high",
+      "version": "57148fa81f05"
+    },
+    {
+      "applies_to": [],
+      "category": "information",
+      "description": "",
+      "dimension": "information",
+      "id": "IDS:STR-BEAM",
+      "name": "Beams have material and LoadBearing",
+      "scope": "model",
+      "severity": "high",
+      "version": "57148fa81f05"
+    },
+    {
+      "applies_to": [],
+      "category": "information",
+      "description": "",
+      "dimension": "information",
+      "id": "IDS:STR-WALL",
+      "name": "Walls have FireRating",
+      "scope": "model",
+      "severity": "high",
+      "version": "57148fa81f05"
+    }
+  ]
+}

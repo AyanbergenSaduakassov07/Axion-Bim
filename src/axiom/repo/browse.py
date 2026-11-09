@@ -123,3 +123,8 @@ def get_comparison(conn: Connection, comparison_id: int) -> Row | None:
 def list_changes(conn: Connection, comparison_id: int) -> list[Row]:
     q = select(revision_changes).where(revision_changes.c.comparison_id == comparison_id)
     return conn.execute(q.order_by(revision_changes.c.id)).all()
+
+
+def latest_comparison_for_audit(conn: Connection, audit_run_id: int) -> Row | None:
+    q = select(comparisons).where(comparisons.c.head_audit_run_id == audit_run_id)
+    return conn.execute(q.order_by(comparisons.c.id.desc())).first()

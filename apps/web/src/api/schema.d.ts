@@ -55,6 +55,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/audits/{audit_id}/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Audit Report
+         * @description Render the audit report (with the comparison headed by this audit, if any). HTML opens inline.
+         */
+        post: operations["audit_report_api_v1_audits__audit_id__reports_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/comparisons": {
         parameters: {
             query?: never;
@@ -885,6 +905,42 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    audit_report_api_v1_audits__audit_id__reports_post: {
+        parameters: {
+            query?: {
+                format?: "json" | "csv" | "html";
+                comparison_id?: number | null;
+            };
+            header?: never;
+            path: {
+                audit_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                    "text/csv": unknown;
+                    "text/html": unknown;
                 };
             };
             /** @description Validation Error */

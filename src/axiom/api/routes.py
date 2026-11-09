@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import asdict
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from sqlalchemy import Engine
 
 from axiom.api.schemas import (
@@ -28,8 +28,9 @@ from axiom.api.schemas import (
 from axiom.extract.snapshot import Element
 from axiom.findings import Finding
 from axiom.quantities import GROUPS
+from axiom.report import FORMATS
 from axiom.revision import FindingEvent
-from axiom.services import browse, jobs, projects, quantities, uploads
+from axiom.services import browse, jobs, projects, quantities, reports, uploads
 
 router = APIRouter()
 MAX_PAGE = 500
@@ -186,6 +187,27 @@ def list_findings(
 @router.get("/audits/{audit_id}/health-index")
 def health_index(db: Db, audit_id: int) -> dict[str, Any]:
     return browse.health_index(db, audit_id)
+
+
+@router.post(
+    "/audits/{audit_id}/reports",
+    response_class=Response,
+    responses={200: {"content": {t: {} for t in FORMATS.values()}}},
+)
+def audit_report(
+    db: Db,
+    audit_id: int,
+    fmt: Annotated[Literal["json", "csv", "html"], Query(alias="format")] = "json",
+    comparison_id: int | None = None,
+) -> Response:
+    """Render the audit report (with the comparison headed by this audit, if any). HTML opens inline."""
+    body = reports.render(reports.build(db, audit_id, comparison_id), fmt)
+    disposition = "inline" if fmt == "html" else "attachment"
+    return Response(
+        body,
+        media_type=FORMATS[fmt],
+        headers={"Content-Disposition": f'{disposition}; filename="axiom-audit-{audit_id}.{fmt}"'},
+    )
 
 
 @router.post("/comparisons", response_model=Accepted, status_code=202)

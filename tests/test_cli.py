@@ -131,3 +131,18 @@ def test_quantities_rejects_unknown_grouping(ifc_path, tmp_path, monkeypatch):
     monkeypatch.setenv("AXIOM_DATA_DIR", str(tmp_path / "data"))
     result = runner.invoke(app, ["quantities", str(ifc_path("clean")), "--by", "colour"])
     assert result.exit_code == 2 and "unknown grouping" in result.output
+
+
+def test_report_renders_stored_audit_with_comparison(ifc_path, tmp_path, monkeypatch):
+    monkeypatch.setenv("AXIOM_DATA_DIR", str(tmp_path / "data"))
+    monkeypatch.delenv("AXIOM_DB_URL", raising=False)
+    for name in ("rev1", "rev2"):
+        assert runner.invoke(app, ["audit", str(ifc_path(name)), "--model", "m"]).exit_code == 0
+    out = tmp_path / "r.html"
+    result = runner.invoke(app, ["report", "2", "--format", "html", "--out", str(out)])
+    assert result.exit_code == 0, result.output
+    assert "Changes since revision 1" in out.read_text()
+    as_json = runner.invoke(app, ["report", "2"])
+    assert json.loads(as_json.output)["comparison"]["head"]["seq"] == 2
+    missing = runner.invoke(app, ["report", "99"])
+    assert missing.exit_code == 2 and "not found" in missing.output

@@ -1553,6 +1553,75 @@
         "summary": "Health Index"
       }
     },
+    "/api/v1/audits/{audit_id}/reports": {
+      "post": {
+        "description": "Render the audit report (with the comparison headed by this audit, if any). HTML opens inline.",
+        "operationId": "audit_report_api_v1_audits__audit_id__reports_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "audit_id",
+            "required": true,
+            "schema": {
+              "title": "Audit Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "format",
+            "required": false,
+            "schema": {
+              "default": "json",
+              "enum": [
+                "json",
+                "csv",
+                "html"
+              ],
+              "title": "Format",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "comparison_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Comparison Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {},
+              "text/csv": {},
+              "text/html": {}
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Audit Report"
+      }
+    },
     "/api/v1/comparisons": {
       "post": {
         "operationId": "request_comparison_api_v1_comparisons_post",

@@ -14,7 +14,7 @@ from axiom.extract import extract, profile
 from axiom.findings import CheckStatus
 from axiom.repo.db import get_engine, migrate
 from axiom.score import MhiResult
-from axiom.services import audits, comparisons, projects, quantities, revisions
+from axiom.services import audits, comparisons, projects, quantities, reports, revisions
 from axiom.services.comparisons import ComparisonResult
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
@@ -140,6 +140,28 @@ def compare(
     if json_out:
         json_out.write_text(json.dumps([_comparison_json(r) for r in results], indent=2, default=str))
         typer.echo(f"report written to {json_out}")
+
+
+@app.command()
+def report(
+    audit_id: int = typer.Argument(..., help="Audit number, as printed by `axiom audit`."),
+    fmt: str = typer.Option("json", "--format", help="json | csv (findings) | html (printable)."),
+    comparison: int | None = typer.Option(None, help="Comparison to include; default: the latest one."),
+    out: Path | None = typer.Option(None, "--out", help="Write here instead of stdout."),
+) -> None:
+    """Render a stored audit as a report (no re-processing of the IFC file)."""
+    engine = get_engine(load_settings().db_url)
+    migrate(engine)
+    try:
+        body = reports.render(reports.build(engine, audit_id, comparison), fmt)
+    except (LookupError, ValueError) as e:
+        typer.echo(f"error: {e}", err=True)
+        raise typer.Exit(2) from e
+    if out is None:
+        typer.echo(body)
+        return
+    out.write_text(body, encoding="utf-8")
+    typer.echo(f"report written to {out}")
 
 
 @app.command(name="quantities")

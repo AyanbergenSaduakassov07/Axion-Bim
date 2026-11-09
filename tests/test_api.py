@@ -91,6 +91,15 @@ def test_upload_two_revisions_then_browse_findings_and_comparison(client, ifc_pa
     assert job["status"] == "done"
     assert c.get(f"{V1}/comparisons/{job['result']['comparison_id']}").json()["head_revision_id"] == rev2
 
+    report = c.post(f"{V1}/audits/{audit_id}/reports", params={"comparison_id": comparison_id})
+    assert report.json()["comparison"]["head"]["seq"] == 2
+    html = c.post(f"{V1}/audits/{audit_id}/reports", params={"format": "html"})
+    assert html.headers["content-type"].startswith("text/html") and "Model Health Index" in html.text
+    csv_ = c.post(f"{V1}/audits/{audit_id}/reports", params={"format": "csv"})
+    assert csv_.headers["content-disposition"].startswith("attachment") and csv_.text.startswith("global_id")
+    assert c.post(f"{V1}/audits/{audit_id}/reports", params={"format": "pdf"}).status_code == 422
+    assert c.post(f"{V1}/audits/999/reports").status_code == 404
+
 
 def test_elements_paginated_filtered_and_by_global_id(client, ifc_path):
     c = client

@@ -8,7 +8,7 @@ Edit only the Status cell. One prompt per session; `/clear` between.
 | P00 | [De-risk spike: viewer + ifcopenshell + ifctester](P00-spike.md) | — | done | M0 |
 | P01 | [Repo skeleton + fixture factory](P01-skeleton-fixtures.md) | P00 | done | M1 |
 | P02 | [Extraction → Snapshot → SQLite](P02-extract.md) | P01 | done | M1 |
-| P03 | [Rule engine + Finding + `axiom audit`](P03-rules.md) | P02 | todo | M1 |
+| P03 | [Rule engine + Finding + `axiom audit`](P03-rules.md) | P02 | done | M1 |
 | P04 | [IDS validation via IfcTester](P04-ids.md) | P03 | todo | M1 |
 | P05 | [Model Health Index](P05-mhi.md) | P03 | todo | M1 |
 | P06 | [Revision engine + issue regression](P06-revision.md) | P04, P05 | todo | M2 |

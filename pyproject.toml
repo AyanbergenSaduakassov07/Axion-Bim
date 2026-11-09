@@ -43,3 +43,6 @@ testpaths = ["tests"]
 [tool.pyright]
 venvPath = "."
 venv = ".venv"
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["typer.Option", "typer.Argument"]

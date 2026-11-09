@@ -146,3 +146,40 @@ classifications = Table(
     Column("identification", String),
     Column("name", String),
 )
+
+audit_runs = Table(
+    "audit_runs",
+    metadata,
+    _id(),
+    _fk("revision_id", "revisions"),
+    Column("ruleset_version", String(16), nullable=False),
+    Column("ids_hash", String(64)),
+    Column("engine_version", String, nullable=False),
+    Column("status", String, nullable=False),
+    Column("summary_json", JSON, nullable=False),  # per-rule status counts + rule metadata (MHI coverage)
+    Column("scoring_config_json", JSON),
+    _created(),
+)
+
+findings = Table(
+    "findings",
+    metadata,
+    _id(),
+    _fk("audit_run_id", "audit_runs"),
+    Column("identity_key", String(40), nullable=False, index=True),
+    Column("rule_id", String, nullable=False),
+    Column("rule_version", String, nullable=False),
+    Column("status", String(16), nullable=False),
+    Column("severity", String(8), nullable=False),
+    Column("category", String, nullable=False),
+    Column("dimension", String, nullable=False),
+    Column("issue_key", String, nullable=False),
+    Column("global_id", String(22)),
+    Column("step_id", Integer),
+    Column("ifc_class", String),
+    Column("element_name", String),
+    Column("expected", Text),
+    Column("actual", Text),
+    Column("message", Text, nullable=False),
+    Column("evidence_json", JSON, nullable=False),
+)

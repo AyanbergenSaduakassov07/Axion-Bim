@@ -8,9 +8,14 @@ from pathlib import Path
 import typer
 
 from axiom import __version__
+from axiom.config import load_settings
 from axiom.extract import extract, profile
+from axiom.findings import CheckStatus
+from axiom.repo.db import get_engine, migrate
+from axiom.services import audits, projects, revisions
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
+STATUSES = [s.value for s in CheckStatus]
 ExistingFile = typer.Argument(..., exists=True, dir_okay=False, readable=True)
 
 
@@ -54,3 +59,36 @@ def inspect(path: Path = ExistingFile, as_json: bool = typer.Option(False, "--js
     for cls, c in prof["by_class"].items():
         cells = "  ".join(f"{'-' if v is None else v:>11}" for v in c["missing"].values())
         typer.echo(f"{cls:<28}{c['count']:>6}  {cells}")
+
+
+@app.command()
+def audit(
+    path: Path = ExistingFile,
+    project: str = typer.Option("local", help="Project to file the model under."),
+    model: str | None = typer.Option(None, help="Model name; defaults to the file stem."),
+    json_out: Path | None = typer.Option(None, "--json", help="Write the full JSON report here."),
+) -> None:
+    """Ingest (if new) and audit an IFC file with the built-in rule set."""
+    settings = load_settings()
+    engine = get_engine(settings.db_url)
+    migrate(engine)
+    model_id = projects.ensure_model(engine, project, model or path.stem)
+    ingested = revisions.ingest(engine, model_id, path, files_dir=settings.files_dir)
+    result = audits.run_audit(engine, ingested.revision_id)
+    typer.echo(
+        f"revision {ingested.seq} ({'new' if ingested.created else 'already ingested'})  "
+        f"audit #{result.audit_run_id}  ruleset {result.reproducibility['ruleset_version']}"
+    )
+    typer.echo(f"{'rule':<9}" + "".join(f"{s:>15}" for s in STATUSES))
+    for rule_id, counts in result.counts.items():
+        typer.echo(f"{rule_id:<9}" + "".join(f"{counts.get(s, 0):>15}" for s in STATUSES))
+    for f in result.findings:
+        typer.echo(f"  {f.severity:<8} {f.rule_id}  {f.element_name or f.global_id or '-':<16} {f.message}")
+    if json_out:
+        report = {
+            "reproducibility": result.reproducibility,
+            "counts": result.counts,
+            "findings": [f.model_dump(mode="json") for f in result.findings],
+        }
+        json_out.write_text(json.dumps(report, indent=2))
+        typer.echo(f"report written to {json_out}")

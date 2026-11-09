@@ -24,3 +24,17 @@ def test_inspect_text_mentions_counts(ifc_path):
 def test_inspect_missing_file_fails_cleanly(tmp_path):
     result = runner.invoke(app, ["inspect", str(tmp_path / "nope.ifc")])
     assert result.exit_code != 0
+
+
+def test_audit_writes_json_report_with_reproducibility(ifc_path, tmp_path, monkeypatch):
+    monkeypatch.setenv("AXIOM_DATA_DIR", str(tmp_path / "data"))
+    monkeypatch.delenv("AXIOM_DB_URL", raising=False)
+    out = tmp_path / "report.json"
+    result = runner.invoke(app, ["audit", str(ifc_path("missing_material")), "--json", str(out)])
+    assert result.exit_code == 0, result.output
+    assert "MAT-001" in result.output and "C2" in result.output
+    report = json.loads(out.read_text())
+    assert report["reproducibility"]["ruleset_version"]
+    assert sorted(f["element_name"] for f in report["findings"]) == ["C2", "C3"]
+    assert report["counts"]["MAT-001"] == {"pass": 8, "fail": 2}
+    assert (tmp_path / "data" / "axiom.db").exists()

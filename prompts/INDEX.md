@@ -5,7 +5,7 @@ Edit only the Status cell. One prompt per session; `/clear` between.
 
 | ID | Prompt | Deps | Status | Milestone |
 |---|---|---|---|---|
-| P00 | [De-risk spike: viewer + ifcopenshell + ifctester](P00-spike.md) | — | todo | M0 |
+| P00 | [De-risk spike: viewer + ifcopenshell + ifctester](P00-spike.md) | — | done | M0 |
 | P01 | [Repo skeleton + fixture factory](P01-skeleton-fixtures.md) | P00 | todo | M1 |
 | P02 | [Extraction → Snapshot → SQLite](P02-extract.md) | P01 | todo | M1 |
 | P03 | [Rule engine + Finding + `axiom audit`](P03-rules.md) | P02 | todo | M1 |

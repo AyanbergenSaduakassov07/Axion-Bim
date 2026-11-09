@@ -6,7 +6,7 @@ skills: [mattpocock-skills:tdd]
 
 Context: `docs/PLAN.md` §3; D-01, D-02, D-07; `docs/spikes/00-findings.md` (versions + API snippets).
 
-1. `uv init --package`, Python 3.12, package `axiom` under `src/axiom/`. Deps: ifcopenshell, ifctester, ifcdiff (exact pins from P00), pydantic, typer, pyyaml. Dev: pytest, ruff. Entry point `axiom = axiom.cli:app` with a `version` command only.
+1. `uv init --package`, Python 3.12, package `axiom` under `src/axiom/`. Deps: ifcopenshell==0.9.0.post1, ifctester==0.9.0, ifcdiff==0.9.0, pydantic, typer, pyyaml. Dev: pytest, ruff. Entry point `axiom = axiom.cli:app` with a `version` command only.
 2. `.gitignore` (data/, spikes/, .venv, node_modules, *.ifc outside tests/fixtures and examples). `LICENSE` MIT, `NOTICE` listing IfcOpenShell LGPL-3.0 + ThatOpen MIT.
 3. GitHub Actions: `uv sync`, `ruff check`, `pytest` on push.
 4. **Fixture factory** `tests/fixtures/factory.py` using `ifcopenshell.api` (IFC4, metres). One function per fixture, each writing `<name>.ifc` + `<name>.expected.yaml` (what P02–P06 must find):

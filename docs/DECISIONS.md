@@ -24,10 +24,16 @@ Jobs table in SQLite; runner spawns a child process per job with timeout and mem
 `tests/fixtures/factory.py` builds IFC4 models with `ifcopenshell.api`, each with an `expected.yaml`. Public models only for benchmarks; record license + source in `examples/models/SOURCES.md`.
 
 ## D-08 Viewer: ThatOpen components 3.x (pending P00)
-Pin `@thatopen/components`, `components-front`, `fragments` at the versions P00 validates (3.6.x as of 2026-11-09), `web-ifc` 0.0.78. Backend stays the source of truth; viewer only renders and maps GlobalId ↔ local id. Fallback if P00 fails: xeokit-sdk (AGPL — check license impact) or web-ifc + three.js direct.
+Pin `@thatopen/components`, `components-front`, `fragments` at the versions P00 validates (3.6.x as of 2026-11-09), `web-ifc` 0.0.77 (see D-11). Backend stays the source of truth; viewer only renders and maps GlobalId ↔ local id. Fallback if P00 fails: xeokit-sdk (AGPL — check license impact) or web-ifc + three.js direct.
 
 ## D-09 Copilot: read-only tools over services, citation post-check
 Claude tool-use; tools wrap service functions, never raw SQL. Every GlobalId / finding id in the final answer must appear in that turn's tool results, else reject. Source IFC never sent to the LLM.
 
 ## D-10 Reports: JSON canonical, HTML rendered, PDF = browser print
 Every report embeds reproducibility block: file sha256, ruleset hash, IDS hash, engine + app version, scoring config, timestamp.
+
+## D-11 Viewer pins validated (amends D-08) — 2026-11-09
+P00 GO for ThatOpen. Pins: three 0.182.0, @thatopen/components 3.6.0, @thatopen/fragments 3.6.1, **web-ifc 0.0.77** (0.0.78 incompatible with fragments 3.6.1). WASM + fragments worker served from our own origin. Element table stores `step_id` (== viewer localId) alongside GlobalId to disambiguate duplicate GlobalIds.
+
+## D-12 New candidate rule QTO-002 + IDS coverage hints — 2026-11-09
+From P00: Revit-exported Qto values can be off by unit factors (slab GrossVolume ×1000). Add QTO-002 (Qto vs geometry/declared-dimension plausibility) in P07. IDS adapter reports subtype coverage gaps (exact-class entity facet) and maps zero-applicable specs to `not_applicable`.

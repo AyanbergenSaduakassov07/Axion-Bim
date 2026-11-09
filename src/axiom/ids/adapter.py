@@ -53,6 +53,8 @@ class IdsResult:
 
 def load_ids(ids_path: Path) -> ids.Ids:
     """`ids.open(validate=True)` plus spec identifiers, which IfcTester 0.9.0 parses but drops."""
+    if b"<!DOCTYPE" in Path(ids_path).read_bytes():  # IDS needs no DTD; blocks entity-expansion bombs
+        raise ValueError(f"invalid IDS file {Path(ids_path).name}: DOCTYPE declarations are not allowed")
     schema = ids.get_schema()
     try:
         schema.validate(str(ids_path))

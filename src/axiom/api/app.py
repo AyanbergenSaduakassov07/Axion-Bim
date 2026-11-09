@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
+from urllib.parse import urlsplit
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from starlette.exceptions import HTTPException
 
 from axiom import __version__
@@ -52,8 +53,33 @@ def create_app(
 
     app.state.enqueue, app.state.wake = enqueue, runner.wake
     _install_error_handlers(app)
+    _install_origin_guard(app, frozenset(settings.allowed_hosts))
     app.include_router(router, prefix="/api/v1")
     return app
+
+
+SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
+
+
+def _hostname(value: str | None, *, url: bool = False) -> str | None:
+    """Lower-cased host of a Host header (`h:port`) or an Origin URL; None when absent or malformed."""
+    try:
+        return urlsplit(value if url else f"//{value}").hostname if value else None
+    except ValueError:
+        return None
+
+
+def _install_origin_guard(app: FastAPI, hosts: frozenset[str]) -> None:
+    """No auth (local-first), so: Host allowlist stops DNS rebinding; Origin check stops cross-site writes."""
+
+    @app.middleware("http")
+    async def guard(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
+        if _hostname(request.headers.get("host")) not in hosts:
+            return _error(400, "invalid_host", "host not allowed; set AXIOM_ALLOWED_HOSTS")
+        origin = request.headers.get("origin")
+        if request.method not in SAFE_METHODS and origin and _hostname(origin, url=True) not in hosts:
+            return _error(403, "cross_origin_write", "cross-origin writes are not allowed")
+        return await call_next(request)
 
 
 def _error(status: int, code: str, message: str) -> JSONResponse:

@@ -120,3 +120,11 @@ Property values stored typed (`value_type` + `value_text`/`value_num`), not JSON
 - `ifcdiff==0.9.0` was originally listed in D-03 as an optional cross-check and geometry-change signal.
 - In practice, snapshot-based diffing (`axiom.revision.diff`) is pure Python/SQL, deterministic, and operates at the exact property and finding granularity needed for MHI and regression events.
 - `ifcdiff` remained unused across all production and test modules, pulling in heavy dependencies (`deepdiff`, `orderly-set`, `cachebox`). Removed in P13 to reduce build time and attack surface.
+
+## D-24 · Local-first hardening without auth (P13)
+No auth by design, so the threat is a hostile web page in the user's own browser. Middleware in `api/app.py`:
+`Host` must be in `AXIOM_ALLOWED_HOSTS` (stops DNS rebinding, which would make reads same-origin), and
+non-GET requests carrying an `Origin` outside that list get 403 (stops blind cross-site uploads; CORS does
+not cover simple multipart POSTs). Requests without `Origin` (curl, CLI) pass. IDS files with a DOCTYPE are
+rejected before parsing: IDS needs no DTD, and xmlschema's default `defuse='remote'` still expands internal
+entities. Docker API runs as uid 10001. Deferred: copilot rate limit, SPA CSP (viewer workers/wasm), disk quota.

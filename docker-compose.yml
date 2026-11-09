@@ -8,6 +8,7 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
       - AXIOM_COPILOT_MODEL=${AXIOM_COPILOT_MODEL:-}
+      - AXIOM_ALLOWED_HOSTS=${AXIOM_ALLOWED_HOSTS:-}
     volumes:
       - axiom-data:/data
     ports:

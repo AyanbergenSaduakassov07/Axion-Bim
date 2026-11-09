@@ -17,6 +17,9 @@ RUN uv sync --frozen --no-dev
 ENV PATH="/app/.venv/bin:$PATH"
 ENV AXIOM_DATA_DIR="/data"
 
+RUN useradd --system --uid 10001 --no-create-home axiom && mkdir /data && chown axiom /data
+USER axiom
+
 VOLUME ["/data"]
 EXPOSE 8000
 

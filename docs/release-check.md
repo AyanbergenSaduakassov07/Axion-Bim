@@ -15,10 +15,10 @@ Each step is run or marked "not run". Nothing here was assumed.
 | 9 | Copilot hidden without a key; app intact | `e2e/copilot.spec.ts`, `tests/copilot/test_api_copilot.py` | pass |
 | 10 | Copilot citation chips deep-link to Explorer / Quality | `e2e/copilot.spec.ts` (stubbed API) | pass |
 | 11 | Copilot live eval, free model `nvidia/nemotron-3-ultra-550b-a55b:free` | `python -m axiom.copilot.eval --only …` | partial: 6/25 cases run, 4/6 pass, 0 fabricated (free-tier daily cap). Target ≥90% **not demonstrated** |
-| 12 | `docker compose build` + `up`: web 200, API via nginx 200, `/copilot` status | manual, this commit | pass. An upload through the containers was **not run** |
+| 12 | `docker compose build` + `up`: web 200, API via nginx 200, `/copilot` status | manual, this commit | pass. Upload rev1 + IDS and rev2 through nginx → job `done`, audit stored, file download 200; API runs as uid 10001 |
 | 13 | Backend benchmarks on 4 public models | `benchmarks/run.py` → `benchmarks/RESULTS.md` | pass; models are small (≤1.7 MB, ≤68 elements), so this does not show behaviour on large models |
 | 14 | Second real-world model end to end in the UI | — | **not run** (SampleHouse timings for the viewer in `docs/spikes/00-findings.md`) |
 | 15 | CI on GitHub (`.github/workflows/ci.yml`) | — | **not checked** after push; the web job needs WebGL in headless Chromium |
-| 16 | Security review (upload, job runner, file serving, copilot) | — | **not run** as a dedicated review in P13; known gaps: no auth or rate limit (local-first), see docs/limitations.md |
+| 16 | Security review (upload, job runner, file serving, IDS parsing, copilot, Docker) | security-reviewer agent + `tests/test_security.py` | pass: 0 critical/high. Fixed: DNS rebinding (Host allowlist), cross-site writes (Origin check), IDS entity expansion (DOCTYPE rejected), root container, missing nginx headers. Open (low): no rate limit on `/copilot/query`, no SPA CSP, no disk quota |
 
 Missing from the repo: `docs/PROPOSAL.md` (original brief was never saved).

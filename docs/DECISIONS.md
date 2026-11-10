@@ -210,3 +210,10 @@ data remain English; the copilot answers in the language of the question.
 - `PUT /models/{id}/issues` is a partial bulk upsert (up to 20000 keys): only the fields sent change, `null` clears.
   The Quality Center applies it to whatever the filters show, so "per rule" grouping is the rule filter, not a new entity.
 - No users or auth yet: assignee is free text. Replace with a user id when accounts arrive.
+
+## D-33 · Project dashboard (2026-11-10)
+- `GET /projects/{id}/dashboard` returns, per model, the MHI of each audited revision (latest audit per revision)
+  and, over every model's latest audit, issue counts: states, overdue, unassigned, active by assignee and by rule.
+  Computed in the backend from stored audits plus the `issues` table; the UI only draws it.
+- "Active" = open, in progress or disputed. Overdue uses the server's date. The trend uses a fixed 0-100 axis so
+  models and revisions compare honestly; a score of `null` (blocked or nothing evaluated) is left out of the line.

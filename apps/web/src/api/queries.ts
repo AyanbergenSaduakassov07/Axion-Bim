@@ -1,6 +1,6 @@
 import { useT } from "../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, postJson, putJson, type Issue, type IssueUpdate, type CopilotAnswer, type CopilotStatus, type Audit, type Change, type Comparison, type FindingEvent, type Quantities, type AuditSummary, type Element, type SpatialTree, type Finding, type Job, type Model, type Project, type Revision, type RevisionSummary } from "./client";
+import { api, postJson, putJson, type Dashboard, type Issue, type IssueUpdate, type CopilotAnswer, type CopilotStatus, type Audit, type Change, type Comparison, type FindingEvent, type Quantities, type AuditSummary, type Element, type SpatialTree, type Finding, type Job, type Model, type Project, type Revision, type RevisionSummary } from "./client";
 
 export const useProjects = () => useQuery({ queryKey: ["projects"], queryFn: () => api<Project[]>("/projects") });
 
@@ -104,6 +104,9 @@ export function useUpdateIssues(modelId: number) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (body: IssueUpdate) => putJson<{ updated: number }>(`/models/${modelId}/issues`, body),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["issues", modelId] }),
+    onSuccess: () => Promise.all([qc.invalidateQueries({ queryKey: ["issues", modelId] }), qc.invalidateQueries({ queryKey: ["dashboard"] })]),
   });
 }
+
+export const useDashboard = (projectId: number) =>
+  useQuery({ queryKey: ["dashboard", projectId], queryFn: () => api<Dashboard>(`/projects/${projectId}/dashboard`) });

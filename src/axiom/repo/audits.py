@@ -41,3 +41,9 @@ def load_audit_summary(conn: Connection, audit_run_id: int) -> dict:
         )
     ).one()
     return {**row.summary_json, "scoring_config": row.scoring_config_json}
+
+
+def finding_keys(conn: Connection, audit_run_id: int) -> list[tuple[str, str]]:
+    """(identity_key, rule_id) of every finding in a run, without loading evidence."""
+    q = select(findings.c.identity_key, findings.c.rule_id).where(findings.c.audit_run_id == audit_run_id)
+    return [(r.identity_key, r.rule_id) for r in conn.execute(q)]

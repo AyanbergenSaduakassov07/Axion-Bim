@@ -14,6 +14,29 @@
         "title": "Accepted",
         "type": "object"
       },
+      "AssigneeLoad": {
+        "properties": {
+          "active": {
+            "title": "Active",
+            "type": "integer"
+          },
+          "assignee": {
+            "title": "Assignee",
+            "type": "string"
+          },
+          "overdue": {
+            "title": "Overdue",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "assignee",
+          "active",
+          "overdue"
+        ],
+        "title": "AssigneeLoad",
+        "type": "object"
+      },
       "AuditOut": {
         "properties": {
           "blocked": {
@@ -484,6 +507,36 @@
           "model"
         ],
         "title": "CopilotStatus",
+        "type": "object"
+      },
+      "Dashboard": {
+        "properties": {
+          "issues": {
+            "$ref": "#/components/schemas/IssueTally"
+          },
+          "models": {
+            "items": {
+              "$ref": "#/components/schemas/ModelHealth"
+            },
+            "title": "Models",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "project_id",
+          "name",
+          "models",
+          "issues"
+        ],
+        "title": "Dashboard",
         "type": "object"
       },
       "Element": {
@@ -1032,6 +1085,57 @@
         "title": "IssueOut",
         "type": "object"
       },
+      "IssueTally": {
+        "properties": {
+          "by_assignee": {
+            "items": {
+              "$ref": "#/components/schemas/AssigneeLoad"
+            },
+            "title": "By Assignee",
+            "type": "array"
+          },
+          "by_rule": {
+            "items": {
+              "$ref": "#/components/schemas/RuleLoad"
+            },
+            "title": "By Rule",
+            "type": "array"
+          },
+          "overdue": {
+            "title": "Overdue",
+            "type": "integer"
+          },
+          "states": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "propertyNames": {
+              "enum": [
+                "open",
+                "in_progress",
+                "disputed",
+                "accepted",
+                "closed"
+              ]
+            },
+            "title": "States",
+            "type": "object"
+          },
+          "unassigned": {
+            "title": "Unassigned",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "states",
+          "overdue",
+          "unassigned",
+          "by_assignee",
+          "by_rule"
+        ],
+        "title": "IssueTally",
+        "type": "object"
+      },
       "IssueUpdate": {
         "description": "Fields left out stay as they are; an explicit null clears assignee, due date or note.",
         "properties": {
@@ -1221,6 +1325,37 @@
           "kind"
         ],
         "title": "MaterialRef",
+        "type": "object"
+      },
+      "ModelHealth": {
+        "properties": {
+          "findings": {
+            "title": "Findings",
+            "type": "integer"
+          },
+          "model_id": {
+            "title": "Model Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "trend": {
+            "items": {
+              "$ref": "#/components/schemas/TrendPoint"
+            },
+            "title": "Trend",
+            "type": "array"
+          }
+        },
+        "required": [
+          "model_id",
+          "name",
+          "trend",
+          "findings"
+        ],
+        "title": "ModelHealth",
         "type": "object"
       },
       "ModelOut": {
@@ -1521,6 +1656,24 @@
         "title": "RevisionSummary",
         "type": "object"
       },
+      "RuleLoad": {
+        "properties": {
+          "active": {
+            "title": "Active",
+            "type": "integer"
+          },
+          "rule_id": {
+            "title": "Rule Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule_id",
+          "active"
+        ],
+        "title": "RuleLoad",
+        "type": "object"
+      },
       "Severity": {
         "enum": [
           "critical",
@@ -1679,6 +1832,54 @@
           "has_geometry"
         ],
         "title": "TreeElement",
+        "type": "object"
+      },
+      "TrendPoint": {
+        "properties": {
+          "coverage": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coverage"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "revision_id": {
+            "title": "Revision Id",
+            "type": "integer"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "seq": {
+            "title": "Seq",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "revision_id",
+          "seq",
+          "created_at",
+          "score",
+          "coverage"
+        ],
+        "title": "TrendPoint",
         "type": "object"
       },
       "ValidationError": {
@@ -2549,6 +2750,45 @@
           }
         },
         "summary": "Create Project"
+      }
+    },
+    "/api/v1/projects/{project_id}/dashboard": {
+      "get": {
+        "operationId": "project_dashboard_api_v1_projects__project_id__dashboard_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Dashboard"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Project Dashboard"
       }
     },
     "/api/v1/projects/{project_id}/models": {

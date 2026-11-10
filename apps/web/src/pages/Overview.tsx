@@ -5,6 +5,7 @@ import { useAudits, useAuditSummary, useFindings, useModels, useProjects, useRev
 import { btn, btnPrimary, bytes, date, fmt, Panel, Q, Severity, SEVERITIES } from "../ui";
 import { CopilotPanel } from "../copilot/CopilotPanel";
 import { NameForm } from "./Projects";
+import { Dashboard } from "./Dashboard";
 import { useT } from "../i18n";
 
 export function Overview() {
@@ -18,6 +19,7 @@ export function Overview() {
   return (
     <div className="mx-auto max-w-6xl space-y-4">
       <h1 className="text-lg font-semibold">{project?.name ?? t("Project {id}", { id: projectId })}</h1>
+      <Dashboard projectId={projectId} />
       <Panel
         title={t("Models")}
         actions={

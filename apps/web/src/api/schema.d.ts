@@ -265,6 +265,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{project_id}/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Project Dashboard */
+        get: operations["project_dashboard_api_v1_projects__project_id__dashboard_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects/{project_id}/models": {
         parameters: {
             query?: never;
@@ -434,6 +451,15 @@ export interface components {
             /** Job Id */
             job_id: number;
         };
+        /** AssigneeLoad */
+        AssigneeLoad: {
+            /** Active */
+            active: number;
+            /** Assignee */
+            assignee: string;
+            /** Overdue */
+            overdue: number;
+        };
         /** AuditOut */
         AuditOut: {
             /** Blocked */
@@ -592,6 +618,16 @@ export interface components {
             /** Model */
             model: string;
         };
+        /** Dashboard */
+        Dashboard: {
+            issues: components["schemas"]["IssueTally"];
+            /** Models */
+            models: components["schemas"]["ModelHealth"][];
+            /** Name */
+            name: string;
+            /** Project Id */
+            project_id: number;
+        };
         /** Element */
         Element: {
             /** Classifications */
@@ -741,6 +777,21 @@ export interface components {
              */
             updated_at: string;
         };
+        /** IssueTally */
+        IssueTally: {
+            /** By Assignee */
+            by_assignee: components["schemas"]["AssigneeLoad"][];
+            /** By Rule */
+            by_rule: components["schemas"]["RuleLoad"][];
+            /** Overdue */
+            overdue: number;
+            /** States */
+            states: {
+                [key: string]: number;
+            };
+            /** Unassigned */
+            unassigned: number;
+        };
         /**
          * IssueUpdate
          * @description Fields left out stay as they are; an explicit null clears assignee, due date or note.
@@ -794,6 +845,17 @@ export interface components {
             kind: string;
             /** Name */
             name: string;
+        };
+        /** ModelHealth */
+        ModelHealth: {
+            /** Findings */
+            findings: number;
+            /** Model Id */
+            model_id: number;
+            /** Name */
+            name: string;
+            /** Trend */
+            trend: components["schemas"]["TrendPoint"][];
         };
         /** ModelOut */
         ModelOut: {
@@ -910,6 +972,13 @@ export interface components {
             /** Status */
             status: string;
         };
+        /** RuleLoad */
+        RuleLoad: {
+            /** Active */
+            active: number;
+            /** Rule Id */
+            rule_id: string;
+        };
         /**
          * Severity
          * @enum {string}
@@ -958,6 +1027,22 @@ export interface components {
             name: string | null;
             /** Step Id */
             step_id: number;
+        };
+        /** TrendPoint */
+        TrendPoint: {
+            /** Coverage */
+            coverage: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Revision Id */
+            revision_id: number;
+            /** Score */
+            score: number | null;
+            /** Seq */
+            seq: number;
         };
         /** ValidationError */
         ValidationError: {
@@ -1537,6 +1622,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProjectOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    project_dashboard_api_v1_projects__project_id__dashboard_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Dashboard"];
                 };
             };
             /** @description Validation Error */

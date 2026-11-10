@@ -211,3 +211,44 @@ class IssueUpdate(BaseModel):
 
 class IssuesUpdated(BaseModel):
     updated: int
+
+
+class TrendPoint(BaseModel):
+    revision_id: int
+    seq: int
+    created_at: datetime
+    score: float | None
+    coverage: float | None
+
+
+class ModelHealth(BaseModel):
+    model_id: int
+    name: str
+    trend: list[TrendPoint]
+    findings: int
+
+
+class AssigneeLoad(BaseModel):
+    assignee: str
+    active: int
+    overdue: int
+
+
+class RuleLoad(BaseModel):
+    rule_id: str
+    active: int
+
+
+class IssueTally(BaseModel):
+    states: dict[IssueState, int]
+    overdue: int
+    unassigned: int
+    by_assignee: list[AssigneeLoad]
+    by_rule: list[RuleLoad]
+
+
+class Dashboard(BaseModel):
+    project_id: int
+    name: str
+    models: list[ModelHealth]
+    issues: IssueTally

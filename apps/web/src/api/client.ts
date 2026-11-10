@@ -18,6 +18,7 @@ export type CopilotStatus = S["CopilotStatus"];
 export type CopilotAnswer = S["CopilotAnswer"];
 export type Citation = S["CitationOut"];
 export type Issue = S["IssueOut"];
+export type Dashboard = S["Dashboard"];
 export type IssueUpdate = S["IssueUpdate"];
 
 export type ComparisonSummary = {

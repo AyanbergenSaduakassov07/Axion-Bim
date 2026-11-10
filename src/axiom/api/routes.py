@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict
+from datetime import date
 from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile
@@ -18,6 +19,7 @@ from axiom.api.schemas import (
     CopilotAnswer,
     CopilotQuery,
     CopilotStatus,
+    Dashboard,
     ElementPage,
     IdsOut,
     IssueOut,
@@ -37,7 +39,7 @@ from axiom.i18n import Lang
 from axiom.quantities import GROUPS
 from axiom.report import FORMATS
 from axiom.revision import FindingEvent
-from axiom.services import browse, copilot, issues, jobs, projects, quantities, reports, uploads
+from axiom.services import browse, copilot, dashboard, issues, jobs, projects, quantities, reports, uploads
 
 router = APIRouter()
 MAX_PAGE = 500
@@ -71,6 +73,11 @@ def create_model(db: Db, project_id: int, body: NameIn) -> dict:
     browse.list_models(db, project_id)  # 404 for an unknown project
     mid = projects.create_model(db, project_id, body.name)
     return next(m for m in browse.list_models(db, project_id) if m["id"] == mid)
+
+
+@router.get("/projects/{project_id}/dashboard", response_model=Dashboard)
+def project_dashboard(db: Db, project_id: int) -> dict:
+    return dashboard.project_dashboard(db, project_id, date.today())
 
 
 @router.get("/models/{model_id}/issues", response_model=list[IssueOut])

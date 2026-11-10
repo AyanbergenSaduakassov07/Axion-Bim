@@ -98,3 +98,21 @@ Everything in proposal §20, plus: auth/orgs, Postgres, Redis, S3, BCF, PDF libr
 2. Copilot provider: default Claude (`claude-sonnet-5-5` for answers). Gemini possible behind the same tool layer.
 3. License: default MIT (compatible with LGPL dependency use).
 4. Public demo deployment (needs auth + hosting) or local-only video demo? Default: local + video for v1.
+
+## 8. Future work (after the CPM feedback round, 2026-11-10)
+
+Ranked by value to a CPM / client. Each item is not built yet; code-level limits are marked `shortcut:` in the source (`grep -rn "shortcut:" src apps/web/src`).
+
+| # | Item | Why | Where it starts |
+|---|---|---|---|
+| F1 | Users + auth, so the assignee is a real person; issue change history (who set what, when) | Triage is anonymous today; a client asks "who closed this?" | `issues` table (D-32), limitations §4 |
+| F2 | Issues in BCF export (state, assignee, due date, note) and BCF import back from Revit/Solibri | Closes the loop with the design team's tools | `report/bcf.py`, `services/issues.py` |
+| F3 | IDS library: rename, archive, delete an entry; show which IDS an audit used on the revision; diff two IDS versions (EIR v1 → v2) | Client requirements change mid-project | `services/ids_library.py` (D-34) |
+| F4 | Kazakh backend texts (rule messages, reports) via `lang=kk`; native-speaker review of `i18n-kk.ts` | KK UI currently shows Russian rule texts | `axiom/i18n.py`, `backendLang` in `i18n.tsx` |
+| F5 | Kazakhstan requirement packs (SN/SP RK as IDS + rules) | Local market differentiator (was out of v1) | `examples/ids/`, rules config |
+| F6 | Overdue reminders / digest (email or Telegram) per assignee | Dashboard shows overdue, nobody gets told | `services/dashboard.py` |
+| F7 | Overdue uses the server date; respect the project's timezone | Off-by-one-day near midnight for remote teams | `api/routes.py` dashboard route |
+| F8 | Revisions endpoint returns MHI, drop one audits request per revision | Long timelines fire N requests | `pages/Overview.tsx` shortcut |
+| F9 | Virtualize the spatial tree | Large models stutter in Explorer | `pages/Explorer.tsx` shortcut |
+| F10 | Investigate a one-off React warning "useEffect returned a Promise" seen during dev HMR (not reproduced) | Possible effect returning a value | dev console, no component stack captured |
+| F11 | Postgres + multi-user deployment | SQLite is single-writer (limitations §4) | `repo/`, Alembic |

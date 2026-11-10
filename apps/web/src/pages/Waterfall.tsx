@@ -1,13 +1,15 @@
 import type { ComparisonSummary } from "../api/client";
 import { fmt } from "../ui";
+import { tokenLabel, useT } from "../i18n";
 import { buildSteps } from "./waterfall-steps";
 
 const AXIS_PAD = 5;
 
 /** Base score → one floating bar per dimension's contribution change → head score. */
 export function Waterfall({ mhi, seqs }: { mhi: ComparisonSummary["mhi"]; seqs: [number, number] }) {
+  const { t } = useT();
   if (mhi.base == null || mhi.head == null) {
-    return <p className="text-sm text-muted">Score withheld in at least one revision (blocking findings), so there is no score change to break down.</p>;
+    return <p className="text-sm text-muted">{t("Score withheld in at least one revision (blocking findings), so there is no score change to break down.")}</p>;
   }
   const { steps, unchanged } = buildSteps(mhi.base, mhi.head, mhi.dimensions, seqs);
   const values = steps.flatMap((s) => [s.from, s.to]);
@@ -21,7 +23,7 @@ export function Waterfall({ mhi, seqs }: { mhi: ComparisonSummary["mhi"]; seqs: 
         const color = s.kind === "total" ? "bg-muted" : s.kind === "up" ? "bg-ok" : "bg-sev-high";
         return (
           <div key={s.label} className="grid grid-cols-[150px_1fr_56px] items-center gap-2">
-            <span className="truncate text-xs" title={s.label}>{s.label}</span>
+            <span className="truncate text-xs" title={s.label}>{s.kind === "total" ? s.label : tokenLabel(t, s.label)}</span>
             <div className="relative h-4 rounded-sm bg-raised">
               <div className={`absolute inset-y-0 rounded-sm ${color}`} style={{ left: `${pct(a)}%`, width: `max(2px, ${pct(b) - pct(a)}%)` }} />
             </div>
@@ -30,7 +32,8 @@ export function Waterfall({ mhi, seqs }: { mhi: ComparisonSummary["mhi"]; seqs: 
         );
       })}
       <figcaption className="text-xs text-muted">
-        Axis {lo}–100 MHI points.{unchanged > 0 && ` ${unchanged} dimension${unchanged > 1 ? "s" : ""} unchanged.`}
+        {t("Axis {lo}–100 MHI points.", { lo })}
+        {unchanged > 0 && " " + t("Dimensions unchanged: {n}.", { n: unchanged })}
       </figcaption>
     </figure>
   );

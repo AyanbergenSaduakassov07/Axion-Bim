@@ -1,3 +1,4 @@
+import { useT } from "../i18n";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { api, postJson, type CopilotAnswer, type CopilotStatus, type Audit, type Change, type Comparison, type FindingEvent, type Quantities, type AuditSummary, type Element, type SpatialTree, type Finding, type Job, type Model, type Project, type Revision, type RevisionSummary } from "./client";
 
@@ -31,13 +32,15 @@ export const useAuditSummary = (auditId: number | null | undefined) =>
     staleTime: Infinity, // audit runs are immutable
   });
 
-export const useFindings = (auditId: number | null | undefined) =>
-  useQuery({
-    queryKey: ["findings", auditId],
-    queryFn: () => api<Finding[]>(`/audits/${auditId}/findings`),
+export const useFindings = (auditId: number | null | undefined) => {
+  const { lang } = useT(); // rule texts are translated by the backend
+  return useQuery({
+    queryKey: ["findings", auditId, lang],
+    queryFn: () => api<Finding[]>(`/audits/${auditId}/findings?lang=${lang}`),
     enabled: auditId != null,
     staleTime: Infinity,
   });
+};
 
 const RUNNING = new Set(["queued", "running"]);
 
@@ -89,4 +92,7 @@ export const useCopilotStatus = () =>
   useQuery({ queryKey: ["copilot"], queryFn: () => api<CopilotStatus>("/copilot"), staleTime: Infinity });
 
 export const useCopilotAsk = (projectId: number) =>
-  useMutation({ mutationFn: (question: string) => postJson<CopilotAnswer>("/copilot/query", { project_id: projectId, question }) });
+  useMutation({
+    mutationFn: ({ question, history = [] }: { question: string; history?: { question: string; answer: string }[] }) =>
+      postJson<CopilotAnswer>("/copilot/query", { project_id: projectId, question, history }),
+  });

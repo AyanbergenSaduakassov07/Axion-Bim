@@ -418,8 +418,38 @@
         "title": "CopilotAnswer",
         "type": "object"
       },
+      "CopilotExchange": {
+        "properties": {
+          "answer": {
+            "maxLength": 8000,
+            "title": "Answer",
+            "type": "string"
+          },
+          "question": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Question",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question",
+          "answer"
+        ],
+        "title": "CopilotExchange",
+        "type": "object"
+      },
       "CopilotQuery": {
         "properties": {
+          "history": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CopilotExchange"
+            },
+            "maxItems": 10,
+            "title": "History",
+            "type": "array"
+          },
           "project_id": {
             "title": "Project Id",
             "type": "integer"
@@ -1293,6 +1323,18 @@
             "title": "Model Id",
             "type": "integer"
           },
+          "model_name": {
+            "title": "Model Name",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "integer"
+          },
+          "project_name": {
+            "title": "Project Name",
+            "type": "string"
+          },
           "schema_name": {
             "title": "Schema Name",
             "type": "string"
@@ -1316,7 +1358,10 @@
           "schema_name",
           "metadata",
           "class_counts",
-          "latest_audit_id"
+          "latest_audit_id",
+          "model_name",
+          "project_id",
+          "project_name"
         ],
         "title": "RevisionSummary",
         "type": "object"
@@ -1646,6 +1691,20 @@
               ],
               "title": "Rule"
             }
+          },
+          {
+            "in": "query",
+            "name": "lang",
+            "required": false,
+            "schema": {
+              "default": "en",
+              "enum": [
+                "en",
+                "ru"
+              ],
+              "title": "Lang",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1762,6 +1821,20 @@
                 }
               ],
               "title": "Comparison Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lang",
+            "required": false,
+            "schema": {
+              "default": "en",
+              "enum": [
+                "en",
+                "ru"
+              ],
+              "title": "Lang",
+              "type": "string"
             }
           }
         ],
@@ -2640,7 +2713,7 @@
     },
     "/api/v1/revisions/{revision_id}/quantities": {
       "get": {
-        "description": "Qto totals (method=qto). Geometry volumes need IFC processing: use `axiom audit --geometry`.",
+        "description": "Qto totals (method=qto), plus geometry volumes cached by a geometry audit (method=geometry).",
         "operationId": "get_quantities_api_v1_revisions__revision_id__quantities_get",
         "parameters": [
           {

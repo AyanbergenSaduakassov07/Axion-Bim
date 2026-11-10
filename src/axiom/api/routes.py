@@ -30,6 +30,7 @@ from axiom.api.schemas import (
 )
 from axiom.extract.snapshot import Element
 from axiom.findings import Finding
+from axiom.i18n import Lang
 from axiom.quantities import GROUPS
 from axiom.report import FORMATS
 from axiom.revision import FindingEvent
@@ -153,13 +154,16 @@ def list_audits(db: Db, revision_id: int) -> list[dict]:
 
 
 @router.get("/revisions/{revision_id}/quantities")
-def get_quantities(db: Db, revision_id: int, by: str = "class", against: int | None = None) -> dict[str, Any]:
-    """Qto totals (method=qto). Geometry volumes need IFC processing: use `axiom audit --geometry`."""
+def get_quantities(
+    request: Request, db: Db, revision_id: int, by: str = "class", against: int | None = None
+) -> dict[str, Any]:
+    """Qto totals (method=qto), plus geometry volumes cached by a geometry audit (method=geometry)."""
     if by not in GROUPS:
         raise ValueError(f"unknown grouping {by!r}; use one of {', '.join(GROUPS)}")
     browse.revision_summary(db, revision_id)  # 404 for an unknown revision
-    rows = quantities.report(db, revision_id, by)
-    deltas = quantities.delta(db, against, revision_id, by) if against is not None else ()
+    files = request.app.state.settings.files_dir
+    rows = quantities.report(db, revision_id, by, files_dir=files)
+    deltas = quantities.delta(db, against, revision_id, by, files_dir=files) if against is not None else ()
     return {"rows": [asdict(r) for r in rows], "delta": [asdict(d) for d in deltas]}
 
 
@@ -182,9 +186,10 @@ def list_findings(
     severity: str | None = None,
     category: str | None = None,
     rule: str | None = None,
+    lang: Lang = "en",
 ) -> list[Finding]:
     filters = {"status": status, "severity": severity, "category": category, "rule": rule}
-    return browse.findings(db, audit_id, filters)
+    return browse.findings(db, audit_id, filters, lang)
 
 
 @router.get("/audits/{audit_id}/health-index")
@@ -202,9 +207,10 @@ def audit_report(
     audit_id: int,
     fmt: Annotated[Literal["json", "csv", "html", "bcf"], Query(alias="format")] = "json",
     comparison_id: int | None = None,
+    lang: Lang = "en",
 ) -> Response:
     """Render the audit report (with the comparison headed by this audit, if any). HTML opens inline."""
-    body = reports.render(reports.build(db, audit_id, comparison_id), fmt)
+    body = reports.render(reports.build(db, audit_id, comparison_id), fmt, lang)
     disposition = "inline" if fmt == "html" else "attachment"
     return Response(
         body,
@@ -243,4 +249,6 @@ def copilot_status() -> dict:
 
 @router.post("/copilot/query", response_model=CopilotAnswer)
 def copilot_query(db: Db, body: CopilotQuery) -> dict:
-    return copilot.query(db, body.project_id, body.question).as_dict()
+    return copilot.query(
+        db, body.project_id, body.question, [(h.question, h.answer) for h in body.history]
+    ).as_dict()

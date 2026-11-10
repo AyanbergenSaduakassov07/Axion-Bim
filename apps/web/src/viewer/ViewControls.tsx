@@ -12,6 +12,7 @@ import {
   ZoomOut,
   type LucideIcon,
 } from "lucide-react";
+import { useT } from "../i18n";
 import type { Viewer } from "./viewer";
 
 const ORBIT_STEP = 15; // degrees per click
@@ -55,11 +56,12 @@ export function handleViewKey(v: Viewer, e: { key: string; shiftKey: boolean }):
 
 function Button({ a, v }: { a: Action; v: Viewer }) {
   const Icon = a.icon;
+  const { t } = useT();
   return (
     <button
       type="button"
-      title={`${a.label} (${a.key})`}
-      aria-label={a.label}
+      title={`${t(a.label)} (${a.key})`}
+      aria-label={t(a.label)}
       onClick={() => a.run(v).catch((err: Error) => console.warn("[viewer] navigation failed", err))}
       className="flex h-8 w-8 items-center justify-center rounded text-muted hover:bg-panel hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
     >
@@ -71,13 +73,14 @@ function Button({ a, v }: { a: Action; v: Viewer }) {
 /** Up / left / right / down in a cross. */
 function Pad({ name, actions, v }: { name: string; actions: Action[]; v: Viewer }) {
   const [up, left, right, down] = actions;
+  const { t } = useT();
   return (
-    <div role="group" aria-label={name} className="grid grid-cols-3">
+    <div role="group" aria-label={t(name)} className="grid grid-cols-3">
       <span />
       <Button a={up} v={v} />
       <span />
       <Button a={left} v={v} />
-      <span className="flex items-center justify-center text-[10px] uppercase text-muted">{name}</span>
+      <span className="flex items-center justify-center text-[10px] uppercase text-muted">{t(name)}</span>
       <Button a={right} v={v} />
       <span />
       <Button a={down} v={v} />
@@ -87,10 +90,11 @@ function Pad({ name, actions, v }: { name: string; actions: Action[]; v: Viewer 
 }
 
 export function ViewControls({ viewer }: { viewer: Viewer }) {
+  const { t } = useT();
   return (
     <div
       role="toolbar"
-      aria-label="3D navigation"
+      aria-label={t("3D navigation")}
       className="absolute right-2 top-2 flex flex-col items-center gap-1 rounded border border-line bg-raised/90 p-1 shadow"
     >
       <div className="flex">

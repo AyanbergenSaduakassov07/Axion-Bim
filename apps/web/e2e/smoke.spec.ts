@@ -54,7 +54,7 @@ test("upload rev1, wait for the job, Quality Center shows the golden findings", 
   await expect.poll(distance).toBeGreaterThan(before * 1.1);
 
   // Explorer: tree pick shows the element panel with its findings
-  await page.getByRole("link", { name: "Model Explorer" }).click();
+  await page.getByRole("link", { name: "3D model" }).click();
   await page.getByRole("button", { name: /^C3 IfcColumn/ }).click();
   await expect(page.getByText(gid)).toBeVisible();
   await expect(page.getByText("Findings (2)")).toBeVisible();

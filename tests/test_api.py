@@ -63,6 +63,8 @@ def test_upload_two_revisions_then_browse_findings_and_comparison(client, ifc_pa
         summary["class_counts"]["IfcColumn"] == 4
         and summary["latest_audit_id"] == j2["result"]["audit_run_id"]
     )
+    # breadcrumb context, so revision pages can link back to their project
+    assert summary["model_name"] and summary["project_name"] and summary["project_id"] > 0
 
     audit_id = j2["result"]["audit_run_id"]
     walls = c.get(f"{V1}/audits/{audit_id}/findings", params={"rule": "IDS:STR-WALL"}).json()
@@ -95,6 +97,12 @@ def test_upload_two_revisions_then_browse_findings_and_comparison(client, ifc_pa
     assert report.json()["comparison"]["head"]["seq"] == 2
     html = c.post(f"{V1}/audits/{audit_id}/reports", params={"format": "html"})
     assert html.headers["content-type"].startswith("text/html") and "Model Health Index" in html.text
+    ru_html = c.post(f"{V1}/audits/{audit_id}/reports", params={"format": "html", "lang": "ru"}).text
+    assert 'lang="ru"' in ru_html and "Индекс качества модели" in ru_html
+    en = c.get(f"{V1}/audits/{j1['result']['audit_run_id']}/findings").json()
+    ru = c.get(f"{V1}/audits/{j1['result']['audit_run_id']}/findings", params={"lang": "ru"}).json()
+    assert [f["identity_key"] for f in ru] == [f["identity_key"] for f in en]
+    assert any(a["message"] != b["message"] for a, b in zip(en, ru, strict=True))  # rule texts translated
     csv_ = c.post(f"{V1}/audits/{audit_id}/reports", params={"format": "csv"})
     assert csv_.headers["content-disposition"].startswith("attachment") and csv_.text.startswith("global_id")
     bcf = c.post(f"{V1}/audits/{audit_id}/reports", params={"format": "bcf"})

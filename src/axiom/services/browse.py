@@ -8,6 +8,7 @@ from sqlalchemy import Engine, Row
 
 from axiom.extract.snapshot import Element
 from axiom.findings import Finding
+from axiom.i18n import localize_finding
 from axiom.repo import audits as audit_repo
 from axiom.repo import browse as repo
 from axiom.repo import comparisons as cmp_repo
@@ -49,12 +50,17 @@ def revision_summary(engine: Engine, revision_id: int) -> dict:
     with engine.connect() as conn:
         rev = _found(repo.get_revision(conn, revision_id), "revision", revision_id)
         latest = cmp_repo.latest_audit(conn, revision_id)
+        model = repo.get_model(conn, rev.model_id)
+        project = repo.get_project(conn, model.project_id)
         return {
             **{c: getattr(rev, c) for c in ("id", "model_id", "seq", "file_sha256", "file_size", "status")},
             "schema_name": rev.schema_name,
             "metadata": rev.metadata_json,
             "class_counts": repo.class_counts(conn, revision_id),
             "latest_audit_id": latest.id if latest else None,
+            "model_name": model.name,
+            "project_id": project.id,
+            "project_name": project.name,
         }
 
 
@@ -110,12 +116,21 @@ def audit_summary(engine: Engine, audit_run_id: int) -> dict:
         return audit_repo.load_audit_summary(conn, audit_run_id)
 
 
-def findings(engine: Engine, audit_run_id: int, filters: dict[str, str | None]) -> list[Finding]:
+TEXTS = {"message", "expected", "actual"}
+
+
+def findings(
+    engine: Engine, audit_run_id: int, filters: dict[str, str | None], lang: str = "en"
+) -> list[Finding]:
+    """Filters match the stored (English) values; `lang` only changes the displayed texts."""
     with engine.connect() as conn:
         _found(repo.get_audit(conn, audit_run_id), "audit", audit_run_id)
         items = audit_repo.load_findings(conn, audit_run_id)
     wanted = {FINDING_FILTERS[k]: v for k, v in filters.items() if v}
-    return [f for f in items if all(str(getattr(f, k)) == v for k, v in wanted.items())]
+    hits = [f for f in items if all(str(getattr(f, k)) == v for k, v in wanted.items())]
+    if lang == "en":
+        return hits
+    return [f.model_copy(update=localize_finding(f.model_dump(include=TEXTS), lang)) for f in hits]
 
 
 def health_index(engine: Engine, audit_run_id: int) -> dict:

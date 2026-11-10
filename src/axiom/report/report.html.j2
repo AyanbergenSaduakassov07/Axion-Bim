@@ -1,11 +1,11 @@
 <!doctype html>
 {% set rev = r.audit.revision %}
 {% set mhi = r.mhi %}
-<html lang="en">
+<html lang="{{ lang }}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Axiom audit report · r{{ rev.seq }}</title>
+<title>{{ _("Axiom audit report") }} · r{{ rev.seq }}</title>
 <style>
   :root { --ink:#1b1f24; --muted:#5b6470; --line:#d7dce2; --bg:#fff; --crit:#b42318; --high:#c4320a; --med:#b54708; --low:#475467; --ok:#067647; }
   body { font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink); background: var(--bg); margin: 0 auto; max-width: 1100px; padding: 24px 16px; }
@@ -22,38 +22,38 @@
 </head>
 <body>
 <header>
-  <h1>Model audit report</h1>
-  <div class="muted">{{ rev.project_name or "Unnamed project" }} · revision {{ rev.seq }} · {{ rev.schema_name }} · audited {{ r.reproducibility.created_at }}</div>
+  <h1>{{ _("Model audit report") }}</h1>
+  <div class="muted">{{ rev.project_name or _("Unnamed project") }} · {{ _("revision") }} {{ rev.seq }} · {{ rev.schema_name }} · {{ _("audited") }} {{ r.reproducibility.created_at }}</div>
 </header>
 
 <section>
-  <h2>Model Health Index</h2>
-  {% if mhi.blocked %}<div class="banner">Score withheld: blocking findings ({{ mhi.blocking | join(", ") }}) must be fixed first.</div>{% endif %}
+  <h2>{{ _("Model Health Index") }}</h2>
+  {% if mhi.blocked %}<div class="banner">{{ _("Score withheld: blocking findings ({ids}) must be fixed first.", ids=mhi.blocking | join(", ")) }}</div>{% endif %}
   <div class="kpis">
     <div class="kpi"><b>{{ "—" if mhi.score is none else "%.1f" | format(mhi.score) }}</b>MHI (0–100)</div>
-    <div class="kpi"><b>{{ "%.0f" | format(mhi.coverage) }}%</b>checks evaluated</div>
-    <div class="kpi"><b>{{ r.findings | length }}</b>findings</div>
+    <div class="kpi"><b>{{ "%.0f" | format(mhi.coverage) }}%</b>{{ _("checks evaluated") }}</div>
+    <div class="kpi"><b>{{ r.findings | length }}</b>{{ _("findings") }}</div>
   </div>
   <table>
-    <thead><tr><th>Dimension</th><th class="num">Score</th><th class="num">Weight</th><th class="num">Passed</th><th class="num">Failed</th><th class="num">Not evaluated</th></tr></thead>
+    <thead><tr><th>{{ _("Dimension") }}</th><th class="num">{{ _("Score") }}</th><th class="num">{{ _("Weight") }}</th><th class="num">{{ _("Passed") }}</th><th class="num">{{ _("Failed") }}</th><th class="num">{{ _("Not evaluated") }}</th></tr></thead>
     <tbody>
     {% for name, d in mhi.dimensions.items() %}
-      <tr><td>{{ name | replace("_", " ") }}</td><td class="num">{{ "—" if d.score is none else "%.1f" | format(d.score) }}</td><td class="num">{{ d.effective_weight }}</td><td class="num">{{ d.passed }}</td><td class="num">{{ d.failed }}</td><td class="num">{{ d.not_evaluated }}</td></tr>
+      <tr><td>{{ tok(name) }}</td><td class="num">{{ "—" if d.score is none else "%.1f" | format(d.score) }}</td><td class="num">{{ d.effective_weight }}</td><td class="num">{{ d.passed }}</td><td class="num">{{ d.failed }}</td><td class="num">{{ d.not_evaluated }}</td></tr>
     {% endfor %}
     </tbody>
   </table>
-  <p class="muted">The MHI measures information completeness and consistency of the model file. It is not a structural or safety assessment.</p>
+  <p class="muted">{{ _("The MHI measures information completeness and consistency of the model file. It is not a structural or safety assessment.") }}</p>
 </section>
 
 <section>
-  <h2>Findings</h2>
-  {% if not r.findings %}<p>No findings: every evaluated check passed or did not apply.</p>{% else %}
+  <h2>{{ _("Findings") }}</h2>
+  {% if not r.findings %}<p>{{ _("No findings: every evaluated check passed or did not apply.") }}</p>{% else %}
   <table>
-    <thead><tr><th>Severity</th><th>Status</th><th>Rule</th><th>Element</th><th>Expected</th><th>Actual</th></tr></thead>
+    <thead><tr><th>{{ _("Severity") }}</th><th>{{ _("Status") }}</th><th>{{ _("Rule") }}</th><th>{{ _("Element") }}</th><th>{{ _("Expected") }}</th><th>{{ _("Actual") }}</th></tr></thead>
     <tbody>
     {% for f in r.findings %}
-      <tr><td class="sev-{{ f.severity }}">{{ f.severity }}</td><td>{{ f.status | replace("_", " ") }}</td><td>{{ f.rule_id }} <span class="muted">v{{ f.rule_version }}</span></td>
-          <td>{{ f.element_name or "—" }} <span class="muted">{{ f.ifc_class or "model" }}</span><br><span class="mono">{{ f.global_id or "" }}</span></td>
+      <tr><td class="sev-{{ f.severity }}">{{ tok(f.severity) }}</td><td>{{ tok(f.status) }}</td><td>{{ f.rule_id }} <span class="muted">v{{ f.rule_version }}</span></td>
+          <td>{{ f.element_name or "—" }} <span class="muted">{{ f.ifc_class or _("model") }}</span><br><span class="mono">{{ f.global_id or "" }}</span></td>
           <td>{{ f.expected or "—" }}</td><td>{{ f.actual or "—" }}</td></tr>
     {% endfor %}
     </tbody>
@@ -63,27 +63,27 @@
 
 {% if r.comparison %}{% set c = r.comparison %}
 <section>
-  <h2>Changes since revision {{ c.base.seq }}</h2>
-  {% if c.identity_unstable %}<div class="banner">GlobalIds look regenerated for {{ c.summary.unstable_classes | join(", ") }}. Element continuity cannot be trusted, so all finding events are marked uncertain.</div>{% endif %}
-  {% if c.summary.ids_mismatch or c.summary.ruleset_mismatch %}<div class="banner">The two audits used different {{ "IDS files" if c.summary.ids_mismatch else "rule sets" }}; affected events are uncertain.</div>{% endif %}
+  <h2>{{ _("Changes since revision {n}", n=c.base.seq) }}</h2>
+  {% if c.identity_unstable %}<div class="banner">{{ _("GlobalIds look regenerated for {classes}. Element continuity cannot be trusted, so all finding events are marked uncertain.", classes=c.summary.unstable_classes | join(", ")) }}</div>{% endif %}
+  {% if c.summary.ids_mismatch or c.summary.ruleset_mismatch %}<div class="banner">{{ _("The two audits used different IDS files; affected events are uncertain." if c.summary.ids_mismatch else "The two audits used different rule sets; affected events are uncertain.") }}</div>{% endif %}
   <p>MHI {{ "—" if c.summary.mhi.base is none else "%.1f" | format(c.summary.mhi.base) }} → {{ "—" if c.summary.mhi.head is none else "%.1f" | format(c.summary.mhi.head) }}{% if c.summary.mhi.delta is not none %} ({{ "%+.1f" | format(c.summary.mhi.delta) }}){% endif %}.
-     Elements: {% for k, v in c.summary.changes.items() %}{{ v }} {{ k }}{{ ", " if not loop.last }}{% else %}no element changes{% endfor %}.</p>
+     {{ _("Elements") }}: {% for k, v in c.summary.changes.items() %}{{ v }} {{ tok(k) }}{{ ", " if not loop.last }}{% else %}{{ _("no element changes") }}{% endfor %}.</p>
   <table>
-    <thead><tr><th>Event</th><th>Rule</th><th>Element</th><th>Severity</th><th>Note</th></tr></thead>
+    <thead><tr><th>{{ _("Event") }}</th><th>{{ _("Rule") }}</th><th>{{ _("Element") }}</th><th>{{ _("Severity") }}</th><th>{{ _("Note") }}</th></tr></thead>
     <tbody>
     {% for e in c.events if e.event != "persistent" %}
-      <tr><td class="ev-{{ e.event }}">{{ e.event }}</td><td>{{ e.rule_id }}</td><td>{{ e.element_name or "—" }} <span class="mono">{{ e.global_id or "" }}</span></td><td class="sev-{{ e.severity }}">{{ e.severity }}</td><td>{{ e.note or "" }}</td></tr>
-    {% else %}<tr><td colspan="5">No new, resolved or recurring findings.</td></tr>
+      <tr><td class="ev-{{ e.event }}">{{ tok(e.event) }}</td><td>{{ e.rule_id }}</td><td>{{ e.element_name or "—" }} <span class="mono">{{ e.global_id or "" }}</span></td><td class="sev-{{ e.severity }}">{{ tok(e.severity) }}</td><td>{{ tok(e.note) or "" }}</td></tr>
+    {% else %}<tr><td colspan="5">{{ _("No new, resolved or recurring findings.") }}</td></tr>
     {% endfor %}
     </tbody>
   </table>
   {% if c.changes %}
-  <h2>Property changes</h2>
+  <h2>{{ _("Property changes") }}</h2>
   <table>
-    <thead><tr><th>Change</th><th>Element</th><th>Path</th><th>Old</th><th>New</th></tr></thead>
+    <thead><tr><th>{{ _("Change") }}</th><th>{{ _("Element") }}</th><th>{{ _("Path") }}</th><th>{{ _("Old") }}</th><th>{{ _("New") }}</th></tr></thead>
     <tbody>
     {% for x in c.changes %}
-      <tr><td>{{ x.kind }}</td><td>{{ x.ifc_class }} <span class="mono">{{ x.global_id }}</span></td><td class="mono">{{ x.path or "" }}</td><td>{{ x.old if x.old is not none else "—" }}</td><td>{{ x.new if x.new is not none else "—" }}</td></tr>
+      <tr><td>{{ tok(x.kind) }}</td><td>{{ x.ifc_class }} <span class="mono">{{ x.global_id }}</span></td><td class="mono">{{ x.path or "" }}</td><td>{{ x.old if x.old is not none else "—" }}</td><td>{{ x.new if x.new is not none else "—" }}</td></tr>
     {% endfor %}
     </tbody>
   </table>
@@ -92,11 +92,11 @@
 {% endif %}
 
 <section>
-  <h2>Reproducibility</h2>
+  <h2>{{ _("Reproducibility") }}</h2>
   <table class="mono">
     {% for k, v in r.reproducibility.items() %}<tr><th>{{ k }}</th><td>{{ v }}</td></tr>{% endfor %}
   </table>
-  <p class="muted">Generated by Axiom BIM ({{ r.format }}). Re-running the same file with the same rule set, IDS and scoring config gives the same findings.</p>
+  <p class="muted">{{ _("Generated by Axiom BIM ({fmt}). Re-running the same file with the same rule set, IDS and scoring config gives the same findings.", fmt=r.format) }}</p>
 </section>
 </body>
 </html>

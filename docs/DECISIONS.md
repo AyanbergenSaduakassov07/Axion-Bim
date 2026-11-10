@@ -180,3 +180,23 @@ element (it raised SPA-001 containment findings). Schependomlaan result: 705 →
 new/resolved/changed events `uncertain`, note `rule_version_changed`. Without this, CLS-001 v1→v2 showed as
 model fixes. An identical finding under both versions stays `persistent`; a finding on a removed element stays
 `resolved` (`element_removed`). Clinic r1→r2 across CLS-001 v1→v2: 50 resolved (all element_removed), 4202 persistent.
+
+## D-30 · Geometry volume cache; UI localization EN/RU (2026-11-10)
+(1) A geometry audit writes `files/{sha}.volumes.json` beside the content-addressed IFC. The quantities API
+reads that cache and returns `method=geometry` rows; it never computes geometry in a request (D: IFC work
+stays in the job runner). The cache is keyed by file hash, so it cannot go stale.
+(2) The UI is localized without a library. The English string is the key, `i18n-ru.ts` maps it to Russian,
+and a missing key falls back to English. Backend tokens (statuses, events, dimensions, notes) are translated
+for display only; API values stay English. `i18n.test.ts` fails on any `t("...")` key without a Russian
+entry, or on a translation that drops a `{placeholder}`. Rule messages, HTML/BCF reports and copilot tool
+data remain English; the copilot answers in the language of the question.
+
+## D-31 · Backend display translation; multi-turn copilot chat (2026-11-10)
+- `lang=ru` on `GET /audits/{id}/findings` and `POST /audits/{id}/reports` translates message/expected/actual and
+  report labels at render time (`axiom/i18n.py`). Stored findings, JSON reports and tokens stay English, so
+  finding identity and exports for tools are unaffected. Text without a table entry (IDS facet output) passes through.
+- Numbers and dates follow the UI language (`ru-RU` decimal comma). The MHI "coverage" figure is labelled
+  "% of checks ran" so it is not confused with the share of weight the score covers.
+- Copilot is a full-page chat (`/projects/:id/copilot`). The backend stays stateless: the client sends up to 10
+  earlier (question, answer) pairs. Ids in old answers are not trusted; a new answer citing them without a fresh
+  tool result goes through the citation retry. Conversations are kept per project in the browser's localStorage.

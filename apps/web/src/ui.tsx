@@ -12,7 +12,9 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { Link, Outlet } from "react-router";
+import { Link, NavLink, Outlet } from "react-router";
+import { useRevision } from "./api/queries";
+import { locale, tokenLabel, useT, type Lang } from "./i18n";
 
 export const SEVERITIES = ["critical", "high", "medium", "low", "info"] as const;
 
@@ -40,21 +42,23 @@ const STATUS: Record<string, [LucideIcon, string]> = {
 };
 
 export function Severity({ value }: { value: string }) {
+  const { t } = useT();
   const Icon = SEV_ICON[value] ?? Info;
   return (
     <span className={`inline-flex items-center gap-1 ${SEV_TEXT[value] ?? ""}`}>
       <Icon size={14} aria-hidden />
-      {value}
+      {t(value)}
     </span>
   );
 }
 
 export function Status({ value }: { value: string }) {
+  const { t } = useT();
   const [Icon, cls] = STATUS[value] ?? [CircleDashed, "text-muted"];
   return (
     <span className={`inline-flex items-center gap-1 ${cls}`}>
       <Icon size={14} aria-hidden />
-      {value.replace("_", " ")}
+      {tokenLabel(t, value)}
     </span>
   );
 }
@@ -62,7 +66,9 @@ export function Status({ value }: { value: string }) {
 /** Resolved token colour (hex) for canvas/WebGL consumers that cannot read CSS variables. */
 export const tokenColor = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(`--color-${name}`).trim();
 
-export const fmt = (n: number | null | undefined, digits = 1) => (n == null ? "—" : n.toFixed(digits));
+export const fmt = (n: number | null | undefined, digits = 1) =>
+  n == null ? "—" : n.toLocaleString(locale(), { minimumFractionDigits: digits, maximumFractionDigits: digits });
+export const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(locale());
 export const date = (iso: string) => iso.replace("T", " ").slice(0, 16);
 export const bytes = (n: number) => (n < 1e6 ? `${(n / 1e3).toFixed(1)} kB` : `${(n / 1e6).toFixed(1)} MB`);
 
@@ -87,8 +93,9 @@ export const btnPrimary =
 export const input = "h-8 rounded border border-line bg-bg px-2 text-sm placeholder:text-muted";
 
 export function Skeleton({ rows = 3 }: { rows?: number }) {
+  const { t } = useT();
   return (
-    <div aria-busy="true" aria-label="Loading" className="space-y-2">
+    <div aria-busy="true" aria-label={t("Loading")} className="space-y-2">
       {Array.from({ length: rows }, (_, i) => (
         <div key={i} className="h-4 animate-pulse rounded bg-raised" />
       ))}
@@ -97,6 +104,7 @@ export function Skeleton({ rows = 3 }: { rows?: number }) {
 }
 
 export function ErrorState({ error, retry }: { error: Error; retry?: () => void }) {
+  const { t } = useT();
   return (
     <div role="alert" className="flex items-start gap-2 text-sm">
       <CircleX size={16} className="mt-0.5 shrink-0 text-sev-critical" aria-hidden />
@@ -104,7 +112,7 @@ export function ErrorState({ error, retry }: { error: Error; retry?: () => void 
         <p>{error.message}</p>
         {retry && (
           <button className={btn} onClick={retry}>
-            <RotateCw size={14} aria-hidden /> Retry
+            <RotateCw size={14} aria-hidden /> {t("Retry")}
           </button>
         )}
       </div>
@@ -135,10 +143,11 @@ export function Q<T>({
 }
 
 export function Shell() {
+  const { t, lang, setLang } = useT();
   return (
     <div className="flex min-h-dvh flex-col">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:p-2">
-        Skip to content
+        {t("Skip to content")}
       </a>
       <header className="flex h-10 items-center gap-4 border-b border-line bg-panel px-4">
         <Link to="/" className="text-sm font-semibold tracking-wide">
@@ -146,13 +155,73 @@ export function Shell() {
         </Link>
         <nav className="text-sm text-muted">
           <Link to="/" className="hover:text-fg">
-            Projects
+            {t("Projects")}
           </Link>
         </nav>
+        <div role="group" aria-label={t("Language")} className="ml-auto flex text-xs">
+          {(["en", "ru"] as Lang[]).map((l) => (
+            <button
+              key={l}
+              aria-pressed={lang === l}
+              onClick={() => setLang(l)}
+              className={`cursor-pointer px-2 py-1 uppercase ${lang === l ? "font-semibold text-fg" : "text-muted hover:text-fg"}`}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
       </header>
       <main id="main" className="flex-1 p-4">
         <Outlet />
       </main>
+    </div>
+  );
+}
+
+/** Breadcrumb (project / model / revision) and tabs shared by every revision page, so none is a dead end. */
+export function RevisionNav({ revisionId, title, actions }: { revisionId: number; title: string; actions?: ReactNode }) {
+  const { t } = useT();
+  const r = useRevision(revisionId).data;
+  const tab = ({ isActive }: { isActive: boolean }) =>
+    `border-b-2 px-2 py-1 ${isActive ? "border-accent text-fg" : "border-transparent text-muted hover:text-fg"}`;
+  return (
+    <div className="space-y-2">
+      <nav aria-label={t("Breadcrumb")} className="text-xs text-muted">
+        {r ? (
+          <>
+            <Link className="hover:text-fg" to={`/projects/${r.project_id}`}>
+              {r.project_name}
+            </Link>
+            {" / "}
+            <Link className="hover:text-fg" to={`/projects/${r.project_id}?model=${r.model_id}`}>
+              {r.model_name}
+            </Link>
+            {` / r${r.seq}`}
+          </>
+        ) : (
+          "\u00a0"
+        )}
+      </nav>
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="text-lg font-semibold">{title}</h1>
+        <nav className="flex text-sm">
+          <NavLink className={tab} to={`/revisions/${revisionId}/quality`}>
+            {t("Quality")}
+          </NavLink>
+          <NavLink className={tab} to={`/revisions/${revisionId}/explorer`}>
+            {t("3D model")}
+          </NavLink>
+          <NavLink className={tab} to={`/revisions/${revisionId}/quantities`}>
+            {t("Quantities")}
+          </NavLink>
+          {r && (
+            <NavLink className={tab} to={`/models/${r.model_id}/revisions`}>
+              {t("Revisions")}
+            </NavLink>
+          )}
+        </nav>
+        <div className="ml-auto flex items-center gap-2">{actions}</div>
+      </div>
     </div>
   );
 }

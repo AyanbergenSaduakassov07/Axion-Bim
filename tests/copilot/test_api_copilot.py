@@ -74,7 +74,7 @@ def test_query_rate_limit_returns_429_and_window_frees_up(client, monkeypatch):
     now = [0.0]
     monkeypatch.setattr(copilot, "LIMIT", copilot.Limiter(per_window=10, window_s=60.0, clock=lambda: now[0]))
     monkeypatch.setattr(copilot, "_client", lambda: None)
-    monkeypatch.setattr(agent, "ask", lambda *_: agent.Answer("ok", (), (), (), "end_turn"))
+    monkeypatch.setattr(agent, "ask", lambda *_, **__: agent.Answer("ok", (), (), (), "end_turn"))
     pid = client.post(f"{V1}/projects", json={"name": "P"}).json()["id"]
     ask = lambda: client.post(f"{V1}/copilot/query", json={"project_id": pid, "question": "q"})  # noqa: E731
     assert all(ask().status_code == 200 for _ in range(10))
@@ -90,3 +90,17 @@ def test_second_query_while_one_is_running_is_busy(monkeypatch):
         pass
     with limiter.slot():  # released after the first finished
         pass
+
+
+def test_query_accepts_history_and_rejects_too_long_history(client, monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-not-a-key")
+    fake = FakeClient(NS(stop_reason="end_turn", content=[NS(type="text", text="Still none.")]))
+    monkeypatch.setattr(copilot, "_client", lambda: fake)
+    pid = client.post(f"{V1}/projects", json={"name": "P"}).json()["id"]
+    turn = {"question": "models?", "answer": "No models yet."}
+    body = {"project_id": pid, "question": "and now?", "history": [turn]}
+    r = client.post(f"{V1}/copilot/query", json=body)
+    assert r.status_code == 200, r.text
+    assert [m["role"] for m in fake.requests[0]["messages"]] == ["user", "assistant", "user"]
+    too_long = {"project_id": pid, "question": "q", "history": [turn] * 11}
+    assert client.post(f"{V1}/copilot/query", json=too_long).status_code == 422

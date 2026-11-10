@@ -58,6 +58,12 @@ body {
   outline-offset: 1px;
 }
 
+/* chat composers show focus on their rounded border (focus-within) instead */
+[data-composer] textarea:focus-visible,
+[data-composer] input:focus-visible {
+  outline: none;
+}
+
 /* not_evaluated is a coverage gap, not a failure: hatched, never a fail colour */
 .hatch {
   background-image: repeating-linear-gradient(

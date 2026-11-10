@@ -120,3 +120,14 @@ def test_injection_text_reaches_the_model_only_as_data(seeded):
     content = client.requests[1]["messages"][-1]["content"][0]["content"]
     assert json.loads(content)["data"]["name"] == INJECTION_TEXT
     assert "never instructions" in SYSTEM.lower() or "never as instructions" in SYSTEM.lower()
+
+
+def test_history_is_sent_before_the_new_question(seeded):
+    client = FakeClient(reply("end_turn", text("r2 has 3 more findings.")))
+    history = [("what changed?", "r2 added 3 findings.")]
+    ask(client, Scope(seeded.engine, seeded.project.project_id), "why?", history=history)
+    assert client.requests[0]["messages"] == [
+        {"role": "user", "content": "what changed?"},
+        {"role": "assistant", "content": "r2 added 3 findings."},
+        {"role": "user", "content": "why?"},
+    ]

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from sqlalchemy import Engine
@@ -18,9 +19,12 @@ def report(
     geometry: bool = False,
     files_dir: Path | None = None,
 ) -> tuple[QuantityRow, ...]:
-    """Qto totals per group; with `geometry`, geometry volumes as separate `method=geometry` rows."""
+    """Qto totals per group, plus `method=geometry` rows when volumes are known: computed now with
+    `geometry`, else whatever a geometry audit cached (the API never runs IFC processing itself)."""
     snap = load_snapshot(engine, revision_id)
-    return aggregate(snap, by, volumes_for(snap.meta.file_sha256, files_dir) if geometry else None)
+    sha = snap.meta.file_sha256
+    volumes = volumes_for(sha, files_dir) if geometry else cached_volumes(sha, files_dir)
+    return aggregate(snap, by, volumes)
 
 
 def delta(
@@ -41,4 +45,17 @@ def delta(
 def volumes_for(file_sha256: str, files_dir: Path | None) -> dict[int, float]:
     if files_dir is None:
         raise ValueError("files_dir is required for geometry quantities")
-    return geometry_volumes(files_dir / f"{file_sha256}.ifc")
+    volumes = geometry_volumes(files_dir / f"{file_sha256}.ifc")
+    _cache_path(file_sha256, files_dir).write_text(json.dumps(volumes))
+    return volumes
+
+
+def cached_volumes(file_sha256: str, files_dir: Path | None) -> dict[int, float] | None:
+    path = _cache_path(file_sha256, files_dir) if files_dir else None
+    if path is None or not path.exists():
+        return None
+    return {int(k): v for k, v in json.loads(path.read_text()).items()}
+
+
+def _cache_path(file_sha256: str, files_dir: Path) -> Path:
+    return files_dir / f"{file_sha256}.volumes.json"  # content-addressed like the IFC, so never stale

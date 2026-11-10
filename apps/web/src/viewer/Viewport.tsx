@@ -1,6 +1,7 @@
 import { LoaderCircle } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createViewer, type FocusResult, type Viewer } from "./viewer";
+import { useT } from "../i18n";
 import { handleViewKey, ViewControls } from "./ViewControls";
 
 export type { FocusResult, Viewer } from "./viewer";
@@ -52,12 +53,13 @@ export function Viewport({
     };
   }, [fileUrl, sha]);
 
+  const { t } = useT();
   return (
     <div className={`relative overflow-hidden rounded border border-line bg-panel ${className}`}>
       <div
         ref={el}
         className="absolute inset-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
-        aria-label="3D model viewer. Arrow keys orbit, Shift+arrows pan, plus and minus zoom, F fits the model."
+        aria-label={t("3D model viewer. Arrow keys orbit, Shift+arrows pan, plus and minus zoom, F fits the model.")}
         role="application"
         tabIndex={0}
         onKeyDown={(e) => viewer && handleViewKey(viewer, e) && e.preventDefault()}
@@ -65,7 +67,7 @@ export function Viewport({
       {state.kind === "loading" && (
         <div className="absolute inset-0 flex items-center justify-center gap-2 text-sm text-muted" aria-live="polite">
           <LoaderCircle size={16} className="animate-spin text-accent" aria-hidden />
-          Preparing 3D model…{state.progress > 0 && ` ${Math.round(Math.min(state.progress, 1) * 100)}%`}
+          {t("Preparing 3D model…")}{state.progress > 0 && ` ${Math.round(Math.min(state.progress, 1) * 100)}%`}
         </div>
       )}
       {state.kind === "error" && (

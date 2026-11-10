@@ -1,7 +1,7 @@
 import pytest
 
 from axiom.repo.db import get_engine, migrate
-from axiom.services import audits, projects, revisions
+from axiom.services import audits, projects, quantities, revisions
 
 
 @pytest.fixture
@@ -94,3 +94,13 @@ def test_geometry_audit_adds_qto_002_and_records_it(ingested, tmp_path):
     result = audits.run_audit(engine, ingest("clean"), geometry=True, files_dir=tmp_path / "files")
     assert result.counts["QTO-002"] == {"pass": 16} and result.reproducibility["geometry"] is True
     assert "QTO-002" not in audits.run_audit(engine, ingest("clean")).counts
+
+
+def test_geometry_audit_keeps_volumes_for_the_quantities_report(ingested, tmp_path):
+    # the API cannot run IFC processing, so it can only show volumes the audit job stored
+    engine, ingest = ingested
+    rev, files = ingest("clean"), tmp_path / "files"
+    assert not any(r.method == "geometry" for r in quantities.report(engine, rev, files_dir=files))
+    audits.run_audit(engine, rev, geometry=True, files_dir=files)
+    geo = [r for r in quantities.report(engine, rev, files_dir=files) if r.method == "geometry"]
+    assert geo and all(r.unit == "m3" and r.total > 0 for r in geo)

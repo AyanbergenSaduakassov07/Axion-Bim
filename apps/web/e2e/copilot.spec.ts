@@ -11,6 +11,7 @@ test("copilot is hidden without an API key, everything else renders", async ({ p
 
 test("copilot answer renders citation chips that deep-link to viewer and finding", async ({ page, request }) => {
   const p = await (await request.post("/api/v1/projects", { data: { name: "Stub Tower" } })).json();
+  await request.post(`/api/v1/projects/${p.id}/models`, { data: { name: "Structure" } }); // copilot shows once a model exists
   await page.route("**/api/v1/copilot", (r) => r.fulfill({ json: { available: true, model: "stub" } }));
   await page.route("**/api/v1/copilot/query", (r) =>
     r.fulfill({
@@ -34,7 +35,7 @@ test("copilot answer renders citation chips that deep-link to viewer and finding
     "/revisions/7/explorer?focus=2O2Fr%24t4X7Zf8NOew3FLOH",
   );
   await expect(page.getByRole("link", { name: "MAT-001 C2" })).toHaveAttribute("href", "/revisions/7/quality?finding=ab12");
-  await expect(page.getByRole("alert")).toContainText("1 citation(s) could not be verified");
-  await expect(page.getByText("1 tool call(s)")).toBeVisible();
+  await expect(page.getByRole("alert")).toContainText("Citations removed because tool results did not confirm them: 1");
+  await expect(page.getByText("Tool calls: 1")).toBeVisible();
   if (process.env.AXIOM_SHOTS) await page.screenshot({ path: `${process.env.AXIOM_SHOTS}/copilot.png`, fullPage: true });
 });

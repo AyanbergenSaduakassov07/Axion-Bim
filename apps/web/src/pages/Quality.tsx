@@ -1,9 +1,11 @@
-import { Boxes, Highlighter, ShieldAlert, X } from "lucide-react";
+import { Highlighter, ShieldAlert, TriangleAlert, X } from "lucide-react";
 import { useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router";
+import { useParams, useSearchParams } from "react-router";
 import type { AuditSummary, Dimension, Finding, Mhi, RuleMeta } from "../api/client";
 import { useAuditSummary, useFindings, useRevision } from "../api/queries";
-import { btn, Empty, fmt, Panel, Q, SEVERITIES, Severity, Status, tokenColor } from "../ui";
+import { tokenLabel, useT, type T } from "../i18n";
+import { btn, Empty, fmt, Panel, Q, RevisionNav, SEVERITIES, Severity, Status, tokenColor } from "../ui";
+import { ReportExport } from "./ComparisonView";
 import { useFocus, Viewport, type FocusResult, type Viewer } from "../viewer/Viewport";
 import { FindingsTable } from "./FindingsTable";
 
@@ -17,21 +19,12 @@ export function Quality() {
   const [viewer, setViewer] = useState<Viewer | null>(null);
   const finding = findings.data?.find((f) => f.identity_key === selected);
   const focus = useFocus(viewer, finding?.global_id);
+  const { t } = useT();
 
-  if (rev.data && auditId == null) return <Empty>This revision has not been audited yet.</Empty>;
+  if (rev.data && auditId == null) return <Empty>{t("This revision has not been audited yet.")}</Empty>;
   return (
     <div className="flex h-[calc(100dvh-4.5rem)] flex-col gap-3">
-      <div className="flex items-baseline gap-3">
-        <h1 className="text-lg font-semibold">Quality Center</h1>
-        {rev.data && (
-          <span className="text-sm text-muted">
-            r{rev.data.seq} · {String(rev.data.metadata.project_name ?? "")} · audit {auditId}
-          </span>
-        )}
-        <Link className={`${btn} ml-auto`} to={`/revisions/${revisionId}/explorer`}>
-          <Boxes size={14} aria-hidden /> Model Explorer
-        </Link>
-      </div>
+      <RevisionNav revisionId={revisionId} title={t("Quality Center")} actions={auditId != null && <ReportExport auditId={auditId} />} />
       <Q q={summary} rows={4}>
         {(s: AuditSummary) => <HealthHeader mhi={s.mhi} />}
       </Q>
@@ -67,7 +60,9 @@ const NOTE: Record<FocusResult, string | null> = {
 };
 
 function FocusNote({ result, modelLevel }: { result: FocusResult | null; modelLevel: boolean }) {
-  const text = modelLevel ? "Model-level finding: no element to show." : result && NOTE[result];
+  const { t } = useT();
+  const note = result && NOTE[result];
+  const text = modelLevel ? t("Model-level finding: no element to show.") : note && t(note);
   if (!text) return null;
   return (
     <div role="status" className="absolute inset-x-2 bottom-2 rounded border border-line bg-raised px-2 py-1 text-xs">
@@ -79,6 +74,7 @@ function FocusNote({ result, modelLevel }: { result: FocusResult | null; modelLe
 /** Colour every element in the current filter by its worst severity; toggle off clears. */
 function HighlightAll({ viewer, rows }: { viewer: Viewer | null; rows: Finding[] }) {
   const [on, setOn] = useState(false);
+  const { t } = useT();
   const toggle = async () => {
     if (!viewer) return;
     const groups = new Map<string, string[]>();
@@ -99,37 +95,45 @@ function HighlightAll({ viewer, rows }: { viewer: Viewer | null; rows: Finding[]
   };
   return (
     <button className={`${btn} mb-0.5`} onClick={toggle} disabled={!viewer} aria-pressed={on}>
-      <Highlighter size={14} aria-hidden /> {on ? "Clear highlight" : "Highlight in 3D"}
+      <Highlighter size={14} aria-hidden /> {on ? t("Clear highlight") : t("Color filtered findings in 3D")}
     </button>
   );
 }
 
 function HealthHeader({ mhi }: { mhi: Mhi }) {
   const dims = Object.entries(mhi.dimensions);
+  const { t } = useT();
+  const skipped = dims.filter(([, d]) => d.score == null);
+  const evaluatedWeight = dims.reduce((s, [, d]) => s + (d.score == null ? 0 : d.weight), 0);
   return (
     <div className="grid gap-3 lg:grid-cols-[220px_1fr]">
       <div className="rounded border border-line bg-panel px-4 py-3">
-        <div className="text-xs text-muted">Model Health Index</div>
+        <div className="text-xs text-muted">{t("Model Health Index")}</div>
         <div className="text-4xl font-semibold" data-testid="mhi-score">
           {fmt(mhi.score)}
         </div>
-        <div className="mt-1 text-xs text-muted">coverage {fmt(mhi.coverage, 0)}% · config {mhi.config_version}</div>
+        <div className="mt-1 text-xs text-muted">
+          {t("{n}% of checks ran", { n: fmt(mhi.coverage, 0) })} · {t("config {v}", { v: mhi.config_version })}
+        </div>
         {mhi.blocked && (
           <div className="mt-2 inline-flex items-center gap-1 rounded border border-sev-critical px-2 py-0.5 text-xs text-sev-critical">
-            <ShieldAlert size={12} aria-hidden /> blocked by {mhi.blocking.length} critical finding(s)
+            <ShieldAlert size={12} aria-hidden /> {t("Blocked by critical findings: {n}", { n: mhi.blocking.length })}
           </div>
         )}
-        {mhi.notes.map((n) => (
-          <p key={n} className="mt-1 text-xs text-muted">
-            {n}
-          </p>
-        ))}
+        {skipped.length > 0 && <PartialScore t={t} weight={evaluatedWeight} names={skipped.map(([n]) => n)} />}
+        {mhi.notes
+          .filter((n) => !n.endsWith("nothing evaluated, weight redistributed"))
+          .map((n) => (
+            <p key={n} className="mt-1 text-xs text-muted">
+              {n}
+            </p>
+          ))}
       </div>
-      <Panel title="Dimensions">
+      <Panel title={t("Dimensions")}>
         <table className="w-full text-sm">
           <thead className="text-left text-xs text-muted">
             <tr>
-              {["Dimension", "Weight", "Score", "", "Pass", "Fail", "Warn", "Not eval.", "Error", "Contribution"].map((h, i) => (
+              {[t("Dimension"), t("Weight"), t("Score"), "", t("Pass"), t("Fail"), t("Warn"), t("Not eval."), t("Error"), t("Contribution")].map((h, i) => (
                 <th key={i} className={`py-0.5 font-medium ${i > 3 ? "text-right" : ""}`}>
                   {h}
                 </th>
@@ -149,10 +153,11 @@ function HealthHeader({ mhi }: { mhi: Mhi }) {
 
 function DimensionRow({ name, d }: { name: string; d: Dimension }) {
   const ne = d.score == null;
+  const { t } = useT();
   return (
     <tr className="border-t border-line">
-      <td className="py-1 pr-2">{name.replace(/_/g, " ")}</td>
-      <td className="py-1 text-muted">{(d.weight * 100).toFixed(0)}%</td>
+      <td className="py-1 pr-2">{tokenLabel(t, name)}</td>
+      <td className="py-1 text-muted">{fmt(d.weight * 100, 0)}%</td>
       <td className="py-1">{ne ? <Status value="not_evaluated" /> : fmt(d.score)}</td>
       <td className="w-1/4 py-1 pr-2">
         <ScoreBar d={d} />
@@ -162,14 +167,15 @@ function DimensionRow({ name, d }: { name: string; d: Dimension }) {
       <Num n={d.warnings} />
       <Num n={d.not_evaluated} cls="text-ne" />
       <Num n={d.errors} />
-      <td className="py-1 text-right">{ne ? "—" : d.contribution.toFixed(1)}</td>
+      <td className="py-1 text-right">{ne ? "—" : fmt(d.contribution)}</td>
     </tr>
   );
 }
 
 /** Pass share in ok, fail share in red; a dimension with nothing evaluated is hatched, never red. */
 function ScoreBar({ d }: { d: Dimension }) {
-  const label = d.score == null ? "not evaluated" : `${fmt(d.score)} of 100`;
+  const { t } = useT();
+  const label = d.score == null ? t("not evaluated") : t("{n} of 100", { n: fmt(d.score) });
   return (
     <div role="img" aria-label={label} title={label} className={`flex h-2 overflow-hidden rounded-sm bg-raised ${d.score == null ? "hatch" : ""}`}>
       {d.score != null && (
@@ -185,13 +191,14 @@ function ScoreBar({ d }: { d: Dimension }) {
 const Num = ({ n, cls = "" }: { n: number; cls?: string }) => <td className={`py-1 text-right ${n ? cls : "text-muted"}`}>{n}</td>;
 
 function FindingDetail({ f, rule, onClose }: { f: Finding; rule?: RuleMeta; onClose: () => void }) {
+  const { t } = useT();
   return (
-    <section aria-label="Finding detail" className="min-h-0 flex-1 overflow-auto rounded border border-line bg-panel">
+    <section aria-label={t("Finding detail")} className="min-h-0 flex-1 overflow-auto rounded border border-line bg-panel">
       <header className="flex items-center justify-between border-b border-line px-3 py-2">
         <h2 className="text-sm font-semibold">
           {f.rule_id} <span className="font-normal text-muted">v{f.rule_version}</span>
         </h2>
-        <button className={btn} onClick={onClose} aria-label="Close finding detail">
+        <button className={btn} onClick={onClose} aria-label={t("Close finding detail")}>
           <X size={14} aria-hidden />
         </button>
       </header>
@@ -203,26 +210,42 @@ function FindingDetail({ f, rule, onClose }: { f: Finding; rule?: RuleMeta; onCl
           </div>
         )}
         <dl className="grid grid-cols-[96px_1fr] gap-x-2 gap-y-1">
-          <dt className="text-muted">Status</dt>
+          <dt className="text-muted">{t("Status")}</dt>
           <dd><Status value={f.status} /></dd>
-          <dt className="text-muted">Severity</dt>
+          <dt className="text-muted">{t("Severity")}</dt>
           <dd><Severity value={f.severity} /></dd>
-          <dt className="text-muted">Element</dt>
-          <dd>{f.ifc_class ? `${f.ifc_class} ${f.element_name ?? ""}` : "model-level"}</dd>
+          <dt className="text-muted">{t("Element")}</dt>
+          <dd>{f.ifc_class ? `${f.ifc_class} ${f.element_name ?? ""}` : t("model-level")}</dd>
           <dt className="text-muted">GlobalId</dt>
           <dd className="font-mono text-xs">{f.global_id ?? "—"}</dd>
-          <dt className="text-muted">Expected</dt>
+          <dt className="text-muted">{t("Expected")}</dt>
           <dd>{f.expected ?? "—"}</dd>
-          <dt className="text-muted">Actual</dt>
+          <dt className="text-muted">{t("Actual")}</dt>
           <dd>{f.actual ?? "—"}</dd>
-          <dt className="text-muted">Issue key</dt>
+          <dt className="text-muted">{t("Issue key")}</dt>
           <dd className="font-mono text-xs">{f.issue_key}</dd>
         </dl>
         <div>
-          <div className="mb-1 text-xs text-muted">Evidence</div>
+          <div className="mb-1 text-xs text-muted">{t("Evidence")}</div>
           <pre className="overflow-auto rounded bg-bg p-2 font-mono text-xs">{JSON.stringify(f.evidence, null, 2)}</pre>
         </div>
       </div>
     </section>
+  );
+}
+
+/** A score computed on part of the weight reads better than it is; say so next to the number. */
+function PartialScore({ t, weight, names }: { t: T; weight: number; names: string[] }) {
+  return (
+    <div role="note" className="mt-2 flex gap-1.5 rounded border border-sev-medium px-2 py-1 text-xs">
+      <TriangleAlert size={14} className="mt-0.5 shrink-0 text-sev-medium" aria-hidden />
+      <span>
+        {t("Score covers {n}% of the weight. Not evaluated: {dims}.", {
+          n: fmt(weight * 100, 0),
+          dims: names.map((n) => tokenLabel(t, n)).join(", "),
+        })}
+        {names.includes("ids_compliance") && " " + t("Upload an IDS file to check project requirements.")}
+      </span>
+    </div>
   );
 }

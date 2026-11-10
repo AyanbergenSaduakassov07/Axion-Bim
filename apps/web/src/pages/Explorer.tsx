@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Link, useParams, useSearchParams } from "react-router";
+import { useParams, useSearchParams } from "react-router";
 import type { Element, Finding, SpatialTree, TreeElement } from "../api/client";
 import { useElement, useFindings, useRevision, useTree } from "../api/queries";
-import { btn, Empty, fmt, Panel, Q, Severity, Status } from "../ui";
+import { Empty, fmt, Panel, Q, RevisionNav, Severity, Status } from "../ui";
+import { locale, useT } from "../i18n";
 import { useFocus, Viewport, type Viewer } from "../viewer/Viewport";
 
 export function Explorer() {
@@ -15,6 +16,7 @@ export function Explorer() {
   const [selected, setSelected] = useState<string | null>(initial);
   const [target, setTarget] = useState<string | null>(initial); // tree picks fly the camera; 3D clicks only select
   const focus = useFocus(viewer, target);
+  const { t } = useT();
 
   useEffect(() => viewer?.onSelect(setSelected), [viewer]);
   const pick = (gid: string) => {
@@ -24,17 +26,11 @@ export function Explorer() {
 
   return (
     <div className="flex h-[calc(100dvh-4.5rem)] flex-col gap-3">
-      <div className="flex items-baseline gap-3">
-        <h1 className="text-lg font-semibold">Model Explorer</h1>
-        {rev.data && <span className="text-sm text-muted">r{rev.data.seq} · {String(rev.data.metadata.project_name ?? "")}</span>}
-        <Link className={`${btn} ml-auto`} to={`/revisions/${revisionId}/quality`}>
-          Quality Center
-        </Link>
-      </div>
+      <RevisionNav revisionId={revisionId} title={t("Model Explorer")} />
       <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[280px_1fr_340px]">
-        <section aria-label="Spatial structure" className="flex min-h-0 flex-col overflow-auto rounded border border-line bg-panel">
+        <section aria-label={t("Spatial structure")} className="flex min-h-0 flex-col overflow-auto rounded border border-line bg-panel">
           <Q q={tree} rows={10}>
-            {(t: SpatialTree) => <TreePanel tree={t} selected={selected} onPick={pick} viewer={viewer} />}
+            {(st: SpatialTree) => <TreePanel tree={st} selected={selected} onPick={pick} viewer={viewer} />}
           </Q>
         </section>
         {rev.data ? (
@@ -46,7 +42,7 @@ export function Explorer() {
             overlay={
               focus === "no_geometry" && (
                 <div role="status" className="absolute inset-x-2 bottom-2 rounded border border-line bg-raised px-2 py-1 text-xs">
-                  Element has no renderable geometry.
+                  {t("Element has no renderable geometry.")}
                 </div>
               )
             }
@@ -58,7 +54,7 @@ export function Explorer() {
           {selected ? (
             <ElementPanel revisionId={revisionId} globalId={selected} findings={findings.data ?? []} />
           ) : (
-            <Empty>Select an element in the tree or the 3D view.</Empty>
+            <Empty>{t("Select an element in the tree or the 3D view.")}</Empty>
           )}
         </aside>
       </div>
@@ -70,6 +66,7 @@ export function Explorer() {
 function TreePanel({ tree, selected, onPick, viewer }: { tree: SpatialTree; selected: string | null; onPick: (g: string) => void; viewer: Viewer | null }) {
   const { roots, children, byContainer, classes } = useMemo(() => index(tree), [tree]);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
+  const { t } = useT();
   const toggle = async (cls: string) => {
     const next = new Set(hidden);
     if (next.has(cls)) next.delete(cls);
@@ -96,7 +93,7 @@ function TreePanel({ tree, selected, onPick, viewer }: { tree: SpatialTree; sele
                 onClick={() => onPick(e.global_id)}
                 aria-current={e.global_id === selected || undefined}
               >
-                {e.name ?? "—"} <span className="text-xs text-muted">{e.ifc_class}{e.has_geometry ? "" : " · no geometry"}</span>
+                {e.name ?? "—"} <span className="text-xs text-muted">{e.ifc_class}{e.has_geometry ? "" : ` · ${t("no geometry")}`}</span>
               </button>
             </li>
           ))}
@@ -108,7 +105,7 @@ function TreePanel({ tree, selected, onPick, viewer }: { tree: SpatialTree; sele
   return (
     <div className="space-y-2 p-2">
       <fieldset className="border-b border-line pb-2">
-        <legend className="mb-1 text-xs text-muted">Classes</legend>
+        <legend className="mb-1 text-xs text-muted">{t("Classes")}</legend>
         {classes.map(([cls, n]) => (
           <label key={cls} className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={!hidden.has(cls)} onChange={() => toggle(cls)} disabled={!viewer} />
@@ -141,6 +138,7 @@ function index(tree: SpatialTree) {
 function ElementPanel({ revisionId, globalId, findings }: { revisionId: number; globalId: string; findings: Finding[] }) {
   const q = useElement(revisionId, globalId);
   const mine = findings.filter((f) => f.global_id === globalId);
+  const { t } = useT();
   return (
     <Q q={q} rows={6}>
       {(el: Element) => (
@@ -150,9 +148,9 @@ function ElementPanel({ revisionId, globalId, findings }: { revisionId: number; 
             <div className="text-xs text-muted">{el.ifc_class}{el.predefined_type ? ` · ${el.predefined_type}` : ""}</div>
             <div className="font-mono text-xs text-muted">{el.global_id}</div>
           </div>
-          <Panel title={`Findings (${mine.length})`}>
+          <Panel title={`${t("Findings")} (${mine.length})`}>
             {mine.length === 0 ? (
-              <p className="text-muted">No findings for this element in the latest audit.</p>
+              <p className="text-muted">{t("No findings for this element in the latest audit.")}</p>
             ) : (
               <ul className="space-y-1">
                 {mine.map((f) => (
@@ -163,11 +161,11 @@ function ElementPanel({ revisionId, globalId, findings }: { revisionId: number; 
               </ul>
             )}
           </Panel>
-          <Panel title="Quantities">
-            <Rows rows={el.quantities.map((x) => [`${x.qto}.${x.name}`, `${fmt(x.value, 3)} ${x.unit ?? "(unit not declared)"} · ${x.method}`])} />
+          <Panel title={t("Quantities")}>
+            <Rows rows={el.quantities.map((x) => [`${x.qto}.${x.name}`, `${fmt(x.value, 3)} ${x.unit ?? t("(unit not declared)")} · ${x.method}`])} />
           </Panel>
-          <Panel title="Properties">
-            {el.properties.length === 0 && <p className="text-muted">None declared.</p>}
+          <Panel title={t("Properties")}>
+            {el.properties.length === 0 && <p className="text-muted">{t("None declared.")}</p>}
             {[...byPset(el.properties)].map(([pset, props]) => (
               <div key={pset} className="mb-2 last:mb-0">
                 <div className="mb-0.5 truncate text-xs font-medium" title={pset}>{pset}</div>
@@ -175,7 +173,7 @@ function ElementPanel({ revisionId, globalId, findings }: { revisionId: number; 
               </div>
             ))}
           </Panel>
-          <Panel title="Materials">
+          <Panel title={t("Materials")}>
             <Rows rows={el.materials.map((m) => [m.name, m.kind])} />
           </Panel>
         </div>
@@ -191,10 +189,11 @@ function byPset<T extends { pset: string }>(props: T[]): Map<string, T[]> {
 }
 
 const value = (v: unknown) =>
-  typeof v === "number" ? v.toLocaleString("en-US", { maximumFractionDigits: 3 }) : String(v ?? "—");
+  typeof v === "number" ? v.toLocaleString(locale(), { maximumFractionDigits: 3 }) : String(v ?? "—");
 
 function Rows({ rows }: { rows: [string, string][] }) {
-  if (rows.length === 0) return <p className="text-muted">None declared.</p>;
+  const { t } = useT();
+  if (rows.length === 0) return <p className="text-muted">{t("None declared.")}</p>;
   return (
     <dl className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-x-2 gap-y-0.5 text-xs">
       {rows.map(([k, v]) => (

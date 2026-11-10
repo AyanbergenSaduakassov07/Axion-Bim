@@ -44,6 +44,9 @@ class RevisionSummary(BaseModel):
     metadata: dict[str, Any]
     class_counts: dict[str, int]
     latest_audit_id: int | None
+    model_name: str
+    project_id: int
+    project_name: str
 
 
 class Accepted(BaseModel):
@@ -147,9 +150,16 @@ class CopilotStatus(BaseModel):
     model: str
 
 
+class CopilotExchange(BaseModel):
+    question: str = Field(min_length=1, max_length=2000)
+    answer: str = Field(max_length=8000)
+
+
 class CopilotQuery(BaseModel):
     project_id: int  # the UI session's project; tools never take a project from the model
     question: str = Field(min_length=1, max_length=2000)
+    # earlier turns of the same chat, oldest first
+    history: list[CopilotExchange] = Field(default=[], max_length=10)
 
 
 class CitationOut(BaseModel):

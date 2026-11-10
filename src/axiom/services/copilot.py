@@ -76,13 +76,15 @@ def _client() -> Any:
     return agent.client_from_env()
 
 
-def query(engine: Engine, project_id: int, question: str) -> agent.Answer:
+def query(
+    engine: Engine, project_id: int, question: str, history: list[tuple[str, str]] | None = None
+) -> agent.Answer:
     if not available():
         raise CopilotUnavailableError("copilot is disabled: ANTHROPIC_API_KEY is not set")
     browse.list_models(engine, project_id)  # LookupError -> 404 for an unknown project
     try:
         with LIMIT.slot():
-            return agent.ask(_client(), Scope(engine, project_id), question)
+            return agent.ask(_client(), Scope(engine, project_id), question, history=history or ())
     except anthropic.APIError as e:
         log.exception("copilot model call failed")
         raise CopilotUnavailableError("the model service failed; try again later") from e

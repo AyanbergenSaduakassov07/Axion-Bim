@@ -376,7 +376,7 @@ export interface paths {
         };
         /**
          * Get Quantities
-         * @description Qto totals (method=qto). Geometry volumes need IFC processing: use `axiom audit --geometry`.
+         * @description Qto totals (method=qto), plus geometry volumes cached by a geometry audit (method=geometry).
          */
         get: operations["get_quantities_api_v1_revisions__revision_id__quantities_get"];
         put?: never;
@@ -548,8 +548,20 @@ export interface components {
             /** Unverified */
             unverified: string[];
         };
+        /** CopilotExchange */
+        CopilotExchange: {
+            /** Answer */
+            answer: string;
+            /** Question */
+            question: string;
+        };
         /** CopilotQuery */
         CopilotQuery: {
+            /**
+             * History
+             * @default []
+             */
+            history: components["schemas"]["CopilotExchange"][];
             /** Project Id */
             project_id: number;
             /** Question */
@@ -825,6 +837,12 @@ export interface components {
             };
             /** Model Id */
             model_id: number;
+            /** Model Name */
+            model_name: string;
+            /** Project Id */
+            project_id: number;
+            /** Project Name */
+            project_name: string;
             /** Schema Name */
             schema_name: string;
             /** Seq */
@@ -943,6 +961,7 @@ export interface operations {
                 severity?: string | null;
                 category?: string | null;
                 rule?: string | null;
+                lang?: "en" | "ru";
             };
             header?: never;
             path: {
@@ -1010,6 +1029,7 @@ export interface operations {
             query?: {
                 format?: "json" | "csv" | "html" | "bcf";
                 comparison_id?: number | null;
+                lang?: "en" | "ru";
             };
             header?: never;
             path: {

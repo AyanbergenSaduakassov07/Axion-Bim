@@ -20,6 +20,9 @@ from axiom.api.schemas import (
     CopilotStatus,
     ElementPage,
     IdsOut,
+    IssueOut,
+    IssuesUpdated,
+    IssueUpdate,
     JobOut,
     ModelOut,
     NameIn,
@@ -34,7 +37,7 @@ from axiom.i18n import Lang
 from axiom.quantities import GROUPS
 from axiom.report import FORMATS
 from axiom.revision import FindingEvent
-from axiom.services import browse, copilot, jobs, projects, quantities, reports, uploads
+from axiom.services import browse, copilot, issues, jobs, projects, quantities, reports, uploads
 
 router = APIRouter()
 MAX_PAGE = 500
@@ -68,6 +71,16 @@ def create_model(db: Db, project_id: int, body: NameIn) -> dict:
     browse.list_models(db, project_id)  # 404 for an unknown project
     mid = projects.create_model(db, project_id, body.name)
     return next(m for m in browse.list_models(db, project_id) if m["id"] == mid)
+
+
+@router.get("/models/{model_id}/issues", response_model=list[IssueOut])
+def list_issues(db: Db, model_id: int) -> list[dict]:
+    return issues.list_issues(db, model_id)
+
+
+@router.put("/models/{model_id}/issues", response_model=IssuesUpdated)
+def update_issues(db: Db, model_id: int, body: IssueUpdate) -> dict:
+    return {"updated": issues.update(db, model_id, body.identity_keys, body.changes())}
 
 
 @router.get("/models/{model_id}/revisions", response_model=list[RevisionOut])

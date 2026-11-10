@@ -1,6 +1,6 @@
 import { useT } from "../i18n";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { api, postJson, type CopilotAnswer, type CopilotStatus, type Audit, type Change, type Comparison, type FindingEvent, type Quantities, type AuditSummary, type Element, type SpatialTree, type Finding, type Job, type Model, type Project, type Revision, type RevisionSummary } from "./client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { api, postJson, putJson, type Issue, type IssueUpdate, type CopilotAnswer, type CopilotStatus, type Audit, type Change, type Comparison, type FindingEvent, type Quantities, type AuditSummary, type Element, type SpatialTree, type Finding, type Job, type Model, type Project, type Revision, type RevisionSummary } from "./client";
 
 export const useProjects = () => useQuery({ queryKey: ["projects"], queryFn: () => api<Project[]>("/projects") });
 
@@ -96,3 +96,14 @@ export const useCopilotAsk = (projectId: number) =>
     mutationFn: ({ question, history = [] }: { question: string; history?: { question: string; answer: string }[] }) =>
       postJson<CopilotAnswer>("/copilot/query", { project_id: projectId, question, history }),
   });
+
+export const useIssues = (modelId: number | undefined) =>
+  useQuery({ queryKey: ["issues", modelId], queryFn: () => api<Issue[]>(`/models/${modelId}/issues`), enabled: modelId != null });
+
+export function useUpdateIssues(modelId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: IssueUpdate) => putJson<{ updated: number }>(`/models/${modelId}/issues`, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["issues", modelId] }),
+  });
+}

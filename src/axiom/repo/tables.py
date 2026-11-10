@@ -6,6 +6,7 @@ from sqlalchemy import (
     JSON,
     Boolean,
     Column,
+    Date,
     DateTime,
     Float,
     ForeignKey,
@@ -242,4 +243,19 @@ jobs = Table(
     _created(),
     Column("started_at", DateTime(timezone=True)),
     Column("finished_at", DateTime(timezone=True)),
+)
+
+# Triage of a finding by its stable identity (D-32): survives re-audits and new revisions of the same model.
+issues = Table(
+    "issues",
+    metadata,
+    _id(),
+    _fk("model_id", "models"),
+    Column("identity_key", String(40), nullable=False),
+    Column("state", String(16), nullable=False),  # open | in_progress | disputed | accepted | closed
+    Column("assignee", String),
+    Column("due_date", Date),
+    Column("note", Text),
+    Column("updated_at", DateTime(timezone=True), server_default=func.now(), nullable=False),
+    UniqueConstraint("model_id", "identity_key"),
 )

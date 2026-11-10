@@ -17,6 +17,8 @@ export type FindingEvent = S["FindingEvent"];
 export type CopilotStatus = S["CopilotStatus"];
 export type CopilotAnswer = S["CopilotAnswer"];
 export type Citation = S["CitationOut"];
+export type Issue = S["IssueOut"];
+export type IssueUpdate = S["IssueUpdate"];
 
 export type ComparisonSummary = {
   changes: Record<string, number>;
@@ -92,5 +94,8 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const postJson = <T>(path: string, data: unknown) =>
   api<T>(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(data) });
+
+export const putJson = <T>(path: string, data: unknown) =>
+  api<T>(path, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(data) });
 
 export const postForm = <T>(path: string, form: FormData) => api<T>(path, { method: "POST", body: form });

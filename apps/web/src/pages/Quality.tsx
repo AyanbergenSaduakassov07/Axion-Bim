@@ -1,13 +1,14 @@
 import { Highlighter, ShieldAlert, TriangleAlert, X } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useParams, useSearchParams } from "react-router";
 import type { AuditSummary, Dimension, Finding, Mhi, RuleMeta } from "../api/client";
-import { useAuditSummary, useFindings, useRevision } from "../api/queries";
+import { useAuditSummary, useFindings, useIssues, useRevision } from "../api/queries";
 import { tokenLabel, useT, type T } from "../i18n";
 import { btn, Empty, fmt, Panel, Q, RevisionNav, SEVERITIES, Severity, Status, tokenColor } from "../ui";
 import { ReportExport } from "./ComparisonView";
 import { useFocus, Viewport, type FocusResult, type Viewer } from "../viewer/Viewport";
 import { FindingsTable } from "./FindingsTable";
+import { BulkIssueBar, IssueEditor } from "./IssueControls";
 
 export function Quality() {
   const revisionId = Number(useParams().revisionId);
@@ -15,6 +16,9 @@ export function Quality() {
   const auditId = rev.data?.latest_audit_id;
   const summary = useAuditSummary(auditId);
   const findings = useFindings(auditId);
+  const modelId = rev.data?.model_id;
+  const issueList = useIssues(modelId);
+  const issues = useMemo(() => new Map((issueList.data ?? []).map((i) => [i.identity_key, i])), [issueList.data]);
   const [selected, setSelected] = useState<string | null>(useSearchParams()[0].get("finding"));
   const [viewer, setViewer] = useState<Viewer | null>(null);
   const finding = findings.data?.find((f) => f.identity_key === selected);
@@ -29,10 +33,17 @@ export function Quality() {
         {(s: AuditSummary) => <HealthHeader mhi={s.mhi} />}
       </Q>
       <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[1fr_400px]">
-        <section className="flex min-h-0 flex-col rounded border border-line bg-panel">
+        <section className="flex min-h-0 min-w-0 flex-col rounded border border-line bg-panel">
           <Q q={findings} rows={8}>
             {(fs: Finding[]) => (
-              <FindingsTable findings={fs} selected={selected} onSelect={setSelected} toolbar={(rows) => <HighlightAll viewer={viewer} rows={rows} />} />
+              <FindingsTable findings={fs} selected={selected} onSelect={setSelected} issues={issues}
+                toolbar={(rows) => (
+                  <>
+                    <HighlightAll viewer={viewer} rows={rows} />
+                    {modelId != null && <BulkIssueBar modelId={modelId} rows={rows} />}
+                  </>
+                )}
+              />
             )}
           </Q>
         </section>
@@ -46,7 +57,11 @@ export function Quality() {
               overlay={finding && <FocusNote result={focus} modelLevel={finding.global_id == null} />}
             />
           )}
-          {finding && <FindingDetail f={finding} rule={summary.data?.rules.find((r) => r.id === finding.rule_id)} onClose={() => setSelected(null)} />}
+          {finding && (
+            <FindingDetail f={finding} rule={summary.data?.rules.find((r) => r.id === finding.rule_id)} onClose={() => setSelected(null)}>
+              {modelId != null && <IssueEditor key={finding.identity_key} modelId={modelId} identityKey={finding.identity_key} issue={issues.get(finding.identity_key)} />}
+            </FindingDetail>
+          )}
         </aside>
       </div>
     </div>
@@ -190,7 +205,7 @@ function ScoreBar({ d }: { d: Dimension }) {
 
 const Num = ({ n, cls = "" }: { n: number; cls?: string }) => <td className={`py-1 text-right ${n ? cls : "text-muted"}`}>{n}</td>;
 
-function FindingDetail({ f, rule, onClose }: { f: Finding; rule?: RuleMeta; onClose: () => void }) {
+function FindingDetail({ f, rule, onClose, children }: { f: Finding; rule?: RuleMeta; onClose: () => void; children?: ReactNode }) {
   const { t } = useT();
   return (
     <section aria-label={t("Finding detail")} className="min-h-0 flex-1 overflow-auto rounded border border-line bg-panel">
@@ -209,6 +224,7 @@ function FindingDetail({ f, rule, onClose }: { f: Finding; rule?: RuleMeta; onCl
             <p className="text-muted">{rule.description}</p>
           </div>
         )}
+        {children}
         <dl className="grid grid-cols-[96px_1fr] gap-x-2 gap-y-1">
           <dt className="text-muted">{t("Status")}</dt>
           <dd><Status value={f.status} /></dd>

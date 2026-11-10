@@ -17,6 +17,7 @@ const INDIRECT = [
   ...["added", "removed", "modified", "new finding", "recurring finding"],
   ...["class", "storey", "material", "classification", "qto", "geometry"],
   ...["metadata", "identity", "spatial", "quantity"],
+  ...["open", "in progress", "disputed", "accepted", "closed", "overdue", "Issue"],
   ...["Severity", "Status", "Category", "Rule", "Class", "Element", "GlobalId", "Message"],
   ...["Change", "Path", "Old", "New"],
   ...["Zoom in", "Zoom out", "Fit model", "Tilt up", "Rotate left", "Rotate right", "Tilt down"],

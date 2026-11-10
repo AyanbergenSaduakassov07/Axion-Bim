@@ -200,3 +200,13 @@ data remain English; the copilot answers in the language of the question.
 - Copilot is a full-page chat (`/projects/:id/copilot`). The backend stays stateless: the client sends up to 10
   earlier (question, answer) pairs. Ids in old answers are not trusted; a new answer citing them without a fresh
   tool result goes through the citation retry. Conversations are kept per project in the browser's localStorage.
+
+## D-32 · Issue triage on findings (2026-11-10)
+- Triage lives in table `issues`, keyed by `(model_id, identity_key)`. Identity is model-scoped and stable across
+  revisions, so state, assignee, due date and note carry over to the next revision of the same finding.
+- States are `open|in_progress|disputed|accepted|closed`, a third vocabulary separate from check statuses and
+  revision events. A finding with no row is `open`. "Overdue" is derived (due date passed, state not accepted/closed),
+  never stored.
+- `PUT /models/{id}/issues` is a partial bulk upsert (up to 20000 keys): only the fields sent change, `null` clears.
+  The Quality Center applies it to whatever the filters show, so "per rule" grouping is the rule filter, not a new entity.
+- No users or auth yet: assignee is free text. Replace with a user id when accounts arrive.

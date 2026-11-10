@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Any
+from datetime import date, datetime
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints
 
 
 class NameIn(BaseModel):
@@ -180,3 +180,34 @@ class CopilotAnswer(BaseModel):
     tool_calls: list[ToolCallOut]
     unverified: list[str]  # ids the model cited without a tool result; already stripped from `answer`
     stop_reason: str
+
+
+IdentityKey = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{40}$")]
+IssueState = Literal["open", "in_progress", "disputed", "accepted", "closed"]
+
+
+class IssueOut(BaseModel):
+    identity_key: str
+    state: IssueState
+    assignee: str | None
+    due_date: date | None
+    note: str | None
+    updated_at: datetime
+
+
+class IssueUpdate(BaseModel):
+    """Fields left out stay as they are; an explicit null clears assignee, due date or note."""
+
+    identity_keys: list[IdentityKey] = Field(min_length=1, max_length=20000)
+    state: IssueState | None = None
+    assignee: str | None = Field(default=None, max_length=120)
+    due_date: date | None = None
+    note: str | None = Field(default=None, max_length=2000)
+
+    def changes(self) -> dict:
+        fields = self.model_dump(include=self.model_fields_set - {"identity_keys"})
+        return {k: v for k, v in fields.items() if not (k == "state" and v is None)}
+
+
+class IssuesUpdated(BaseModel):
+    updated: int

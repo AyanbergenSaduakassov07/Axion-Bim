@@ -211,6 +211,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/models/{model_id}/issues": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Issues */
+        get: operations["list_issues_api_v1_models__model_id__issues_get"];
+        /** Update Issues */
+        put: operations["update_issues_api_v1_models__model_id__issues_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/models/{model_id}/revisions": {
         parameters: {
             query?: never;
@@ -701,6 +719,48 @@ export interface components {
         IdsOut: {
             /** Ids Hash */
             ids_hash: string;
+        };
+        /** IssueOut */
+        IssueOut: {
+            /** Assignee */
+            assignee: string | null;
+            /** Due Date */
+            due_date: string | null;
+            /** Identity Key */
+            identity_key: string;
+            /** Note */
+            note: string | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "open" | "in_progress" | "disputed" | "accepted" | "closed";
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * IssueUpdate
+         * @description Fields left out stay as they are; an explicit null clears assignee, due date or note.
+         */
+        IssueUpdate: {
+            /** Assignee */
+            assignee?: string | null;
+            /** Due Date */
+            due_date?: string | null;
+            /** Identity Keys */
+            identity_keys: string[];
+            /** Note */
+            note?: string | null;
+            /** State */
+            state?: ("open" | "in_progress" | "disputed" | "accepted" | "closed") | null;
+        };
+        /** IssuesUpdated */
+        IssuesUpdated: {
+            /** Updated */
+            updated: number;
         };
         /** JobOut */
         JobOut: {
@@ -1292,6 +1352,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["JobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_issues_api_v1_models__model_id__issues_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                model_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssueOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_issues_api_v1_models__model_id__issues_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                model_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IssueUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssuesUpdated"];
                 };
             };
             /** @description Validation Error */

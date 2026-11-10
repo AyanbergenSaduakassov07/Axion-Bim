@@ -323,4 +323,6 @@ export const ru: Record<string, string> = {
   "{n} overdue": "просрочено: {n}",
   "Active issues by rule": "Активные замечания по правилам",
   "No active issues.": "Активных замечаний нет.",
+  "Upload revision to {model}": "Загрузка ревизии: {model}",
+  "See changes since the previous revision": "Изменения с прошлой ревизии",
 };

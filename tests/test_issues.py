@@ -50,3 +50,9 @@ def test_validation_and_unknown_model(client):  # noqa: F811
     assert put({"identity_keys": [], "state": "open"}).status_code == 422
     assert put({"identity_keys": [K1], "state": "open"}, m=999).status_code == 404
     assert client.get(f"{V1}/models/999/issues").status_code == 404
+
+
+def test_get_model_by_id(client):  # noqa: F811
+    mid = _model(client)
+    assert client.get(f"{V1}/models/{mid}").json()["name"] == "Structure"
+    assert client.get(f"{V1}/models/999").status_code == 404

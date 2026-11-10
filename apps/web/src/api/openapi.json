@@ -2514,6 +2514,45 @@
         "summary": "Get Job"
       }
     },
+    "/api/v1/models/{model_id}": {
+      "get": {
+        "operationId": "get_model_api_v1_models__model_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "model_id",
+            "required": true,
+            "schema": {
+              "title": "Model Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Model"
+      }
+    },
     "/api/v1/models/{model_id}/issues": {
       "get": {
         "operationId": "list_issues_api_v1_models__model_id__issues_get",

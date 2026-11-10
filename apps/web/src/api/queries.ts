@@ -110,3 +110,5 @@ export function useUpdateIssues(modelId: number) {
 
 export const useDashboard = (projectId: number) =>
   useQuery({ queryKey: ["dashboard", projectId], queryFn: () => api<Dashboard>(`/projects/${projectId}/dashboard`) });
+
+export const useModel = (modelId: number) => useQuery({ queryKey: ["model", modelId], queryFn: () => api<Model>(`/models/${modelId}`) });

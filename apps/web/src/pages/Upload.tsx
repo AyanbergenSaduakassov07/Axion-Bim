@@ -3,7 +3,7 @@ import { CircleCheck, FileUp, LoaderCircle } from "lucide-react";
 import { useEffect, useState, type DragEvent } from "react";
 import { Link, useParams } from "react-router";
 import { postForm } from "../api/client";
-import { useJob } from "../api/queries";
+import { useJob, useModel, useProjects } from "../api/queries";
 import { useT } from "../i18n";
 import { btn, btnPrimary, ErrorState, Panel } from "../ui";
 
@@ -25,6 +25,8 @@ export function Upload() {
   const [ids, setIds] = useState<File | null>(null);
   const [geometry, setGeometry] = useState(true);
   const [over, setOver] = useState(false);
+  const model = useModel(modelId).data;
+  const project = useProjects().data?.find((p) => p.id === model?.project_id);
   const m = useMutation({ mutationFn: () => upload(modelId, ifc!, ids, geometry) });
   const { t } = useT();
 
@@ -41,7 +43,14 @@ export function Upload() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
-      <h1 className="text-lg font-semibold">{t("Upload revision")}</h1>
+      {model && (
+        <nav className="text-sm text-muted">
+          <Link className="hover:text-fg hover:underline" to={`/projects/${model.project_id}?model=${model.id}`}>
+            {project?.name ?? ""} / {model.name}
+          </Link>
+        </nav>
+      )}
+      <h1 className="text-lg font-semibold">{model ? t("Upload revision to {model}", { model: model.name }) : t("Upload revision")}</h1>
       <form onSubmit={submit} className="space-y-4">
         <label
           onDragOver={(e) => {
@@ -74,16 +83,16 @@ export function Upload() {
         </button>
       </form>
       {m.isError && <ErrorState error={m.error} />}
-      {m.data != null && <JobStatus jobId={m.data} />}
+      {m.data != null && <JobStatus jobId={m.data} modelId={modelId} />}
     </div>
   );
 }
 
-function JobStatus({ jobId }: { jobId: number }) {
+function JobStatus({ jobId, modelId }: { jobId: number; modelId: number }) {
   const q = useJob(jobId);
   const qc = useQueryClient();
   const job = q.data;
-  const result = job?.result as { revision_id?: number; created?: boolean } | null | undefined;
+  const result = job?.result as { revision_id?: number; created?: boolean; comparison_id?: number | null } | null | undefined;
   const { t } = useT();
   useEffect(() => {
     if (job?.status === "done") qc.invalidateQueries({ queryKey: ["revisions"] });
@@ -106,9 +115,16 @@ function JobStatus({ jobId }: { jobId: number }) {
               <CircleCheck size={16} className="text-ok" aria-hidden />
               {result.created === false ? t("Done — identical file, existing revision reused.") : t("Done.")}
             </p>
-            <Link className={btnPrimary} to={`/revisions/${result.revision_id}/quality`}>
-              {t("Open Quality Center")}
-            </Link>
+            <div className="flex flex-wrap gap-2">
+              <Link className={btnPrimary} to={`/revisions/${result.revision_id}/quality`}>
+                {t("Open Quality Center")}
+              </Link>
+              {result.comparison_id != null && (
+                <Link className={btn} to={`/models/${modelId}/revisions?head=${result.revision_id}`}>
+                  {t("See changes since the previous revision")}
+                </Link>
+              )}
+            </div>
           </div>
         )}
       </div>

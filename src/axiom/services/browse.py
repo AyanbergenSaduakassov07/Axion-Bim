@@ -35,9 +35,13 @@ def list_models(engine: Engine, project_id: int) -> list[dict]:
         return [r._asdict() for r in repo.list_models(conn, project_id)]
 
 
-def require_model(engine: Engine, model_id: int) -> None:
+def get_model(engine: Engine, model_id: int) -> dict:
     with engine.connect() as conn:
-        _found(repo.get_model(conn, model_id), "model", model_id)
+        return _found(repo.get_model(conn, model_id), "model", model_id)._asdict()
+
+
+def require_model(engine: Engine, model_id: int) -> None:
+    get_model(engine, model_id)
 
 
 def list_revisions(engine: Engine, model_id: int) -> list[dict]:

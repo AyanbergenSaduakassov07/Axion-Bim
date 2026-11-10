@@ -80,6 +80,11 @@ def project_dashboard(db: Db, project_id: int) -> dict:
     return dashboard.project_dashboard(db, project_id, date.today())
 
 
+@router.get("/models/{model_id}", response_model=ModelOut)
+def get_model(db: Db, model_id: int) -> dict:
+    return browse.get_model(db, model_id)
+
+
 @router.get("/models/{model_id}/issues", response_model=list[IssueOut])
 def list_issues(db: Db, model_id: int) -> list[dict]:
     return issues.list_issues(db, model_id)

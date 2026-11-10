@@ -1,6 +1,6 @@
 import { useT } from "../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, postJson, putJson, type Dashboard, type Issue, type IssueUpdate, type CopilotAnswer, type CopilotStatus, type Audit, type Change, type Comparison, type FindingEvent, type Quantities, type AuditSummary, type Element, type SpatialTree, type Finding, type Job, type Model, type Project, type Revision, type RevisionSummary } from "./client";
+import { api, postForm, postJson, putJson, type IdsEntry, type Dashboard, type Issue, type IssueUpdate, type CopilotAnswer, type CopilotStatus, type Audit, type Change, type Comparison, type FindingEvent, type Quantities, type AuditSummary, type Element, type SpatialTree, type Finding, type Job, type Model, type Project, type Revision, type RevisionSummary } from "./client";
 
 export const useProjects = () => useQuery({ queryKey: ["projects"], queryFn: () => api<Project[]>("/projects") });
 
@@ -112,3 +112,26 @@ export const useDashboard = (projectId: number) =>
   useQuery({ queryKey: ["dashboard", projectId], queryFn: () => api<Dashboard>(`/projects/${projectId}/dashboard`) });
 
 export const useModel = (modelId: number) => useQuery({ queryKey: ["model", modelId], queryFn: () => api<Model>(`/models/${modelId}`) });
+
+export const useIdsLibrary = (projectId: number | undefined) =>
+  useQuery({ queryKey: ["ids", projectId], queryFn: () => api<IdsEntry[]>(`/projects/${projectId}/ids`), enabled: projectId != null });
+
+export const addIds = (projectId: number, file: File) => {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("name", file.name.replace(/\.(ids|xml)$/i, ""));
+  return postForm<IdsEntry>(`/projects/${projectId}/ids`, form);
+};
+
+export function useIdsMutations(projectId: number) {
+  const qc = useQueryClient();
+  const refresh = () => qc.invalidateQueries({ queryKey: ["ids", projectId] });
+  return {
+    add: useMutation({ mutationFn: (file: File) => addIds(projectId, file), onSuccess: refresh }),
+    setDefault: useMutation({
+      mutationFn: ({ id, is_default }: { id: number; is_default: boolean }) =>
+        putJson<IdsEntry[]>(`/projects/${projectId}/ids/${id}/default`, { is_default }),
+      onSuccess: refresh,
+    }),
+  };
+}

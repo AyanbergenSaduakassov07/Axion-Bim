@@ -259,3 +259,15 @@ issues = Table(
     Column("updated_at", DateTime(timezone=True), server_default=func.now(), nullable=False),
     UniqueConstraint("model_id", "identity_key"),
 )
+
+project_ids = Table(
+    "project_ids",
+    metadata,
+    _id(),
+    _fk("project_id", "projects"),
+    Column("name", String, nullable=False),
+    Column("ids_hash", String(64), nullable=False),  # files/{ids_hash}.ids
+    Column("is_default", Boolean, nullable=False),
+    _created(),
+    UniqueConstraint("project_id", "ids_hash"),
+)

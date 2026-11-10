@@ -252,3 +252,15 @@ class Dashboard(BaseModel):
     name: str
     models: list[ModelHealth]
     issues: IssueTally
+
+
+class IdsEntry(BaseModel):
+    id: int
+    name: str
+    ids_hash: str
+    is_default: bool
+    created_at: datetime
+
+
+class DefaultIn(BaseModel):
+    is_default: bool

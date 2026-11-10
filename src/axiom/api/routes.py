@@ -20,7 +20,9 @@ from axiom.api.schemas import (
     CopilotQuery,
     CopilotStatus,
     Dashboard,
+    DefaultIn,
     ElementPage,
+    IdsEntry,
     IdsOut,
     IssueOut,
     IssuesUpdated,
@@ -39,7 +41,18 @@ from axiom.i18n import Lang
 from axiom.quantities import GROUPS
 from axiom.report import FORMATS
 from axiom.revision import FindingEvent
-from axiom.services import browse, copilot, dashboard, issues, jobs, projects, quantities, reports, uploads
+from axiom.services import (
+    browse,
+    copilot,
+    dashboard,
+    ids_library,
+    issues,
+    jobs,
+    projects,
+    quantities,
+    reports,
+    uploads,
+)
 
 router = APIRouter()
 MAX_PAGE = 500
@@ -115,6 +128,28 @@ def upload_revision(
     )  # fmt: skip
     s.wake()
     return {"job_id": job_id}
+
+
+@router.get("/projects/{project_id}/ids", response_model=list[IdsEntry])
+def list_project_ids(db: Db, project_id: int) -> list[dict]:
+    return ids_library.list_entries(db, project_id)
+
+
+@router.post("/projects/{project_id}/ids", response_model=IdsEntry, status_code=201)
+def add_project_ids(
+    request: Request,
+    db: Db,
+    project_id: int,
+    file: Annotated[UploadFile, File()],
+    name: Annotated[str, Form(max_length=200)] = "",
+) -> dict:
+    settings = request.app.state.settings
+    return ids_library.add(db, settings, project_id, file.file, filename=file.filename or "", name=name)
+
+
+@router.put("/projects/{project_id}/ids/{entry_id}/default", response_model=list[IdsEntry])
+def set_default_ids(db: Db, project_id: int, entry_id: int, body: DefaultIn) -> list[dict]:
+    return ids_library.set_default(db, project_id, entry_id, body.is_default)
 
 
 @router.post("/ids", response_model=IdsOut, status_code=201)

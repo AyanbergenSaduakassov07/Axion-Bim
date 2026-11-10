@@ -3,19 +3,20 @@ import { CircleCheck, FileUp, LoaderCircle } from "lucide-react";
 import { useEffect, useState, type DragEvent } from "react";
 import { Link, useParams } from "react-router";
 import { postForm } from "../api/client";
-import { useJob, useModel, useProjects } from "../api/queries";
+import { addIds, useIdsLibrary, useJob, useModel, useProjects } from "../api/queries";
 import { useT } from "../i18n";
-import { btn, btnPrimary, ErrorState, Panel } from "../ui";
+import { btn, btnPrimary, ErrorState, input, Panel } from "../ui";
 
-async function upload(modelId: number, ifc: File, ids: File | null, geometry: boolean) {
+const NONE = "";
+const NEW = "new";
+
+/** idsChoice: a library ids_hash, NONE, or NEW (then the file is added to the project library first). */
+async function upload(projectId: number, modelId: number, ifc: File, idsChoice: string, idsFile: File | null, geometry: boolean) {
   const form = new FormData();
   form.append("file", ifc);
   form.append("geometry", String(geometry));
-  if (ids) {
-    const idsForm = new FormData();
-    idsForm.append("file", ids);
-    form.append("ids_hash", (await postForm<{ ids_hash: string }>("/ids", idsForm)).ids_hash);
-  }
+  const idsHash = idsChoice === NEW ? idsFile && (await addIds(projectId, idsFile)).ids_hash : idsChoice;
+  if (idsHash) form.append("ids_hash", idsHash);
   return (await postForm<{ job_id: number }>(`/models/${modelId}/revisions`, form)).job_id;
 }
 
@@ -23,11 +24,14 @@ export function Upload() {
   const modelId = Number(useParams().modelId);
   const [ifc, setIfc] = useState<File | null>(null);
   const [ids, setIds] = useState<File | null>(null);
+  const [picked, setPicked] = useState<string | null>(null); // null = untouched: use the project default
   const [geometry, setGeometry] = useState(true);
   const [over, setOver] = useState(false);
   const model = useModel(modelId).data;
   const project = useProjects().data?.find((p) => p.id === model?.project_id);
-  const m = useMutation({ mutationFn: () => upload(modelId, ifc!, ids, geometry) });
+  const library = useIdsLibrary(model?.project_id).data ?? [];
+  const idsChoice = picked ?? library.find((e) => e.is_default)?.ids_hash ?? NONE;
+  const m = useMutation({ mutationFn: () => upload(model!.project_id, modelId, ifc!, idsChoice, ids, geometry) });
   const { t } = useT();
 
   const drop = (e: DragEvent) => {
@@ -67,18 +71,29 @@ export function Upload() {
         </label>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1 text-sm">
-            <span className="block text-xs text-muted">{t("IDS requirements file (optional)")}</span>
-            <label className={`${btn} max-w-full`}>
-              <span className="truncate">{ids ? ids.name : t("Choose .ids file")}</span>
-              <input type="file" accept=".ids,.xml" aria-label={t("IDS file")} className="sr-only" onChange={(e) => setIds(e.target.files?.[0] ?? null)} />
+            <label className="block text-xs text-muted">
+              <span className="block">{t("IDS requirements (optional)")}</span>
+              <select className={`${input} w-full text-fg`} value={idsChoice} onChange={(e) => setPicked(e.target.value)}>
+                <option value={NONE}>{t("None")}</option>
+                {library.map((e) => (
+                  <option key={e.id} value={e.ids_hash}>{e.is_default ? `${e.name} ★` : e.name}</option>
+                ))}
+                <option value={NEW}>{t("Upload a new file…")}</option>
+              </select>
             </label>
+            {idsChoice === NEW && (
+              <label className={`${btn} max-w-full`}>
+                <span className="truncate">{ids ? ids.name : t("Choose .ids file")}</span>
+                <input type="file" accept=".ids,.xml" aria-label={t("IDS file")} className="sr-only" onChange={(e) => setIds(e.target.files?.[0] ?? null)} />
+              </label>
+            )}
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={geometry} onChange={(e) => setGeometry(e.target.checked)} />
             {t("Compute geometry volumes (slower)")}
           </label>
         </div>
-        <button className={btnPrimary} disabled={!ifc || m.isPending || m.isSuccess}>
+        <button className={btnPrimary} disabled={!ifc || !model || (idsChoice === NEW && !ids) || m.isPending || m.isSuccess}>
           {m.isPending ? t("Uploading…") : t("Upload and audit")}
         </button>
       </form>

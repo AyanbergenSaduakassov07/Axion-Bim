@@ -325,4 +325,12 @@ export const ru: Record<string, string> = {
   "No active issues.": "Активных замечаний нет.",
   "Upload revision to {model}": "Загрузка ревизии: {model}",
   "See changes since the previous revision": "Изменения с прошлой ревизии",
+  "Requirements (IDS)": "Требования (IDS)",
+  "Add IDS file": "Добавить файл IDS",
+  "No requirement files yet. Add the client's IDS once; every upload can then check against it.": "Файлов требований пока нет. Добавьте IDS заказчика один раз — каждая загрузка сможет проверяться по нему.",
+  "Default for uploads": "По умолчанию для загрузок",
+  "Make default": "Сделать по умолчанию",
+  "IDS requirements (optional)": "Требования IDS (необязательно)",
+  "None": "Нет",
+  "Upload a new file…": "Загрузить новый файл…",
 };

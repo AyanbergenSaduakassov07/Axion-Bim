@@ -117,6 +117,26 @@
         "title": "AuditOut",
         "type": "object"
       },
+      "Body_add_project_ids_api_v1_projects__project_id__ids_post": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          },
+          "name": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_add_project_ids_api_v1_projects__project_id__ids_post",
+        "type": "object"
+      },
       "Body_upload_ids_api_v1_ids_post": {
         "properties": {
           "file": {
@@ -537,6 +557,19 @@
           "issues"
         ],
         "title": "Dashboard",
+        "type": "object"
+      },
+      "DefaultIn": {
+        "properties": {
+          "is_default": {
+            "title": "Is Default",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "is_default"
+        ],
+        "title": "DefaultIn",
         "type": "object"
       },
       "Element": {
@@ -1002,6 +1035,40 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "IdsEntry": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "ids_hash": {
+            "title": "Ids Hash",
+            "type": "string"
+          },
+          "is_default": {
+            "title": "Is Default",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "ids_hash",
+          "is_default",
+          "created_at"
+        ],
+        "title": "IdsEntry",
         "type": "object"
       },
       "IdsOut": {
@@ -2828,6 +2895,158 @@
           }
         },
         "summary": "Project Dashboard"
+      }
+    },
+    "/api/v1/projects/{project_id}/ids": {
+      "get": {
+        "operationId": "list_project_ids_api_v1_projects__project_id__ids_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/IdsEntry"
+                  },
+                  "title": "Response List Project Ids Api V1 Projects  Project Id  Ids Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Project Ids"
+      },
+      "post": {
+        "operationId": "add_project_ids_api_v1_projects__project_id__ids_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_add_project_ids_api_v1_projects__project_id__ids_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdsEntry"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Project Ids"
+      }
+    },
+    "/api/v1/projects/{project_id}/ids/{entry_id}/default": {
+      "put": {
+        "operationId": "set_default_ids_api_v1_projects__project_id__ids__entry_id__default_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "entry_id",
+            "required": true,
+            "schema": {
+              "title": "Entry Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DefaultIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/IdsEntry"
+                  },
+                  "title": "Response Set Default Ids Api V1 Projects  Project Id  Ids  Entry Id  Default Put",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Default Ids"
       }
     },
     "/api/v1/projects/{project_id}/models": {

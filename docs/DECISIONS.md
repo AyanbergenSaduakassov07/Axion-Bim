@@ -217,3 +217,10 @@ data remain English; the copilot answers in the language of the question.
   Computed in the backend from stored audits plus the `issues` table; the UI only draws it.
 - "Active" = open, in progress or disputed. Overdue uses the server's date. The trend uses a fixed 0-100 axis so
   models and revisions compare honestly; a score of `null` (blocked or nothing evaluated) is left out of the line.
+
+## D-34 · Project IDS library (2026-11-10)
+- `project_ids` keeps the client's requirement files per project (name, `ids_hash`, `is_default`); the file itself
+  stays content-addressed in `files/{sha}.ids`. The same file twice returns the existing entry; the first entry is the
+  default; at most one default per project.
+- The revision upload stays explicit: it takes an `ids_hash` or nothing. The default only preselects the choice in the
+  upload form, so a CLI or API upload never picks up requirements silently.

@@ -18,6 +18,7 @@ test("upload rev1, wait for the job, Quality Center shows the golden findings", 
   await page.getByRole("link", { name: "Upload revision" }).click();
 
   await page.getByLabel("IFC file").setInputFiles(REV1);
+  await page.getByLabel("IDS requirements (optional)").selectOption("new"); // new file joins the project library
   await page.getByLabel("IDS file").setInputFiles(IDS);
   await page.getByRole("button", { name: "Upload and audit" }).click();
   await page.getByRole("link", { name: "Open Quality Center" }).click({ timeout: 45_000 });

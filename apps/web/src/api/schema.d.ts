@@ -299,6 +299,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{project_id}/ids": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Project Ids */
+        get: operations["list_project_ids_api_v1_projects__project_id__ids_get"];
+        put?: never;
+        /** Add Project Ids */
+        post: operations["add_project_ids_api_v1_projects__project_id__ids_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/ids/{entry_id}/default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Default Ids */
+        put: operations["set_default_ids_api_v1_projects__project_id__ids__entry_id__default_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects/{project_id}/models": {
         parameters: {
             query?: never;
@@ -503,6 +538,16 @@ export interface components {
             /** Status */
             status: string;
         };
+        /** Body_add_project_ids_api_v1_projects__project_id__ids_post */
+        Body_add_project_ids_api_v1_projects__project_id__ids_post: {
+            /** File */
+            file: string;
+            /**
+             * Name
+             * @default
+             */
+            name: string;
+        };
         /** Body_upload_ids_api_v1_ids_post */
         Body_upload_ids_api_v1_ids_post: {
             /** File */
@@ -645,6 +690,11 @@ export interface components {
             /** Project Id */
             project_id: number;
         };
+        /** DefaultIn */
+        DefaultIn: {
+            /** Is Default */
+            is_default: boolean;
+        };
         /** Element */
         Element: {
             /** Classifications */
@@ -767,6 +817,22 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** IdsEntry */
+        IdsEntry: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: number;
+            /** Ids Hash */
+            ids_hash: string;
+            /** Is Default */
+            is_default: boolean;
+            /** Name */
+            name: string;
         };
         /** IdsOut */
         IdsOut: {
@@ -1701,6 +1767,108 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Dashboard"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_project_ids_api_v1_projects__project_id__ids_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdsEntry"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_project_ids_api_v1_projects__project_id__ids_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_add_project_ids_api_v1_projects__project_id__ids_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdsEntry"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_default_ids_api_v1_projects__project_id__ids__entry_id__default_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: number;
+                entry_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DefaultIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdsEntry"][];
                 };
             };
             /** @description Validation Error */

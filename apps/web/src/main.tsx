@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
+import { createRoot, type Root } from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router";
 import "./index.css";
 import { Explorer } from "./pages/Explorer";
@@ -20,7 +20,10 @@ function NotFound() {
 
 const client = new QueryClient({ defaultOptions: { queries: { retry: 1, staleTime: 10_000 } } });
 
-createRoot(document.getElementById("root")!).render(
+// HMR re-runs this module; reuse the root instead of calling createRoot twice on the same node (dev-only warning).
+const w = window as unknown as { __axiomRoot?: Root };
+w.__axiomRoot ??= createRoot(document.getElementById("root")!);
+w.__axiomRoot.render(
   <StrictMode>
     <QueryClientProvider client={client}>
       <LangProvider>

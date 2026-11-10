@@ -5,7 +5,7 @@ import { useChanges, useEvents } from "../api/queries";
 import { btn, fmt, Panel, Q, Severity, tokenColor } from "../ui";
 import { useFocus, Viewport, type Viewer } from "../viewer/Viewport";
 import { Waterfall } from "./Waterfall";
-import { tokenLabel, useT } from "../i18n";
+import { backendLang, tokenLabel, useT } from "../i18n";
 
 // recurring first: a finding that was fixed and came back is the regression reviewers miss
 const EVENT_ORDER = ["recurring", "new", "changed", "uncertain", "resolved"] as const;
@@ -300,7 +300,7 @@ function PropertyChanges({ changes, onPick }: { changes: Change[]; onPick: (g: s
 export function ReportExport({ auditId, comparisonId }: { auditId: number | null; comparisonId?: number }) {
   const { t, lang } = useT();
   if (auditId == null) return null;
-  const query = (fmt: string) => `format=${fmt}&lang=${lang}${comparisonId == null ? "" : `&comparison_id=${comparisonId}`}`;
+  const query = (fmt: string) => `format=${fmt}&lang=${backendLang(lang)}${comparisonId == null ? "" : `&comparison_id=${comparisonId}`}`;
   // plain form POSTs: the browser handles download / new tab, no blob plumbing
   const form = (fmt: string, label: string) => (
     <form method="post" action={`/api/v1/audits/${auditId}/reports?${query(fmt)}`} target={fmt === "html" ? "_blank" : undefined}>

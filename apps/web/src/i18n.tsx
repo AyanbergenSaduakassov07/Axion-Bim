@@ -1,8 +1,10 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { kk } from "./i18n-kk";
 import { ru } from "./i18n-ru";
 
-/** UI strings are keyed by their English text; a missing Russian entry falls back to English. */
-export type Lang = "en" | "ru";
+/** UI strings are keyed by their English text; a missing Kazakh entry falls back to Russian, a missing Russian one to English. */
+export type Lang = "en" | "ru" | "kk";
+export const LANGS: Lang[] = ["en", "ru", "kk"];
 type Vars = Record<string, string | number>;
 export type T = (text: string, vars?: Vars) => string;
 
@@ -11,19 +13,23 @@ const KEY = "axiom.lang";
 function initialLang(): Lang {
   try {
     const saved = localStorage.getItem(KEY);
-    if (saved === "en" || saved === "ru") return saved;
+    if (LANGS.includes(saved as Lang)) return saved as Lang;
   } catch {
     // storage blocked (private mode): fall through to the browser language
   }
-  return navigator.language.toLowerCase().startsWith("ru") ? "ru" : "en";
+  const nav = navigator.language.toLowerCase();
+  return nav.startsWith("kk") ? "kk" : nav.startsWith("ru") ? "ru" : "en";
 }
 
 let active: Lang = "en";
 /** Number and date formatting outside React (fmt helpers) follows the language picked in the UI. */
-export const locale = () => (active === "ru" ? "ru-RU" : "en-US");
+export const locale = () => ({ en: "en-US", ru: "ru-RU", kk: "kk-KZ" })[active];
+
+// shortcut: backend texts (rule messages, reports) exist in en/ru only; Kazakh UI asks for Russian ones. Add kk to axiom.i18n when a client needs it.
+export const backendLang = (lang: Lang) => (lang === "kk" ? "ru" : lang);
 
 export const translate = (lang: Lang, text: string, vars?: Vars) =>
-  (lang === "ru" ? (ru[text] ?? text) : text).replace(/\{(\w+)\}/g, (m: string, k: string) => (vars && k in vars ? String(vars[k]) : m));
+  (lang === "kk" ? (kk[text] ?? ru[text] ?? text) : lang === "ru" ? (ru[text] ?? text) : text).replace(/\{(\w+)\}/g, (m: string, k: string) => (vars && k in vars ? String(vars[k]) : m));
 
 const Ctx = createContext<{ lang: Lang; setLang: (l: Lang) => void; t: T }>({
   lang: "en",

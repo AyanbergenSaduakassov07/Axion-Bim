@@ -97,7 +97,6 @@ export const ru: Record<string, string> = {
   // upload
   "Drop an .ifc file here, or click to choose": "Перетащите сюда файл .ifc или нажмите, чтобы выбрать",
   "IFC file": "IFC-файл",
-  "IDS requirements file (optional)": "Файл требований IDS (необязательно)",
   "Choose .ids file": "Выбрать файл .ids",
   "IDS file": "Файл IDS",
   "Compute geometry volumes (slower)": "Рассчитать объёмы по геометрии (медленнее)",

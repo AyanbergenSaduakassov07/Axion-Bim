@@ -1,4 +1,4 @@
-import { useT } from "../i18n";
+import { backendLang, useT } from "../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, postForm, postJson, putJson, type IdsEntry, type Dashboard, type Issue, type IssueUpdate, type CopilotAnswer, type CopilotStatus, type Audit, type Change, type Comparison, type FindingEvent, type Quantities, type AuditSummary, type Element, type SpatialTree, type Finding, type Job, type Model, type Project, type Revision, type RevisionSummary } from "./client";
 
@@ -36,7 +36,7 @@ export const useFindings = (auditId: number | null | undefined) => {
   const { lang } = useT(); // rule texts are translated by the backend
   return useQuery({
     queryKey: ["findings", auditId, lang],
-    queryFn: () => api<Finding[]>(`/audits/${auditId}/findings?lang=${lang}`),
+    queryFn: () => api<Finding[]>(`/audits/${auditId}/findings?lang=${backendLang(lang)}`),
     enabled: auditId != null,
     staleTime: Infinity,
   });

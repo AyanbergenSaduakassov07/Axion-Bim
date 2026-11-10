@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
+import { kk } from "./i18n-kk.ts";
 import { ru } from "./i18n-ru.ts";
 
 const SRC = new URL(".", import.meta.url).pathname;
@@ -34,16 +35,22 @@ function tsxFiles(dir: string): string[] {
   );
 }
 
-test("every UI string has a Russian translation", () => {
+function uiKeys(): string[] {
   const literal = /\bt\(\s*"((?:[^"\\]|\\.)*)"/g;
   const keys = new Set(INDIRECT);
   for (const f of tsxFiles(SRC)) for (const m of readFileSync(f, "utf8").matchAll(literal)) keys.add(m[1]);
-  const missing = [...keys].filter((k) => !(k in ru));
-  assert.deepEqual(missing, [], `add these to i18n-ru.ts:\n${missing.join("\n")}`);
-});
+  return [...keys];
+}
 
-test("translations keep every {placeholder}", () => {
-  const vars = (s: string) => (s.match(/\{\w+\}/g) ?? []).sort().join();
-  const broken = Object.entries(ru).filter(([en, r]) => vars(en) !== vars(r)).map(([en]) => en);
-  assert.deepEqual(broken, []);
-});
+for (const [name, dict] of [["ru", ru], ["kk", kk]] as const) {
+  test(`every UI string has a ${name} translation`, () => {
+    const missing = uiKeys().filter((k) => !(k in dict));
+    assert.deepEqual(missing, [], `add these to i18n-${name}.ts:\n${missing.join("\n")}`);
+  });
+
+  test(`${name} translations keep every {placeholder}`, () => {
+    const vars = (s: string) => (s.match(/\{\w+\}/g) ?? []).sort().join();
+    const broken = Object.entries(dict).filter(([en, r]) => vars(en) !== vars(r)).map(([en]) => en);
+    assert.deepEqual(broken, []);
+  });
+}

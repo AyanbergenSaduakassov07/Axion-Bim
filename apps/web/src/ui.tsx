@@ -14,7 +14,7 @@ import {
 import type { ReactNode } from "react";
 import { Link, NavLink, Outlet } from "react-router";
 import { useRevision } from "./api/queries";
-import { locale, tokenLabel, useT, type Lang } from "./i18n";
+import { LANGS, locale, tokenLabel, useT } from "./i18n";
 
 export const SEVERITIES = ["critical", "high", "medium", "low", "info"] as const;
 
@@ -159,7 +159,7 @@ export function Shell() {
           </Link>
         </nav>
         <div role="group" aria-label={t("Language")} className="ml-auto flex text-xs">
-          {(["en", "ru"] as Lang[]).map((l) => (
+          {LANGS.map((l) => (
             <button
               key={l}
               aria-pressed={lang === l}

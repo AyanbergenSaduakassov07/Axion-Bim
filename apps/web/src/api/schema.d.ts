@@ -393,6 +393,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{project_id}/ids/{entry_id}/diff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Diff Project Ids
+         * @description Specifications added, removed or changed going from library entry `against` to `entry_id`.
+         */
+        get: operations["diff_project_ids_api_v1_projects__project_id__ids__entry_id__diff_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects/{project_id}/models": {
         parameters: {
             query?: never;
@@ -905,6 +925,21 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** IdsDiff */
+        IdsDiff: {
+            /** Added */
+            added: components["schemas"]["IdsSpecRef"][];
+            /** Base */
+            base: string;
+            /** Changed */
+            changed: components["schemas"]["IdsSpecChange"][];
+            /** Head */
+            head: string;
+            /** Removed */
+            removed: components["schemas"]["IdsSpecRef"][];
+            /** Unchanged */
+            unchanged: number;
+        };
         /** IdsEntry */
         IdsEntry: {
             /**
@@ -925,6 +960,22 @@ export interface components {
         IdsOut: {
             /** Ids Hash */
             ids_hash: string;
+        };
+        /** IdsSpecChange */
+        IdsSpecChange: {
+            /** Key */
+            key: string;
+            /** Name */
+            name: string;
+            /** Parts */
+            parts: string[];
+        };
+        /** IdsSpecRef */
+        IdsSpecRef: {
+            /** Key */
+            key: string;
+            /** Name */
+            name: string;
         };
         /** IssueOut */
         IssueOut: {
@@ -2138,6 +2189,40 @@ export interface operations {
             };
         };
     };
+    diff_project_ids_api_v1_projects__project_id__ids__entry_id__diff_get: {
+        parameters: {
+            query: {
+                against: number;
+            };
+            header?: never;
+            path: {
+                project_id: number;
+                entry_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdsDiff"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_models_api_v1_projects__project_id__models_get: {
         parameters: {
             query?: never;
@@ -2400,6 +2485,7 @@ export interface operations {
             query?: {
                 by?: string;
                 against?: number | null;
+                format?: "json" | "csv";
             };
             header?: never;
             path: {
@@ -2415,9 +2501,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

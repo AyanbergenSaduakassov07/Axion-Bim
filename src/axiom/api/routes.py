@@ -25,6 +25,7 @@ from axiom.api.schemas import (
     ElementPage,
     GateOut,
     GatePolicyIO,
+    IdsDiff,
     IdsEntry,
     IdsOut,
     IssueOut,
@@ -42,6 +43,7 @@ from axiom.extract.snapshot import Element
 from axiom.findings import Finding
 from axiom.i18n import Lang
 from axiom.quantities import GROUPS
+from axiom.quantities.export import to_csv
 from axiom.report import FORMATS
 from axiom.revision import FindingEvent
 from axiom.score.gate import GatePolicy
@@ -174,6 +176,12 @@ def set_default_ids(db: Db, project_id: int, entry_id: int, body: DefaultIn) -> 
     return ids_library.set_default(db, project_id, entry_id, body.is_default)
 
 
+@router.get("/projects/{project_id}/ids/{entry_id}/diff", response_model=IdsDiff)
+def diff_project_ids(request: Request, db: Db, project_id: int, entry_id: int, against: int) -> dict:
+    """Specifications added, removed or changed going from library entry `against` to `entry_id`."""
+    return ids_library.diff(db, request.app.state.settings, project_id, entry_id, against)
+
+
 @router.patch("/projects/{project_id}/ids/{entry_id}", response_model=IdsEntry)
 def rename_project_ids(db: Db, project_id: int, entry_id: int, body: NameIn) -> dict:
     return ids_library.rename(db, project_id, entry_id, body.name)
@@ -245,10 +253,16 @@ def list_audits(db: Db, revision_id: int) -> list[dict]:
     return browse.list_audits(db, revision_id)
 
 
-@router.get("/revisions/{revision_id}/quantities")
+@router.get("/revisions/{revision_id}/quantities", response_model=None)
 def get_quantities(
-    request: Request, db: Db, revision_id: int, by: str = "class", against: int | None = None
-) -> dict[str, Any]:
+    request: Request,
+    db: Db,
+    revision_id: int,
+    *,
+    by: str = "class",
+    against: int | None = None,
+    fmt: Annotated[Literal["json", "csv"], Query(alias="format")] = "json",
+) -> dict[str, Any] | Response:
     """Qto totals (method=qto), plus geometry volumes cached by a geometry audit (method=geometry)."""
     if by not in GROUPS:
         raise ValueError(f"unknown grouping {by!r}; use one of {', '.join(GROUPS)}")
@@ -256,6 +270,13 @@ def get_quantities(
     files = request.app.state.settings.files_dir
     rows = quantities.report(db, revision_id, by, files_dir=files)
     deltas = quantities.delta(db, against, revision_id, by, files_dir=files) if against is not None else ()
+    if fmt == "csv":
+        name = f"axiom-quantities-r{revision_id}-by-{by}.csv"
+        return Response(
+            to_csv(rows, deltas),
+            media_type="text/csv; charset=utf-8",
+            headers={"Content-Disposition": f'attachment; filename="{name}"'},
+        )
     return {"rows": [asdict(r) for r in rows], "delta": [asdict(d) for d in deltas]}
 
 

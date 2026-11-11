@@ -330,4 +330,11 @@ export const kk: Record<string, string> = {
   "Require a client requirements file (IDS)": "Тапсырыс берушінің талаптар файлын (IDS) талап ету",
   "Save": "Сақтау",
   "Could not save the gate policy.": "Қабылдау ережелерін сақтау мүмкін болмады.",
+  "Export CSV (Excel)": "CSV экспорты (Excel)",
+  "Compare requirements: from": "Талаптарды салыстыру: бастапқы",
+  "to": "жаңа",
+  "Added specifications": "Қосылған спецификациялар",
+  "Removed specifications": "Жойылған спецификациялар",
+  "Changed specifications": "Өзгерген спецификациялар",
+  "{n} specifications unchanged": "Өзгеріссіз: {n}",
 };

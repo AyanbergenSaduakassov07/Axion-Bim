@@ -260,3 +260,19 @@ Closes the core of audit gap G1: an audit now yields a delivery decision, not on
   `score_not_evaluated`, `open_findings`, `waived`); UI and report phrase them. The report opens with the decision.
 - Not built: per-stage policies, a signed/frozen certificate, a project-level gate over several models,
   the decision on the revisions timeline and in the CLI.
+
+## D-37 Quantities CSV, IDS version diff, and why there is no duplicate-element rule yet (2026-11-11)
+
+- **Quantities CSV (G6).** `GET /revisions/{id}/quantities?format=csv` (same `by` and `against`): one line per
+  group / quantity / method with unit, total, element count, missing count, previous total and change. UTF-8 with
+  a BOM so Excel reads Cyrillic names. Formatting only (`quantities/export.py`); numbers come from `aggregate`.
+  A group that only the previous revision had keeps a line with an empty total. No .xlsx: CSV opens in Excel
+  and needs no dependency.
+- **IDS version diff (F3).** `GET /projects/{id}/ids/{entry}/diff?against={older}` lists specifications added,
+  removed, changed (with the part that differs: applicability, requirements, name, ...) and the unchanged count.
+  Specifications match by `identifier`, else by name, so a renamed identifier reads as removed + added.
+  It does not say which facet inside a part changed.
+- **Duplicate-element rule (G7): tried, not shipped.** A rule on class + placement origin + type + quantities
+  flagged valid elements in the clean fixture: two walls or beams that start at the same corner share an
+  origin and differ only in rotation. A sound rule needs the world bounding box from the geometry pass
+  (`quantities/geometry.py`), not the snapshot. A noisy rule would cost more trust than it adds.

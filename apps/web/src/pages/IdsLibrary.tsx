@@ -1,8 +1,9 @@
 import { FileCheck2, Pencil, Star, Trash2 } from "lucide-react";
 import type { IdsEntry } from "../api/client";
-import { useIdsLibrary, useIdsMutations } from "../api/queries";
+import { useState } from "react";
+import { useIdsDiff, useIdsLibrary, useIdsMutations } from "../api/queries";
 import { useT } from "../i18n";
-import { btn, date, ErrorState, Panel, Q } from "../ui";
+import { btn, date, ErrorState, input, Panel, Q } from "../ui";
 
 /** Project IDS library (D-34): the client's requirement files, kept once and offered on every upload. */
 export function IdsLibrary({ projectId }: { projectId: number }) {
@@ -74,6 +75,60 @@ export function IdsLibrary({ projectId }: { projectId: number }) {
           </ul>
         )}
       </Q>
+      {(q.data?.length ?? 0) > 1 && <IdsCompare projectId={projectId} entries={q.data!} />}
     </Panel>
+  );
+}
+
+/** EIR v1 -> v2: which specifications were added, removed or changed. Computed by the backend. */
+function IdsCompare({ projectId, entries }: { projectId: number; entries: IdsEntry[] }) {
+  const { t } = useT();
+  const [base, setBase] = useState<number>();
+  const [head, setHead] = useState<number>();
+  const d = useIdsDiff(projectId, head, base).data;
+  const pick = (label: string, value: number | undefined, set: (v: number | undefined) => void) => (
+    <label className="flex items-center gap-2">
+      {label}
+      <select className={`${input} text-fg`} value={value ?? ""} onChange={(e) => set(e.target.value ? Number(e.target.value) : undefined)}>
+        <option value="">—</option>
+        {entries.map((e) => (
+          <option key={e.id} value={e.id}>
+            {e.name}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+  const list = (title: string, items: { key: string; name: string; parts?: string[] }[]) =>
+    items.length > 0 && (
+      <div>
+        <div className="text-xs text-muted">{title}</div>
+        <ul className="list-disc pl-5">
+          {items.map((s) => (
+            <li key={s.key}>
+              {s.name}{" "}
+              <span className="text-xs text-muted">
+                {s.key !== s.name && s.key} {s.parts?.join(", ")}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  return (
+    <div className="space-y-2 border-t border-line px-3 py-2 text-sm" data-testid="ids-compare">
+      <div className="flex flex-wrap items-center gap-4 text-xs text-muted">
+        {pick(t("Compare requirements: from"), base, setBase)}
+        {pick(t("to"), head, setHead)}
+      </div>
+      {d && (
+        <>
+          {list(t("Added specifications"), d.added)}
+          {list(t("Removed specifications"), d.removed)}
+          {list(t("Changed specifications"), d.changed)}
+          <p className="text-xs text-muted">{t("{n} specifications unchanged", { n: d.unchanged })}</p>
+        </>
+      )}
+    </div>
   );
 }

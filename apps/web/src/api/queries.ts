@@ -1,6 +1,6 @@
 import { backendLang, useT } from "../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, postForm, postJson, putJson, type IdsEntry, type Gate, type GatePolicy, type Dashboard, type Issue, type IssueUpdate, type CopilotAnswer, type CopilotStatus, type Audit, type Change, type Comparison, type FindingEvent, type Quantities, type AuditSummary, type Element, type SpatialTree, type Finding, type Job, type Model, type Project, type Revision, type RevisionSummary } from "./client";
+import { api, postForm, postJson, putJson, type IdsEntry, type IdsDiff, type Gate, type GatePolicy, type Dashboard, type Issue, type IssueUpdate, type CopilotAnswer, type CopilotStatus, type Audit, type Change, type Comparison, type FindingEvent, type Quantities, type AuditSummary, type Element, type SpatialTree, type Finding, type Job, type Model, type Project, type Revision, type RevisionSummary } from "./client";
 
 export const useProjects = () => useQuery({ queryKey: ["projects"], queryFn: () => api<Project[]>("/projects") });
 
@@ -161,3 +161,11 @@ export function useSetGatePolicy(projectId: number) {
     onSuccess: () => Promise.all([qc.invalidateQueries({ queryKey: ["gate-policy", projectId] }), qc.invalidateQueries({ queryKey: ["gate"] })]),
   });
 }
+
+export const useIdsDiff = (projectId: number, head: number | undefined, base: number | undefined) =>
+  useQuery({
+    queryKey: ["ids-diff", projectId, head, base],
+    queryFn: () => api<IdsDiff>(`/projects/${projectId}/ids/${head}/diff?against=${base}`),
+    enabled: head != null && base != null && head !== base,
+    staleTime: Infinity, // library files are content-addressed
+  });

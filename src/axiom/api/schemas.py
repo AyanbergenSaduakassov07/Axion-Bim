@@ -278,5 +278,23 @@ class IdsEntry(BaseModel):
     created_at: datetime
 
 
+class IdsSpecRef(BaseModel):
+    key: str  # specification identifier, else its name
+    name: str
+
+
+class IdsSpecChange(IdsSpecRef):
+    parts: list[str]  # applicability | requirements | name | ifcVersion | description | instructions
+
+
+class IdsDiff(BaseModel):
+    base: str
+    head: str
+    added: list[IdsSpecRef]
+    removed: list[IdsSpecRef]
+    changed: list[IdsSpecChange]
+    unchanged: int
+
+
 class DefaultIn(BaseModel):
     is_default: bool

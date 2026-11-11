@@ -53,3 +53,31 @@ def test_rename_and_delete_entry(client):  # noqa: F811
     assert client.get(f"{V1}/projects/{pid}/ids").json() == []
     assert client.delete(f"{V1}/projects/{pid}/ids/{eid}").status_code == 404
     assert _add(client, pid).status_code == 201  # the stored file survives, so it can be added again
+
+
+def test_diff_between_two_versions_of_the_requirements(client):  # noqa: F811
+    """EIR v1 -> v2: which specifications were added, removed or changed (F3)."""
+    pid = _project(client)
+    v1 = _add(client, pid).json()["id"]
+    text = (
+        IDS.read_text()
+        .replace('identifier="STR-WALL"', 'identifier="STR-WALL-2"')  # a renamed id reads as removed + added
+        .replace("Pset_BeamCommon", "Pset_BeamCustom")  # a requirement of STR-BEAM changed
+    )
+    r = client.post(
+        f"{V1}/projects/{pid}/ids", files={"file": ("v2.ids", text.encode())}, data={"name": "v2"}
+    )
+    v2 = r.json()["id"]
+
+    d = client.get(f"{V1}/projects/{pid}/ids/{v2}/diff", params={"against": v1}).json()
+    assert [s["key"] for s in d["added"]] == ["STR-WALL-2"] and [s["key"] for s in d["removed"]] == [
+        "STR-WALL"
+    ]
+    assert d["changed"] == [
+        {"key": "STR-BEAM", "name": "Beams have material and LoadBearing", "parts": ["requirements"]}
+    ]
+    assert d["unchanged"] == 1
+
+    same = client.get(f"{V1}/projects/{pid}/ids/{v1}/diff", params={"against": v1}).json()
+    assert (same["added"], same["removed"], same["changed"], same["unchanged"]) == ([], [], [], 3)
+    assert client.get(f"{V1}/projects/{pid}/ids/{v2}/diff", params={"against": 999}).status_code == 404

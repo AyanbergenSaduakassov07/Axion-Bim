@@ -1,7 +1,7 @@
 import { useParams, useSearchParams } from "react-router";
 import type { Quantities as Q_, QuantityDelta } from "../api/client";
 import { useQuantities, useRevision, useRevisions } from "../api/queries";
-import { fmt, input, Panel, Q, RevisionNav } from "../ui";
+import { btn, fmt, input, Panel, Q, RevisionNav } from "../ui";
 import { useT } from "../i18n";
 
 const GROUPS = ["class", "storey", "material", "classification"] as const;
@@ -31,7 +31,18 @@ export function Quantities() {
   );
   return (
     <div className="mx-auto max-w-7xl space-y-4">
-      <RevisionNav revisionId={revisionId} title={t("Quantities")} actions={groupBy} />
+      <RevisionNav
+        revisionId={revisionId}
+        title={t("Quantities")}
+        actions={
+          <div className="flex items-center gap-3">
+            {groupBy}
+            <a className={btn} href={`/api/v1/revisions/${revisionId}/quantities?by=${by}&format=csv${prev ? `&against=${prev.id}` : ""}`} download>
+              {t("Export CSV (Excel)")}
+            </a>
+          </div>
+        }
+      />
       <Panel>
         <Q q={q} empty={(d) => d.rows.length === 0 && t("No quantity sets (Qto_*) in this revision.")}>
           {(d: Q_) => <QuantityTable data={d} prevSeq={prev?.seq} />}

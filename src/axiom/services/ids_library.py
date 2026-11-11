@@ -7,6 +7,8 @@ from typing import BinaryIO
 from sqlalchemy import Engine
 
 from axiom.config import Settings
+from axiom.ids import load_ids
+from axiom.ids.diff import diff_ids
 from axiom.repo import browse as browse_repo
 from axiom.repo import ids_library as repo
 from axiom.services.uploads import accept_ids
@@ -66,3 +68,14 @@ def remove(engine: Engine, project_id: int, entry_id: int) -> None:
     with engine.begin() as conn:
         _entry(conn, project_id, entry_id)
         repo.delete_entry(conn, entry_id)
+
+
+def diff(engine: Engine, settings: Settings, project_id: int, entry_id: int, against_id: int) -> dict:
+    """Specification changes from entry `against_id` (older) to `entry_id` (newer)."""
+    with engine.connect() as conn:
+        _project(conn, project_id)
+        rows = [repo.find(conn, project_id, entry_id=i) for i in (against_id, entry_id)]
+    if None in rows:
+        raise LookupError(f"IDS entry not found in project {project_id}")
+    old, new = (load_ids(settings.files_dir / f"{r.ids_hash}.ids") for r in rows)
+    return {"base": rows[0].name, "head": rows[1].name, **diff_ids(old, new)}

@@ -22,6 +22,7 @@ export type Dashboard = S["Dashboard"];
 export type IssueUpdate = S["IssueUpdate"];
 export type IdsEntry = S["IdsEntry"];
 export type Gate = S["GateOut"];
+export type IdsDiff = S["IdsDiff"];
 export type GatePolicy = S["GatePolicyIO"];
 
 export type ComparisonSummary = {

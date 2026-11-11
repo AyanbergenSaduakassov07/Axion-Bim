@@ -357,4 +357,11 @@ export const ru: Record<string, string> = {
   "Require a client requirements file (IDS)": "Требовать файл требований заказчика (IDS)",
   "Save": "Сохранить",
   "Could not save the gate policy.": "Не удалось сохранить правила приёмки.",
+  "Export CSV (Excel)": "Экспорт CSV (Excel)",
+  "Compare requirements: from": "Сравнить требования: от",
+  "to": "к",
+  "Added specifications": "Добавленные спецификации",
+  "Removed specifications": "Удалённые спецификации",
+  "Changed specifications": "Изменённые спецификации",
+  "{n} specifications unchanged": "Без изменений: {n}",
 };

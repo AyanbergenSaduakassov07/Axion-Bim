@@ -1101,6 +1101,53 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "IdsDiff": {
+        "properties": {
+          "added": {
+            "items": {
+              "$ref": "#/components/schemas/IdsSpecRef"
+            },
+            "title": "Added",
+            "type": "array"
+          },
+          "base": {
+            "title": "Base",
+            "type": "string"
+          },
+          "changed": {
+            "items": {
+              "$ref": "#/components/schemas/IdsSpecChange"
+            },
+            "title": "Changed",
+            "type": "array"
+          },
+          "head": {
+            "title": "Head",
+            "type": "string"
+          },
+          "removed": {
+            "items": {
+              "$ref": "#/components/schemas/IdsSpecRef"
+            },
+            "title": "Removed",
+            "type": "array"
+          },
+          "unchanged": {
+            "title": "Unchanged",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "base",
+          "head",
+          "added",
+          "removed",
+          "changed",
+          "unchanged"
+        ],
+        "title": "IdsDiff",
+        "type": "object"
+      },
       "IdsEntry": {
         "properties": {
           "created_at": {
@@ -1146,6 +1193,50 @@
           "ids_hash"
         ],
         "title": "IdsOut",
+        "type": "object"
+      },
+      "IdsSpecChange": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "parts": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Parts",
+            "type": "array"
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "parts"
+        ],
+        "title": "IdsSpecChange",
+        "type": "object"
+      },
+      "IdsSpecRef": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "name"
+        ],
+        "title": "IdsSpecRef",
         "type": "object"
       },
       "IssueOut": {
@@ -3376,6 +3467,64 @@
         "summary": "Set Default Ids"
       }
     },
+    "/api/v1/projects/{project_id}/ids/{entry_id}/diff": {
+      "get": {
+        "description": "Specifications added, removed or changed going from library entry `against` to `entry_id`.",
+        "operationId": "diff_project_ids_api_v1_projects__project_id__ids__entry_id__diff_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "entry_id",
+            "required": true,
+            "schema": {
+              "title": "Entry Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "against",
+            "required": true,
+            "schema": {
+              "title": "Against",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdsDiff"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Diff Project Ids"
+      }
+    },
     "/api/v1/projects/{project_id}/models": {
       "get": {
         "operationId": "list_models_api_v1_projects__project_id__models_get",
@@ -3820,17 +3969,27 @@
               ],
               "title": "Against"
             }
+          },
+          {
+            "in": "query",
+            "name": "format",
+            "required": false,
+            "schema": {
+              "default": "json",
+              "enum": [
+                "json",
+                "csv"
+              ],
+              "title": "Format",
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {
-                  "additionalProperties": true,
-                  "title": "Response Get Quantities Api V1 Revisions  Revision Id  Quantities Get",
-                  "type": "object"
-                }
+                "schema": {}
               }
             },
             "description": "Successful Response"

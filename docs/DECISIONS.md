@@ -325,7 +325,7 @@ Closes the core of audit gap G1: an audit now yields a delivery decision, not on
   accountability needs users.
 - `GET /models/{id}/issues/{identity_key}/history`, oldest first. The issue editor loads it only when
   "History" is opened.
-- BCF export does not include the history yet.
+- BCF export includes the history since D-44.
 
 ## D-42 — Frozen acceptance certificate (2026-11-11)
 
@@ -347,3 +347,10 @@ Closes the core of audit gap G1: an audit now yields a delivery decision, not on
   empty. It now lists all five statuses (so a designer's reply can use any of them) and every type,
   priority, label and assignee the exported topics actually use.
 - Still not opened in BIMcollab or Solibri (R1 #4).
+
+## D-44 — Issue history in reports and BCF (2026-11-11)
+
+- JSON reports carry `history` per finding (D-41 events, oldest first; one query per model).
+- In BCF each event becomes a topic comment dated when it happened, authored by the typed name (or
+  "Axiom BIM" when none), e.g. "State: Open → Disputed"; the current note follows. Comment GUIDs derive from
+  topic + event index, so a re-export updates rather than duplicates them.

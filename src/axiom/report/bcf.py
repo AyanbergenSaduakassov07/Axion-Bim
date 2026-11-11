@@ -31,6 +31,7 @@ BCF_STATUS = {
     "accepted": "Accepted",
     "closed": "Closed",
 }
+FIELD_LABEL = {"state": "State", "assignee": "Assignee", "due_date": "Due date", "note": "Note"}
 OVERVIEW_OFFSET_M = np.array((30.0, 30.0, 30.0))
 CLOSE_UP_OFFSET_M = np.array((6.0, -8.0, 5.0))  # ~11 m away, from the south-east, above
 
@@ -64,7 +65,9 @@ def _extensions(topics: list[mdl.Topic]) -> mdl.Extensions:
         topic_types=mdl.ExtensionsTopicTypes(topic_type=used(t.topic_type for t in topics)),
         topic_statuses=mdl.ExtensionsTopicStatuses(topic_status=list(BCF_STATUS.values())),
         priorities=mdl.ExtensionsPriorities(priority=used(t.priority for t in topics)),
-        topic_labels=mdl.ExtensionsTopicLabels(topic_label=used(lb for t in topics for lb in t.labels.label)),
+        topic_labels=mdl.ExtensionsTopicLabels(
+            topic_label=used(lb for t in topics if t.labels for lb in t.labels.label)
+        ),
         users=mdl.ExtensionsUsers(user=used(t.assigned_to for t in topics)),
     )
 
@@ -82,7 +85,7 @@ def _topic(f: dict, now: XmlDateTime, audit_id: int) -> TopicHandler:
         topic_status=BCF_STATUS[issue.get("state") or "open"],
         assigned_to=issue.get("assignee"),
         due_date=XmlDateTime.from_string(f"{due}T00:00:00Z") if due else None,
-        comments=_note(issue.get("note"), guid, now),
+        comments=_comments(f.get("history") or [], issue.get("note"), guid, now),
         priority=f["severity"],
         labels=mdl.TopicLabels(label=[f["rule_id"], f["dimension"] or f["category"] or "other"]),
         creation_date=now,
@@ -100,11 +103,38 @@ def _topic(f: dict, now: XmlDateTime, audit_id: int) -> TopicHandler:
     return handler
 
 
-def _note(note: str | None, topic: str, now: XmlDateTime) -> mdl.TopicComments | None:
-    if not note:
-        return None
-    guid = str(uuid.uuid5(NAMESPACE, f"{topic}:note"))  # stable, so a re-export updates the comment
-    return mdl.TopicComments(comment=[mdl.Comment(guid=guid, date=now, author=AUTHOR, comment=note)])
+def _comments(
+    history: list[dict], note: str | None, topic: str, now: XmlDateTime
+) -> mdl.TopicComments | None:
+    """Issue history (D-41) as dated comments by their author, then the current note. GUIDs are stable."""
+    out = [
+        mdl.Comment(
+            guid=str(uuid.uuid5(NAMESPACE, f"{topic}:event:{i}")),
+            date=XmlDateTime.from_datetime(_aware(e["at"])),
+            author=e["author"] or AUTHOR,
+            comment=f"{FIELD_LABEL[e['field']]}: {_shown(e['field'], e['old'])} → "
+            f"{_shown(e['field'], e['new'])}",
+        )
+        for i, e in enumerate(history)
+    ]
+    if note:
+        out.append(
+            mdl.Comment(
+                guid=str(uuid.uuid5(NAMESPACE, f"{topic}:note")), date=now, author=AUTHOR, comment=note
+            )
+        )
+    return mdl.TopicComments(comment=out) if out else None
+
+
+def _shown(field: str, value: str | None) -> str:
+    if not value:
+        return "—"
+    return BCF_STATUS.get(value, value) if field == "state" else value
+
+
+def _aware(at: datetime.datetime | str) -> datetime.datetime:
+    at = datetime.datetime.fromisoformat(at) if isinstance(at, str) else at
+    return at if at.tzinfo else at.replace(tzinfo=datetime.UTC)  # SQLite returns naive UTC
 
 
 def _camera(origin: list[float] | None) -> mdl.PerspectiveCamera:

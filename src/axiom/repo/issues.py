@@ -42,6 +42,18 @@ def insert_events(conn: Connection, rows: list[dict]) -> None:
         conn.execute(insert(issue_events), rows)
 
 
+def history_by_key(conn: Connection, model_id: int) -> dict[str, list[dict]]:
+    """All change events of a model, oldest first, grouped per finding (for reports)."""
+    e = issue_events.c
+    q = select(e.identity_key, e.field, e.old, e.new, e.author, e.at).where(e.model_id == model_id)
+    out: dict[str, list[dict]] = {}
+    for r in conn.execute(q.order_by(e.id)):
+        out.setdefault(r.identity_key, []).append(
+            {k: v for k, v in r._asdict().items() if k != "identity_key"}
+        )
+    return out
+
+
 def history(conn: Connection, model_id: int, identity_key: str) -> list[Row]:
     e = issue_events.c
     q = select(e.field, e.old, e.new, e.author, e.at).where(

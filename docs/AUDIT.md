@@ -104,6 +104,7 @@ Each phase has an exit criterion that can be observed, not a feature count.
 | G2 (part) | Issue change history (D-41): every field an update changes is recorded with old value, new value, time and the author name typed by the user; shown under "History" in the issue editor. Real users/login still open |
 | G1 (part) | Frozen acceptance certificate (D-42): the decision with file hash, ruleset version, IDS hash, policy and score, stored once and hash-checked on read, so a later policy or waiver change cannot rewrite it. Not a cryptographic signature until users exist |
 | G4 (part) | BCF `extensions.xml` declares the five statuses and every type, priority, label and assignee the topics use (D-43) |
+| G2/G4 (part) | Issue history travels with the report: JSON `history` per finding and dated BCF comments by author (D-44) |
 | Bug | An IDS uploaded with a revision did not appear in the library until the cache expired |
 
 ### R1 — usable by one team on one real project

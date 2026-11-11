@@ -54,8 +54,14 @@ def _findings(conn: Connection, audit_run_id: int, revision_id: int) -> list[dic
     triage = {
         i.identity_key: {k: getattr(i, k) for k in EDITABLE} for i in issue_repo.list_issues(conn, model_id)
     }
+    history = issue_repo.history_by_key(conn, model_id)
     return [
-        {**f.model_dump(), "origin_m": origins.get(f.step_id), "issue": triage.get(f.identity_key)}
+        {
+            **f.model_dump(),
+            "origin_m": origins.get(f.step_id),
+            "issue": triage.get(f.identity_key),
+            "history": history.get(f.identity_key, []),
+        }
         for f in audit_repo.load_findings(conn, audit_run_id)
     ]
 

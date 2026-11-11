@@ -92,6 +92,9 @@ def test_report_findings_carry_issue_triage(client, ifc_path):  # noqa: F811
     header, *rows = csv_text.splitlines()
     assert header.endswith("state,assignee,due_date,note")
     assert sum(",open,Dana,," in r for r in rows) == 1
+    findings = c.post(f"{V1}/audits/{aid}/reports", params={"format": "json"}).json()["findings"]
+    [hist] = [f["history"] for f in findings if f["identity_key"] == key]
+    assert [(h["field"], h["new"]) for h in hist] == [("assignee", "Dana")]
 
 
 def test_extensions_declare_every_value_the_topics_use(tmp_path):
@@ -106,3 +109,25 @@ def test_extensions_declare_every_value_the_topics_use(tmp_path):
         assert t.priority in ext.priorities.priority
         assert set(t.labels.label) <= set(ext.topic_labels.topic_label)
     assert ext.users.user == ["Dana"]
+
+
+def test_issue_history_becomes_dated_comments_by_their_author(tmp_path):
+    history = [
+        {
+            "field": "state",
+            "old": "open",
+            "new": "disputed",
+            "author": "Dana",
+            "at": "2026-11-10T09:00:00+00:00",
+        },
+        {"field": "assignee", "old": None, "new": "Arman", "author": None, "at": "2026-11-10T10:00:00+00:00"},
+    ]
+    f = {**REPORT["findings"][0], "issue": {"state": "disputed", "note": "by design"}, "history": history}
+    bcf = _load(tmp_path, render({**REPORT, "findings": [f]}, "bcf"))
+    comments = bcf.topics[topic_guid("k-fail")].comments
+    assert [(c.author, c.comment) for c in comments] == [
+        ("Dana", "State: Open → Disputed"),
+        ("Axiom BIM", "Assignee: — → Arman"),
+        ("Axiom BIM", "by design"),
+    ]
+    assert str(comments[0].date).startswith("2026-11-10T09:00")

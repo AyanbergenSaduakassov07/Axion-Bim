@@ -32,7 +32,15 @@ test("upload rev1, wait for the job, Quality Center shows the golden findings", 
   const grid = page.getByRole("grid", { name: "Findings" });
   await grid.locator("[tabindex='0']").focus();
   await page.keyboard.press("ArrowDown");
-  await expect(page.getByRole("region", { name: "Finding detail" })).toBeVisible();
+  const detail = page.getByRole("region", { name: "Finding detail" });
+  await expect(detail).toBeVisible();
+  // issue history (D-41): a state change is recorded and listed with the name typed by the user
+  await detail.getByLabel("Your name").fill("E2E reviewer");
+  await detail.getByLabel("Your name").blur();
+  await detail.getByRole("combobox", { name: "State", exact: true }).selectOption("disputed");
+  await detail.getByText("History").press("Enter"); // keyboard: the toggle can sit below the side panel fold
+  await expect(detail.getByText("State: open → disputed · E2E reviewer")).toBeVisible();
+  await detail.getByRole("combobox", { name: "State", exact: true }).selectOption("open"); // restore: the rest of the test expects open findings
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/quality.png`, fullPage: true });
 
   await page.getByLabel("GlobalId or name").fill("C3");
@@ -48,7 +56,13 @@ test("upload rev1, wait for the job, Quality Center shows the golden findings", 
 
   // navigation buttons + keys move the camera (trackpad users have no easy orbit/pan)
   const distance = () => page.evaluate(() => (window as any).__axiomViewer.distance() as number);
-  const before = await distance();
+  const settled = async () => {
+    // the focus transition from the row click may still be running; read once the camera stops moving
+    let last = -1;
+    await expect.poll(async () => { const d = await distance(); const still = Math.abs(d - last) < 1e-6; last = d; return still; }).toBe(true);
+    return last;
+  };
+  const before = await settled();
   await page.getByRole("button", { name: "Zoom in" }).click();
   await expect.poll(distance).toBeLessThan(before * 0.9);
   await page.getByRole("button", { name: "Fit model" }).click();
@@ -66,8 +80,11 @@ test("upload rev1, wait for the job, Quality Center shows the golden findings", 
     .toBe(gid); // a pick made while the viewer loads is applied once it is ready
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/explorer.png`, fullPage: true });
 
+  // project page: decision per timeline row and for the whole project (D-38, D-39)
+  await page.goto(projectUrl);
+  await expect(page.getByTestId("timeline-decision")).toHaveText("Accepted with comments");
+  await expect(page.getByTestId("project-decision")).toHaveText("Accepted with comments");
   if (SHOTS) {
-    await page.goto(projectUrl);
     await expect(page.getByText("Elements by class")).toBeVisible();
     await page.screenshot({ path: `${SHOTS}/overview.png`, fullPage: true });
   }

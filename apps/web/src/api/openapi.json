@@ -1314,6 +1314,67 @@
         "title": "IdsSpecRef",
         "type": "object"
       },
+      "IssueEvent": {
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "author": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author"
+          },
+          "field": {
+            "enum": [
+              "state",
+              "assignee",
+              "due_date",
+              "note"
+            ],
+            "title": "Field",
+            "type": "string"
+          },
+          "new": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New"
+          },
+          "old": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Old"
+          }
+        },
+        "required": [
+          "field",
+          "old",
+          "new",
+          "author",
+          "at"
+        ],
+        "title": "IssueEvent",
+        "type": "object"
+      },
       "IssueOut": {
         "properties": {
           "assignee": {
@@ -1447,6 +1508,18 @@
               }
             ],
             "title": "Assignee"
+          },
+          "author": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author"
           },
           "due_date": {
             "anyOf": [
@@ -3077,6 +3150,60 @@
           }
         },
         "summary": "Update Issues"
+      }
+    },
+    "/api/v1/models/{model_id}/issues/{identity_key}/history": {
+      "get": {
+        "description": "Every change to one issue, oldest first (D-41).",
+        "operationId": "issue_history_api_v1_models__model_id__issues__identity_key__history_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "model_id",
+            "required": true,
+            "schema": {
+              "title": "Model Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "identity_key",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{40}$",
+              "title": "Identity Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/IssueEvent"
+                  },
+                  "title": "Response Issue History Api V1 Models  Model Id  Issues  Identity Key  History Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Issue History"
       }
     },
     "/api/v1/models/{model_id}/revisions": {

@@ -271,6 +271,21 @@ issues = Table(
     UniqueConstraint("model_id", "identity_key"),
 )
 
+# One row per field an issue update actually changed (D-41). Author is as entered: there is no login yet.
+issue_events = Table(
+    "issue_events",
+    metadata,
+    _id(),
+    _fk("model_id", "models"),
+    Column("identity_key", String(40), nullable=False),
+    Column("field", String(16), nullable=False),
+    Column("old", Text),
+    Column("new", Text),
+    Column("author", String),
+    Column("at", DateTime(timezone=True), server_default=func.now(), nullable=False),
+    Index("ix_issue_events_key", "model_id", "identity_key"),
+)
+
 project_ids = Table(
     "project_ids",
     metadata,

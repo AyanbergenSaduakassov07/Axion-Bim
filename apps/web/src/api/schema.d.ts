@@ -266,6 +266,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/models/{model_id}/issues/{identity_key}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Issue History
+         * @description Every change to one issue, oldest first (D-41).
+         */
+        get: operations["issue_history_api_v1_models__model_id__issues__identity_key__history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/models/{model_id}/revisions": {
         parameters: {
             query?: never;
@@ -1028,6 +1048,25 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** IssueEvent */
+        IssueEvent: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Author */
+            author: string | null;
+            /**
+             * Field
+             * @enum {string}
+             */
+            field: "state" | "assignee" | "due_date" | "note";
+            /** New */
+            new: string | null;
+            /** Old */
+            old: string | null;
+        };
         /** IssueOut */
         IssueOut: {
             /** Assignee */
@@ -1071,6 +1110,8 @@ export interface components {
         IssueUpdate: {
             /** Assignee */
             assignee?: string | null;
+            /** Author */
+            author?: string | null;
             /** Due Date */
             due_date?: string | null;
             /** Identity Keys */
@@ -1856,6 +1897,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IssuesUpdated"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    issue_history_api_v1_models__model_id__issues__identity_key__history_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                model_id: number;
+                identity_key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssueEvent"][];
                 };
             };
             /** @description Validation Error */

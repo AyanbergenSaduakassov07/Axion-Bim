@@ -1,9 +1,9 @@
 import { CalendarClock, UserRound } from "lucide-react";
 import { useState } from "react";
 import type { Finding, Issue, IssueUpdate } from "../api/client";
-import { useUpdateIssues } from "../api/queries";
+import { authorName, setAuthorName, useIssueHistory, useUpdateIssues } from "../api/queries";
 import { tokenLabel, useT } from "../i18n";
-import { btn, btnPrimary, fmtDate, input } from "../ui";
+import { btn, btnPrimary, date, fmtDate, input } from "../ui";
 import { ISSUE_STATES, isOverdue, stateOf, todayIso } from "./issues";
 
 const STATE_CLS: Record<string, string> = {
@@ -118,7 +118,37 @@ export function IssueEditor({ modelId, identityKey, issue }: { modelId: number; 
         </button>
         {save.isError && <span role="alert" className="text-xs text-sev-critical">{t("Could not save")}</span>}
         {isOverdue(issue, todayIso()) && <span className="text-xs font-medium text-sev-critical">{t("Overdue")}</span>}
+        <label className="ml-auto flex items-center gap-1 text-xs text-muted">
+          {t("Your name")}
+          <input className={`${input} w-32 text-fg`} maxLength={120} defaultValue={authorName()} onBlur={(e) => setAuthorName(e.target.value.trim())} />
+        </label>
       </div>
+      <IssueHistory modelId={modelId} identityKey={identityKey} />
     </div>
+  );
+}
+
+/** Who changed what and when (D-41). Loaded only when opened. */
+function IssueHistory({ modelId, identityKey }: { modelId: number; identityKey: string }) {
+  const { t } = useT();
+  const [open, setOpen] = useState(false);
+  const h = useIssueHistory(modelId, identityKey, open).data;
+  const shown = (field: string, v: string | null) => (v == null || v === "" ? "—" : field === "state" ? tokenLabel(t, v) : v);
+  return (
+    <details className="text-xs" onToggle={(e) => setOpen(e.currentTarget.open)}>
+      <summary className="cursor-pointer text-muted">{t("History")}</summary>
+      {h && h.length === 0 && <p className="py-1 text-muted">{t("No changes yet.")}</p>}
+      <ol className="space-y-0.5 py-1">
+        {h?.map((e, i) => (
+          <li key={i} className="flex gap-2">
+            <span className="shrink-0 text-muted">{date(e.at)}</span>
+            <span>
+              {t(e.field === "state" ? "State" : e.field === "assignee" ? "Assignee" : e.field === "due_date" ? "Due date" : "Note")}: {shown(e.field, e.old)} → {shown(e.field, e.new)}
+              {e.author && <span className="text-muted"> · {e.author}</span>}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </details>
   );
 }

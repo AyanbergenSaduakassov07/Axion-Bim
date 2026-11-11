@@ -5,7 +5,7 @@ from __future__ import annotations
 from sqlalchemy import Connection, Row, func, select
 from sqlalchemy.dialects.sqlite import insert
 
-from axiom.repo.tables import issues
+from axiom.repo.tables import issue_events, issues
 
 COLUMNS = (
     issues.c.identity_key,
@@ -30,3 +30,21 @@ def upsert(conn: Connection, model_id: int, keys: list[str], fields: dict) -> No
         set_={**{k: stmt.excluded[k] for k in fields}, "updated_at": func.now()},
     )
     conn.execute(stmt)
+
+
+def current(conn: Connection, model_id: int, keys: list[str]) -> dict[str, Row]:
+    q = select(*COLUMNS).where(issues.c.model_id == model_id, issues.c.identity_key.in_(keys))
+    return {r.identity_key: r for r in conn.execute(q)}
+
+
+def insert_events(conn: Connection, rows: list[dict]) -> None:
+    if rows:
+        conn.execute(insert(issue_events), rows)
+
+
+def history(conn: Connection, model_id: int, identity_key: str) -> list[Row]:
+    e = issue_events.c
+    q = select(e.field, e.old, e.new, e.author, e.at).where(
+        e.model_id == model_id, e.identity_key == identity_key
+    )
+    return list(conn.execute(q.order_by(e.id)))

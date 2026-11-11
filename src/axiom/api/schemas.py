@@ -223,10 +223,21 @@ class IssueUpdate(BaseModel):
     assignee: str | None = Field(default=None, max_length=120)
     due_date: date | None = None
     note: str | None = Field(default=None, max_length=2000)
+    author: str | None = Field(
+        default=None, max_length=120
+    )  # as entered; recorded in the history, not checked
 
     def changes(self) -> dict:
-        fields = self.model_dump(include=self.model_fields_set - {"identity_keys"})
+        fields = self.model_dump(include=self.model_fields_set - {"identity_keys", "author"})
         return {k: v for k, v in fields.items() if not (k == "state" and v is None)}
+
+
+class IssueEvent(BaseModel):
+    field: Literal["state", "assignee", "due_date", "note"]
+    old: str | None
+    new: str | None
+    author: str | None
+    at: datetime
 
 
 class IssuesUpdated(BaseModel):

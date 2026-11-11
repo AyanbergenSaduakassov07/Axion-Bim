@@ -56,3 +56,23 @@ def test_get_model_by_id(client):  # noqa: F811
     mid = _model(client)
     assert client.get(f"{V1}/models/{mid}").json()["name"] == "Structure"
     assert client.get(f"{V1}/models/999").status_code == 404
+
+
+def test_every_change_is_recorded_with_old_and_new_value_and_the_entered_author(client):  # noqa: F811
+    mid = _model(client)
+    put = lambda **kw: client.put(f"{V1}/models/{mid}/issues", json={"identity_keys": [K1], **kw})  # noqa: E731
+    put(assignee="Dana", due_date="2026-12-01", author="Ayan (client)")
+    put(assignee="Dana", state="disputed", note="by design")  # assignee unchanged -> no event
+    put(due_date=None)
+
+    h = client.get(f"{V1}/models/{mid}/issues/{K1}/history").json()
+    assert [(e["field"], e["old"], e["new"], e["author"]) for e in h] == [
+        ("assignee", None, "Dana", "Ayan (client)"),
+        ("due_date", None, "2026-12-01", "Ayan (client)"),
+        ("state", "open", "disputed", None),
+        ("note", None, "by design", None),
+        ("due_date", "2026-12-01", None, None),
+    ]
+    assert all(e["at"] for e in h)
+    assert client.get(f"{V1}/models/{mid}/issues/{K2}/history").json() == []
+    assert client.get(f"{V1}/models/999/issues/{K1}/history").status_code == 404

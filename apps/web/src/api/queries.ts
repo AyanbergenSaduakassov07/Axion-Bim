@@ -1,6 +1,6 @@
 import { backendLang, useT } from "../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, postForm, postJson, putJson, type IdsEntry, type IdsDiff, type Gate, type GatePolicy, type Coordination, type Dashboard, type Issue, type IssueUpdate, type CopilotAnswer, type CopilotStatus, type Audit, type Change, type Comparison, type FindingEvent, type Quantities, type AuditSummary, type Element, type SpatialTree, type Finding, type Job, type Model, type Project, type Revision, type RevisionSummary } from "./client";
+import { api, postForm, postJson, putJson, type IdsEntry, type IdsDiff, type Gate, type GatePolicy, type Coordination, type Dashboard, type Issue, type IssueUpdate, type IssueEvent, type CopilotAnswer, type CopilotStatus, type Audit, type Change, type Comparison, type FindingEvent, type Quantities, type AuditSummary, type Element, type SpatialTree, type Finding, type Job, type Model, type Project, type Revision, type RevisionSummary } from "./client";
 
 export const useProjects = () => useQuery({ queryKey: ["projects"], queryFn: () => api<Project[]>("/projects") });
 
@@ -100,12 +100,36 @@ export const useCopilotAsk = (projectId: number) =>
 export const useIssues = (modelId: number | undefined) =>
   useQuery({ queryKey: ["issues", modelId], queryFn: () => api<Issue[]>(`/models/${modelId}/issues`), enabled: modelId != null });
 
+export const useIssueHistory = (modelId: number, identityKey: string, enabled: boolean) =>
+  useQuery({
+    queryKey: ["issue-history", modelId, identityKey],
+    queryFn: () => api<IssueEvent[]>(`/models/${modelId}/issues/${identityKey}/history`),
+    enabled,
+  });
+
+const AUTHOR_KEY = "axiom.author";
+/** Name sent with issue changes and shown in their history. Typed by the user, not verified (no login yet). */
+export function authorName(): string {
+  try {
+    return localStorage.getItem(AUTHOR_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+export function setAuthorName(name: string): void {
+  try {
+    localStorage.setItem(AUTHOR_KEY, name);
+  } catch {
+    // private window: the name is simply not remembered
+  }
+}
+
 export function useUpdateIssues(modelId: number) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: IssueUpdate) => putJson<{ updated: number }>(`/models/${modelId}/issues`, body),
+    mutationFn: (body: IssueUpdate) => putJson<{ updated: number }>(`/models/${modelId}/issues`, { author: authorName() || null, ...body }),
     onSuccess: () =>
-      Promise.all(["issues", "dashboard", "gate"].map((k) => qc.invalidateQueries({ queryKey: k === "issues" ? [k, modelId] : [k] }))),
+      Promise.all(["issues", "issue-history", "dashboard", "gate"].map((k) => qc.invalidateQueries({ queryKey: k === "issues" ? [k, modelId] : [k] }))),
   });
 }
 

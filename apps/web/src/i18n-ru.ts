@@ -306,6 +306,9 @@ export const ru: Record<string, string> = {
   Issue: "Замечание",
   State: "Состояние",
   Note: "Примечание",
+  "Your name": "Ваше имя",
+  "History": "История",
+  "No changes yet.": "Изменений пока нет.",
   "Save note": "Сохранить примечание",
   // project dashboard
   "Project dashboard": "Сводка по проекту",

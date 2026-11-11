@@ -26,9 +26,11 @@ from axiom.api.schemas import (
     ElementPage,
     GateOut,
     GatePolicyIO,
+    IdentityKey,
     IdsDiff,
     IdsEntry,
     IdsOut,
+    IssueEvent,
     IssueOut,
     IssuesUpdated,
     IssueUpdate,
@@ -137,7 +139,13 @@ def list_issues(db: Db, model_id: int) -> list[dict]:
 
 @router.put("/models/{model_id}/issues", response_model=IssuesUpdated)
 def update_issues(db: Db, model_id: int, body: IssueUpdate) -> dict:
-    return {"updated": issues.update(db, model_id, body.identity_keys, body.changes())}
+    return {"updated": issues.update(db, model_id, body.identity_keys, body.changes(), author=body.author)}
+
+
+@router.get("/models/{model_id}/issues/{identity_key}/history", response_model=list[IssueEvent])
+def issue_history(db: Db, model_id: int, identity_key: IdentityKey) -> list[dict]:
+    """Every change to one issue, oldest first (D-41)."""
+    return issues.history(db, model_id, identity_key)
 
 
 @router.get("/models/{model_id}/revisions", response_model=list[RevisionOut])

@@ -20,6 +20,7 @@ export type Citation = S["CitationOut"];
 export type Issue = S["IssueOut"];
 export type Dashboard = S["Dashboard"];
 export type IssueUpdate = S["IssueUpdate"];
+export type IssueEvent = S["IssueEvent"];
 export type IdsEntry = S["IdsEntry"];
 export type Gate = S["GateOut"];
 export type IdsDiff = S["IdsDiff"];

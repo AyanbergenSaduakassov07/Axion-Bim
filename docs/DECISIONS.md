@@ -313,3 +313,16 @@ Closes the core of audit gap G1: an audit now yields a delivery decision, not on
 - No mail or Telegram client in Axiom: the CLI writes text and cron + `mail`/a bot sends it. That keeps
   credentials out of the app until there are users (G11).
 - English only for now, like the CLI.
+
+## D-41 — Issue change history (2026-11-11)
+
+- New table `issue_events` (migration 0009): one row per field an update actually changed — field, old, new,
+  author, time. A bulk update over N findings writes one row per finding and changed field. Setting a field
+  to the value it already has writes nothing.
+- A new issue starts from `state = open` and empty fields, so the first change reads "open → disputed".
+- `author` is the name the user typed (kept in the browser's localStorage, sent with every update). It is
+  **not verified**: there is no login yet (G11). The history says who *claimed* to make a change; real
+  accountability needs users.
+- `GET /models/{id}/issues/{identity_key}/history`, oldest first. The issue editor loads it only when
+  "History" is opened.
+- BCF export does not include the history yet.

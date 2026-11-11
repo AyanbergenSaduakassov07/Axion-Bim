@@ -101,6 +101,7 @@ Each phase has an exit criterion that can be observed, not a feature count.
 | G6 | Quantities: "Compare with" any earlier revision, labelled with its decision, so the delta can be read against the last accepted delivery (D-38) |
 | G5 (core) | Project coordination (D-39): one decision over the latest delivery of every model (worst wins, a model without a delivery leaves it undecided) and cross-model checks of length unit, georeferencing and storey levels |
 | G10 (core) | `axiom digest --project NAME` prints open issues per assignee, overdue first, as Markdown for email or a chat; run it from cron (D-40). Sending is left to the mail/Telegram tool |
+| G2 (part) | Issue change history (D-41): every field an update changes is recorded with old value, new value, time and the author name typed by the user; shown under "History" in the issue editor. Real users/login still open |
 | Bug | An IDS uploaded with a revision did not appear in the library until the cache expired |
 
 ### R1 — usable by one team on one real project

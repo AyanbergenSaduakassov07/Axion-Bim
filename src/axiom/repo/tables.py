@@ -271,6 +271,17 @@ issues = Table(
     UniqueConstraint("model_id", "identity_key"),
 )
 
+# Gate decision of one audit as issued (D-42): never updated, so later policy/waiver edits do not alter it.
+certificates = Table(
+    "certificates",
+    metadata,
+    _id(),
+    _fk("audit_run_id", "audit_runs"),
+    Column("payload_json", JSON, nullable=False),
+    Column("sha256", String(64), nullable=False),
+    _created(),
+)
+
 # One row per field an issue update actually changed (D-41). Author is as entered: there is no login yet.
 issue_events = Table(
     "issue_events",

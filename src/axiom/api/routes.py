@@ -14,6 +14,8 @@ from sqlalchemy import Engine
 from axiom.api.schemas import (
     Accepted,
     AuditOut,
+    CertificateIn,
+    CertificateOut,
     ChangeOut,
     CompareIn,
     ComparisonOut,
@@ -52,6 +54,7 @@ from axiom.revision import FindingEvent
 from axiom.score.gate import GatePolicy
 from axiom.services import (
     browse,
+    certificates,
     coordination,
     copilot,
     dashboard,
@@ -109,6 +112,17 @@ def project_dashboard(
     except (ZoneInfoNotFoundError, ValueError) as e:
         raise ValueError(f"unknown timezone {tz!r}") from e
     return dashboard.project_dashboard(db, project_id, today)
+
+
+@router.post("/audits/{audit_run_id}/certificates", response_model=CertificateOut, status_code=201)
+def issue_certificate(db: Db, audit_run_id: int, body: CertificateIn) -> dict:
+    """Freeze the current gate decision of this audit with its hashes (D-42)."""
+    return certificates.issue(db, audit_run_id, body.issued_by)
+
+
+@router.get("/audits/{audit_run_id}/certificates", response_model=list[CertificateOut])
+def list_certificates(db: Db, audit_run_id: int) -> list[dict]:
+    return certificates.list_for_audit(db, audit_run_id)
 
 
 @router.get("/projects/{project_id}/coordination", response_model=Coordination)

@@ -306,6 +306,18 @@ class Coordination(BaseModel):
     checks: list[CoordinationCheck]
 
 
+class CertificateIn(BaseModel):
+    issued_by: str = Field(min_length=1, max_length=120)  # as entered; no login yet
+
+
+class CertificateOut(BaseModel):
+    id: int
+    payload: dict[str, Any]  # decision, reasons, policy, score, file/ruleset/IDS hashes, issued_at, issued_by
+    sha256: str  # over canonical JSON of payload
+    valid: bool  # payload still matches sha256
+    created_at: datetime
+
+
 class IdsEntry(BaseModel):
     id: int
     name: str

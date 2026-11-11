@@ -94,7 +94,7 @@ Each phase has an exit criterion that can be observed, not a feature count.
 | F7 | "Overdue" is judged against the viewer's timezone (`?tz=`), not the server's date |
 | F8 | Revisions list returns MHI score and blocked flag; the timeline no longer fires one request per revision |
 | F9 | Explorer tree rows skip layout/paint off-screen (`content-visibility`) |
-| G1 (core) | Acceptance gate (D-36): accepted / accepted with comments / rejected / not decided per audit, from a per-project policy and reviewer waivers; shown on the Quality Center and at the top of the report. Still open: per-stage policy, frozen signed certificate |
+| G1 (core) | Acceptance gate (D-36): accepted / accepted with comments / rejected / not decided per audit, from a per-project policy and reviewer waivers; shown on the Quality Center and at the top of the report. Still open: per-stage policy, signature |
 | G6 | Quantities table exports as CSV (Excel) with unit, method, previous total and change (D-37) |
 | F3 | IDS version diff: specifications added / removed / changed between two library entries (D-37) |
 | G1, loop step 2 | Delivery decision on every timeline row and in `axiom audit`; `--gate` exits 1 unless the delivery would be accepted, for a designer's pre-submission self-check (D-38) |
@@ -102,6 +102,7 @@ Each phase has an exit criterion that can be observed, not a feature count.
 | G5 (core) | Project coordination (D-39): one decision over the latest delivery of every model (worst wins, a model without a delivery leaves it undecided) and cross-model checks of length unit, georeferencing and storey levels |
 | G10 (core) | `axiom digest --project NAME` prints open issues per assignee, overdue first, as Markdown for email or a chat; run it from cron (D-40). Sending is left to the mail/Telegram tool |
 | G2 (part) | Issue change history (D-41): every field an update changes is recorded with old value, new value, time and the author name typed by the user; shown under "History" in the issue editor. Real users/login still open |
+| G1 (part) | Frozen acceptance certificate (D-42): the decision with file hash, ruleset version, IDS hash, policy and score, stored once and hash-checked on read, so a later policy or waiver change cannot rewrite it. Not a cryptographic signature until users exist |
 | Bug | An IDS uploaded with a revision did not appear in the library until the cache expired |
 
 ### R1 — usable by one team on one real project
@@ -147,7 +148,7 @@ Exit: a second company installs it without the developer in the room.
 - F10: the one-off "useEffect returned a Promise" warning was not reproduced; no effect in `apps/web/src` returns a Promise today.
 - F3 remainder: archive (remove covers it for now); the IDS diff names the changed part, not the facet inside it.
 - G7: a snapshot-only duplicate rule gave false positives at wall/beam corners (D-37); build it on the geometry pass.
-- G1 remainder: per-stage gate policy, frozen signed certificate.
+- G1 remainder: per-stage gate policy; certificate is hash-checked but unsigned, and has no PDF.
 - G5 remainder: origin offset between models needs the geometry pass (shared reference points); checks compare the latest revision only, not a chosen delivery set.
 - "Fragments: Problematic geometry" console noise from the converter worker is still unfiltered.
 - BCF `extensions.xml` is empty; a strict BCF tool may want the five topic statuses declared there. Check in R1 #4.

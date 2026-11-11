@@ -95,6 +95,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/audits/{audit_run_id}/certificates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Certificates */
+        get: operations["list_certificates_api_v1_audits__audit_run_id__certificates_get"];
+        put?: never;
+        /**
+         * Issue Certificate
+         * @description Freeze the current gate decision of this audit with its hashes (D-42).
+         */
+        post: operations["issue_certificate_api_v1_audits__audit_run_id__certificates_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/comparisons": {
         parameters: {
             query?: never;
@@ -689,6 +710,29 @@ export interface components {
          * @enum {string}
          */
         Category: "geometry" | "identity" | "spatial" | "material" | "metadata" | "classification" | "quantity" | "information";
+        /** CertificateIn */
+        CertificateIn: {
+            /** Issued By */
+            issued_by: string;
+        };
+        /** CertificateOut */
+        CertificateOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: number;
+            /** Payload */
+            payload: {
+                [key: string]: unknown;
+            };
+            /** Sha256 */
+            sha256: string;
+            /** Valid */
+            valid: boolean;
+        };
         /** ChangeOut */
         ChangeOut: {
             /** Global Id */
@@ -1557,6 +1601,72 @@ export interface operations {
                     "application/zip": unknown;
                     "text/csv": unknown;
                     "text/html": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_certificates_api_v1_audits__audit_run_id__certificates_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                audit_run_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CertificateOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    issue_certificate_api_v1_audits__audit_run_id__certificates_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                audit_run_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CertificateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CertificateOut"];
                 };
             };
             /** @description Validation Error */

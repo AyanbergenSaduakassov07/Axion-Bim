@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Gate, GatePolicy } from "../api/client";
-import { useGate, useGatePolicy, useSetGatePolicy } from "../api/queries";
+import { authorName, useCertificates, useGate, useGatePolicy, useIssueCertificate, useSetGatePolicy } from "../api/queries";
 import { tokenLabel, useT, type T } from "../i18n";
 import { btn, fmt, input, Panel } from "../ui";
 
@@ -62,6 +62,30 @@ export function GateDecision({ auditId }: { auditId: number }) {
           ))}
         </ul>
       )}
+      <Certificate auditId={auditId} />
+    </div>
+  );
+}
+
+/** Freezes the decision with file, ruleset and IDS hashes (D-42); later policy or waiver edits do not change it. */
+function Certificate({ auditId }: { auditId: number }) {
+  const { t } = useT();
+  const last = useCertificates(auditId).data?.at(-1);
+  const issue = useIssueCertificate(auditId);
+  const name = authorName();
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted" data-testid="certificate">
+      <button className={btn} disabled={!name || issue.isPending} title={name ? undefined : t("Enter your name in an issue first")} onClick={() => issue.mutate(name)}>
+        {t("Issue certificate")}
+      </button>
+      {last && (
+        <span>
+          {t("Issued {date} by {name}: {decision}", { date: String(last.payload.issued_at).slice(0, 10), name: String(last.payload.issued_by), decision: decisionLabel(t, last.payload.decision as Gate["decision"]) })}{" "}
+          · <code title={last.sha256}>sha256 {last.sha256.slice(0, 12)}</code>
+          {!last.valid && <span className="font-medium text-sev-critical"> · {t("edited after issue")}</span>}
+        </span>
+      )}
+      {issue.isError && <span role="alert" className="text-sev-critical">{t("Could not save")}</span>}
     </div>
   );
 }

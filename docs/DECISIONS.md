@@ -326,3 +326,17 @@ Closes the core of audit gap G1: an audit now yields a delivery decision, not on
 - `GET /models/{id}/issues/{identity_key}/history`, oldest first. The issue editor loads it only when
   "History" is opened.
 - BCF export does not include the history yet.
+
+## D-42 — Frozen acceptance certificate (2026-11-11)
+
+- The live gate (D-36) is recomputed on every read, so a policy or waiver change rewrites history. A
+  certificate freezes it: `POST /audits/{id}/certificates` stores decision, reasons, policy, MHI score,
+  project/model/revision, file SHA-256, ruleset version, IDS hash, engine version, scoring config, audit time,
+  issue time and issuer name in table `certificates` (migration 0010). Rows are never updated.
+- `sha256` is computed over canonical JSON of the payload (sorted keys, no whitespace). `GET` recomputes it and
+  returns `valid: false` if the stored payload was edited in the database afterwards.
+- This is a tamper-evidence hash, **not a signature**: there is no key and the issuer name is typed, not
+  verified (same limit as D-41). Signing needs users (G11). No PDF yet; the browser's print of the report is
+  the paper copy.
+- The Quality Center gate panel has "Issue certificate" (uses the name entered for issue history) and shows
+  the latest one with its short hash.

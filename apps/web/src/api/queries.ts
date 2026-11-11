@@ -1,6 +1,6 @@
 import { backendLang, useT } from "../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, postForm, postJson, putJson, type IdsEntry, type IdsDiff, type Gate, type GatePolicy, type Coordination, type Dashboard, type Issue, type IssueUpdate, type IssueEvent, type CopilotAnswer, type CopilotStatus, type Audit, type Change, type Comparison, type FindingEvent, type Quantities, type AuditSummary, type Element, type SpatialTree, type Finding, type Job, type Model, type Project, type Revision, type RevisionSummary } from "./client";
+import { api, postForm, postJson, putJson, type IdsEntry, type IdsDiff, type Gate, type GatePolicy, type Coordination, type Dashboard, type Issue, type IssueUpdate, type IssueEvent, type CertificateOut, type CopilotAnswer, type CopilotStatus, type Audit, type Change, type Comparison, type FindingEvent, type Quantities, type AuditSummary, type Element, type SpatialTree, type Finding, type Job, type Model, type Project, type Revision, type RevisionSummary } from "./client";
 
 export const useProjects = () => useQuery({ queryKey: ["projects"], queryFn: () => api<Project[]>("/projects") });
 
@@ -174,6 +174,17 @@ export function useIdsMutations(projectId: number) {
 }
 
 export const useGate = (auditId: number) => useQuery({ queryKey: ["gate", auditId], queryFn: () => api<Gate>(`/audits/${auditId}/gate`) });
+
+export const useCertificates = (auditId: number) =>
+  useQuery({ queryKey: ["certificates", auditId], queryFn: () => api<CertificateOut[]>(`/audits/${auditId}/certificates`) });
+
+export function useIssueCertificate(auditId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (issued_by: string) => postJson<CertificateOut>(`/audits/${auditId}/certificates`, { issued_by }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["certificates", auditId] }),
+  });
+}
 
 export const useCoordination = (projectId: number) =>
   useQuery({ queryKey: ["gate", "coordination", projectId], queryFn: () => api<Coordination>(`/projects/${projectId}/coordination`) });

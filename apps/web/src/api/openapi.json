@@ -195,6 +195,56 @@
         "title": "Category",
         "type": "string"
       },
+      "CertificateIn": {
+        "properties": {
+          "issued_by": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Issued By",
+            "type": "string"
+          }
+        },
+        "required": [
+          "issued_by"
+        ],
+        "title": "CertificateIn",
+        "type": "object"
+      },
+      "CertificateOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          },
+          "valid": {
+            "title": "Valid",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "payload",
+          "sha256",
+          "valid",
+          "created_at"
+        ],
+        "title": "CertificateOut",
+        "type": "object"
+      },
       "ChangeOut": {
         "properties": {
           "global_id": {
@@ -2725,6 +2775,97 @@
           }
         },
         "summary": "Audit Report"
+      }
+    },
+    "/api/v1/audits/{audit_run_id}/certificates": {
+      "get": {
+        "operationId": "list_certificates_api_v1_audits__audit_run_id__certificates_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "audit_run_id",
+            "required": true,
+            "schema": {
+              "title": "Audit Run Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CertificateOut"
+                  },
+                  "title": "Response List Certificates Api V1 Audits  Audit Run Id  Certificates Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Certificates"
+      },
+      "post": {
+        "description": "Freeze the current gate decision of this audit with its hashes (D-42).",
+        "operationId": "issue_certificate_api_v1_audits__audit_run_id__certificates_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "audit_run_id",
+            "required": true,
+            "schema": {
+              "title": "Audit Run Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CertificateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificateOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Issue Certificate"
       }
     },
     "/api/v1/comparisons": {

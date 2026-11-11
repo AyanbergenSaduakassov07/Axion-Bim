@@ -1,6 +1,6 @@
 """Project/model rows."""
 
-from sqlalchemy import Connection, insert, select
+from sqlalchemy import Connection, insert, select, update
 
 from axiom.repo.tables import models, projects
 
@@ -26,3 +26,7 @@ def find_model(conn: Connection, project_name: str, model_name: str) -> int | No
 
 def find_project(conn: Connection, name: str) -> int | None:
     return conn.execute(select(projects.c.id).where(projects.c.name == name)).scalar_one_or_none()
+
+
+def set_gate_policy(conn: Connection, project_id: int, values: dict) -> None:
+    conn.execute(update(projects).where(projects.c.id == project_id).values(**values))

@@ -12,6 +12,20 @@ class NameIn(BaseModel):
     name: str = Field(min_length=1, max_length=200)
 
 
+class GatePolicyIO(BaseModel):
+    min_score: float = Field(ge=0, le=100)
+    block_severity: Literal["critical", "high", "medium", "low"]
+    require_ids: bool
+
+
+class GateOut(BaseModel):
+    """Delivery decision for one audit. `reasons` are machine-coded: {code, n | score, minimum}."""
+
+    decision: Literal["accepted", "accepted_with_comments", "rejected", "undecided"]
+    reasons: list[dict[str, Any]]
+    policy: GatePolicyIO
+
+
 class ProjectOut(BaseModel):
     id: int
     name: str

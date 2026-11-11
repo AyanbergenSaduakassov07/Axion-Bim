@@ -18,6 +18,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     func,
+    true,
 )
 
 metadata = MetaData(
@@ -42,7 +43,17 @@ def _created() -> Column:
     return Column("created_at", DateTime(timezone=True), server_default=func.now(), nullable=False)
 
 
-projects = Table("projects", metadata, _id(), Column("name", String, nullable=False, unique=True), _created())
+projects = Table(
+    "projects",
+    metadata,
+    _id(),
+    Column("name", String, nullable=False, unique=True),
+    # acceptance gate policy (D-36)
+    Column("gate_min_score", Float, nullable=False, server_default="80"),
+    Column("gate_block_severity", String, nullable=False, server_default="critical"),
+    Column("gate_require_ids", Boolean, nullable=False, server_default=true()),
+    _created(),
+)
 
 models = Table(
     "models",

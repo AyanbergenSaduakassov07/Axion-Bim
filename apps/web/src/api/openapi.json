@@ -1024,6 +1024,70 @@
         "title": "FindingEvent",
         "type": "object"
       },
+      "GateOut": {
+        "description": "Delivery decision for one audit. `reasons` are machine-coded: {code, n | score, minimum}.",
+        "properties": {
+          "decision": {
+            "enum": [
+              "accepted",
+              "accepted_with_comments",
+              "rejected",
+              "undecided"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "policy": {
+            "$ref": "#/components/schemas/GatePolicyIO"
+          },
+          "reasons": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Reasons",
+            "type": "array"
+          }
+        },
+        "required": [
+          "decision",
+          "reasons",
+          "policy"
+        ],
+        "title": "GateOut",
+        "type": "object"
+      },
+      "GatePolicyIO": {
+        "properties": {
+          "block_severity": {
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Block Severity",
+            "type": "string"
+          },
+          "min_score": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Min Score",
+            "type": "number"
+          },
+          "require_ids": {
+            "title": "Require Ids",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "min_score",
+          "block_severity",
+          "require_ids"
+        ],
+        "title": "GatePolicyIO",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -2181,6 +2245,46 @@
         "summary": "List Findings"
       }
     },
+    "/api/v1/audits/{audit_id}/gate": {
+      "get": {
+        "description": "Accept/reject decision for this delivery under the project's gate policy and current waivers.",
+        "operationId": "audit_gate_api_v1_audits__audit_id__gate_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "audit_id",
+            "required": true,
+            "schema": {
+              "title": "Audit Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GateOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Audit Gate"
+      }
+    },
     "/api/v1/audits/{audit_id}/health-index": {
       "get": {
         "operationId": "health_index_api_v1_audits__audit_id__health_index_get",
@@ -2935,6 +3039,92 @@
           }
         },
         "summary": "Project Dashboard"
+      }
+    },
+    "/api/v1/projects/{project_id}/gate-policy": {
+      "get": {
+        "operationId": "get_gate_policy_api_v1_projects__project_id__gate_policy_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GatePolicyIO"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Gate Policy"
+      },
+      "put": {
+        "operationId": "set_gate_policy_api_v1_projects__project_id__gate_policy_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GatePolicyIO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GatePolicyIO"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Gate Policy"
       }
     },
     "/api/v1/projects/{project_id}/ids": {

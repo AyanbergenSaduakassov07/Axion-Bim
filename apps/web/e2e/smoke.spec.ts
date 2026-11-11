@@ -26,6 +26,7 @@ test("upload rev1, wait for the job, Quality Center shows the golden findings", 
   // rev1 golden: MAT-001 on C2, C3 + IDS STR-COL material facet on C2, C3
   await expect(page.getByTestId("finding-count")).toHaveText("4 of 4 findings");
   await expect(page.getByTestId("mhi-score")).toHaveText("95.2");
+  await expect(page.getByTestId("gate-decision")).toHaveText("Accepted with comments"); // open high findings, none critical
   await expect(page.getByText("Requirements checked: structural-basic")).toBeVisible(); // library name, not a hash
 
   const grid = page.getByRole("grid", { name: "Findings" });

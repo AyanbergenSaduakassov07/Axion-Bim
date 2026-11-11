@@ -94,6 +94,7 @@ Each phase has an exit criterion that can be observed, not a feature count.
 | F7 | "Overdue" is judged against the viewer's timezone (`?tz=`), not the server's date |
 | F8 | Revisions list returns MHI score and blocked flag; the timeline no longer fires one request per revision |
 | F9 | Explorer tree rows skip layout/paint off-screen (`content-visibility`) |
+| G1 (core) | Acceptance gate (D-36): accepted / accepted with comments / rejected / not decided per audit, from a per-project policy and reviewer waivers; shown on the Quality Center and at the top of the report. Still open: per-stage policy, frozen signed certificate |
 | Bug | An IDS uploaded with a revision did not appear in the library until the cache expired |
 
 ### R1 — usable by one team on one real project

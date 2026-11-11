@@ -21,6 +21,8 @@ export type Issue = S["IssueOut"];
 export type Dashboard = S["Dashboard"];
 export type IssueUpdate = S["IssueUpdate"];
 export type IdsEntry = S["IdsEntry"];
+export type Gate = S["GateOut"];
+export type GatePolicy = S["GatePolicyIO"];
 
 export type ComparisonSummary = {
   changes: Record<string, number>;

@@ -1,6 +1,6 @@
 import { backendLang, useT } from "../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, postForm, postJson, putJson, type IdsEntry, type Dashboard, type Issue, type IssueUpdate, type CopilotAnswer, type CopilotStatus, type Audit, type Change, type Comparison, type FindingEvent, type Quantities, type AuditSummary, type Element, type SpatialTree, type Finding, type Job, type Model, type Project, type Revision, type RevisionSummary } from "./client";
+import { api, postForm, postJson, putJson, type IdsEntry, type Gate, type GatePolicy, type Dashboard, type Issue, type IssueUpdate, type CopilotAnswer, type CopilotStatus, type Audit, type Change, type Comparison, type FindingEvent, type Quantities, type AuditSummary, type Element, type SpatialTree, type Finding, type Job, type Model, type Project, type Revision, type RevisionSummary } from "./client";
 
 export const useProjects = () => useQuery({ queryKey: ["projects"], queryFn: () => api<Project[]>("/projects") });
 
@@ -104,7 +104,8 @@ export function useUpdateIssues(modelId: number) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (body: IssueUpdate) => putJson<{ updated: number }>(`/models/${modelId}/issues`, body),
-    onSuccess: () => Promise.all([qc.invalidateQueries({ queryKey: ["issues", modelId] }), qc.invalidateQueries({ queryKey: ["dashboard"] })]),
+    onSuccess: () =>
+      Promise.all(["issues", "dashboard", "gate"].map((k) => qc.invalidateQueries({ queryKey: k === "issues" ? [k, modelId] : [k] }))),
   });
 }
 
@@ -146,4 +147,17 @@ export function useIdsMutations(projectId: number) {
       onSuccess: refresh,
     }),
   };
+}
+
+export const useGate = (auditId: number) => useQuery({ queryKey: ["gate", auditId], queryFn: () => api<Gate>(`/audits/${auditId}/gate`) });
+
+export const useGatePolicy = (projectId: number) =>
+  useQuery({ queryKey: ["gate-policy", projectId], queryFn: () => api<GatePolicy>(`/projects/${projectId}/gate-policy`) });
+
+export function useSetGatePolicy(projectId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (policy: GatePolicy) => putJson<GatePolicy>(`/projects/${projectId}/gate-policy`, policy),
+    onSuccess: () => Promise.all([qc.invalidateQueries({ queryKey: ["gate-policy", projectId] }), qc.invalidateQueries({ queryKey: ["gate"] })]),
+  });
 }

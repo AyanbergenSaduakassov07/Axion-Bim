@@ -38,6 +38,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/audits/{audit_id}/gate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Audit Gate
+         * @description Accept/reject decision for this delivery under the project's gate policy and current waivers.
+         */
+        get: operations["audit_gate_api_v1_audits__audit_id__gate_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/audits/{audit_id}/health-index": {
         parameters: {
             query?: never;
@@ -295,6 +315,24 @@ export interface paths {
          */
         get: operations["project_dashboard_api_v1_projects__project_id__dashboard_get"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/gate-policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Gate Policy */
+        get: operations["get_gate_policy_api_v1_projects__project_id__gate_policy_get"];
+        /** Set Gate Policy */
+        put: operations["set_gate_policy_api_v1_projects__project_id__gate_policy_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -834,6 +872,34 @@ export interface components {
             /** Severity */
             severity: string;
         };
+        /**
+         * GateOut
+         * @description Delivery decision for one audit. `reasons` are machine-coded: {code, n | score, minimum}.
+         */
+        GateOut: {
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "accepted" | "accepted_with_comments" | "rejected" | "undecided";
+            policy: components["schemas"]["GatePolicyIO"];
+            /** Reasons */
+            reasons: {
+                [key: string]: unknown;
+            }[];
+        };
+        /** GatePolicyIO */
+        GatePolicyIO: {
+            /**
+             * Block Severity
+             * @enum {string}
+             */
+            block_severity: "critical" | "high" | "medium" | "low";
+            /** Min Score */
+            min_score: number;
+            /** Require Ids */
+            require_ids: boolean;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1231,6 +1297,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Finding"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    audit_gate_api_v1_audits__audit_id__gate_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                audit_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GateOut"];
                 };
             };
             /** @description Validation Error */
@@ -1794,6 +1891,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Dashboard"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_gate_policy_api_v1_projects__project_id__gate_policy_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GatePolicyIO"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_gate_policy_api_v1_projects__project_id__gate_policy_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GatePolicyIO"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GatePolicyIO"];
                 };
             };
             /** @description Validation Error */

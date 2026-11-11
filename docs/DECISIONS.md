@@ -240,3 +240,23 @@ data remain English; the copilot answers in the language of the question.
 - **Revisions list (F8)** returns `score` and `blocked` of the latest audit (`null` until audited).
 - **Explorer tree (F9)** uses CSS `content-visibility: auto` per row instead of a windowing library.
 - Engineer's audit, product vision and phased roadmap: `docs/AUDIT.md`.
+
+## D-36 Acceptance gate (2026-11-11)
+
+Closes the core of audit gap G1: an audit now yields a delivery decision, not only a score.
+
+- **Vocabulary.** `accepted | accepted_with_comments | rejected | undecided`. Separate from finding statuses and
+  revision events; never mixed.
+- **Rule** (`score/gate.py`, pure). An open finding is a `fail` or `warning` whose issue state is not `accepted`
+  (the reviewer's waiver). `rejected` when an open `fail` is at or above the project's blocking severity, or the
+  MHI is below the project minimum. Otherwise `undecided` when the MHI was not computed or (policy) no IDS was
+  checked: a delivery is never accepted on something that was not evaluated. Otherwise
+  `accepted_with_comments` when anything was raised (waived findings count as comments), else `accepted`.
+- **Policy per project**: `min_score` (80), `block_severity` (`critical`), `require_ids` (true); three columns on
+  `projects` (migration 0008). `GET/PUT /projects/{id}/gate-policy`.
+- **Computed at read time** (`GET /audits/{id}/gate`) from stored findings, current triage and current policy, so
+  a waiver shows at once. Consequence: the decision is not frozen; the report prints the policy it used.
+- **Reasons are machine codes** (`blocking_findings`, `score_below_minimum`, `ids_not_evaluated`,
+  `score_not_evaluated`, `open_findings`, `waived`); UI and report phrase them. The report opens with the decision.
+- Not built: per-stage policies, a signed/frozen certificate, a project-level gate over several models,
+  the decision on the revisions timeline and in the CLI.

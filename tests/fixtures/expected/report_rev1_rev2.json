@@ -242,6 +242,15 @@
   },
   "findings": [],
   "format": "axiom-report/1",
+  "gate": {
+    "decision": "accepted",
+    "policy": {
+      "block_severity": "critical",
+      "min_score": 80.0,
+      "require_ids": true
+    },
+    "reasons": []
+  },
   "mhi": {
     "blocked": false,
     "blocking": [],

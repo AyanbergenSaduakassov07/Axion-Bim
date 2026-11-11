@@ -1,6 +1,6 @@
 <!doctype html>
 {% set rev = r.audit.revision %}
-{% set mhi = r.mhi %}
+{% set mhi = r.mhi %}{% set gate = r.gate %}
 <html lang="{{ lang }}">
 <head>
 <meta charset="utf-8">
@@ -25,6 +25,22 @@
   <h1>{{ _("Model audit report") }}</h1>
   <div class="muted">{{ rev.project_name or _("Unnamed project") }} · {{ _("revision") }} {{ rev.seq }} · {{ rev.schema_name }} · {{ _("audited") }} {{ r.reproducibility.created_at }}</div>
 </header>
+
+<section>
+  <h2>{{ _("Delivery decision") }}</h2>
+  <div class="banner"><b>{{ tok(gate.decision) | capitalize }}</b></div>
+  <ul>
+  {% for x in gate.reasons %}
+    <li>{% if x.code == "blocking_findings" %}{{ _("{n} open findings at severity {severity} or above block acceptance.", n=x.n, severity=tok(gate.policy.block_severity)) }}
+    {% elif x.code == "score_below_minimum" %}{{ _("MHI {score} is below the project minimum of {minimum}.", score="%.1f" | format(x.score), minimum="%.0f" | format(x.minimum)) }}
+    {% elif x.code == "ids_not_evaluated" %}{{ _("No client requirements file (IDS) was checked, so the delivery cannot be accepted.") }}
+    {% elif x.code == "score_not_evaluated" %}{{ _("The MHI was not computed, so the delivery cannot be accepted.") }}
+    {% elif x.code == "open_findings" %}{{ _("{n} findings remain open.", n=x.n) }}
+    {% elif x.code == "waived" %}{{ _("{n} findings were accepted as they are by the reviewer.", n=x.n) }}{% endif %}</li>
+  {% endfor %}
+  </ul>
+  <p class="muted">{{ _("Gate policy: minimum MHI {minimum}; blocking severity {severity}; requirements file required: {ids}.", minimum="%.0f" | format(gate.policy.min_score), severity=tok(gate.policy.block_severity), ids=_("yes") if gate.policy.require_ids else _("no")) }} {{ _("The decision concerns the information in the model file. It is not a structural or safety assessment.") }}</p>
+</section>
 
 <section>
   <h2>{{ _("Model Health Index") }}</h2>

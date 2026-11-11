@@ -6,6 +6,7 @@ import { btn, btnPrimary, bytes, date, fmt, Panel, Q, Severity, SEVERITIES } fro
 import { CopilotPanel } from "../copilot/CopilotPanel";
 import { NameForm } from "./Projects";
 import { Dashboard } from "./Dashboard";
+import { GatePolicyPanel } from "./Gate";
 import { IdsLibrary } from "./IdsLibrary";
 import { useT } from "../i18n";
 
@@ -54,6 +55,7 @@ export function Overview() {
       </Panel>
       {modelId != null && <ModelOverview modelId={modelId} />}
       <IdsLibrary projectId={projectId} />
+      <GatePolicyPanel projectId={projectId} />
       {modelId != null && <CopilotPanel projectId={projectId} />}
     </div>
   );

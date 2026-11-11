@@ -11,6 +11,7 @@ from axiom.repo import browse as repo
 from axiom.repo import comparisons as cmp_repo
 from axiom.repo import issues as issue_repo
 from axiom.report import FORMAT_VERSION, render  # noqa: F401  (render re-exported for callers)
+from axiom.services import gate
 from axiom.services.issues import EDITABLE
 
 REVISION_META = ("project_name", "authoring_app")
@@ -39,6 +40,7 @@ def build(engine: Engine, audit_run_id: int, comparison_id: int | None = None) -
             },
             "reproducibility": summary["reproducibility"],
             "mhi": summary["mhi"],
+            "gate": gate.for_audit(conn, audit),
             "counts": summary["counts"],
             "rules": summary["rules"],
             "findings": _findings(conn, audit_run_id, audit.revision_id),

@@ -23,6 +23,8 @@ from axiom.api.schemas import (
     Dashboard,
     DefaultIn,
     ElementPage,
+    GateOut,
+    GatePolicyIO,
     IdsEntry,
     IdsOut,
     IssueOut,
@@ -42,10 +44,12 @@ from axiom.i18n import Lang
 from axiom.quantities import GROUPS
 from axiom.report import FORMATS
 from axiom.revision import FindingEvent
+from axiom.score.gate import GatePolicy
 from axiom.services import (
     browse,
     copilot,
     dashboard,
+    gate,
     ids_library,
     issues,
     jobs,
@@ -99,6 +103,16 @@ def project_dashboard(
     except (ZoneInfoNotFoundError, ValueError) as e:
         raise ValueError(f"unknown timezone {tz!r}") from e
     return dashboard.project_dashboard(db, project_id, today)
+
+
+@router.get("/projects/{project_id}/gate-policy", response_model=GatePolicyIO)
+def get_gate_policy(db: Db, project_id: int) -> dict:
+    return gate.get_policy(db, project_id)
+
+
+@router.put("/projects/{project_id}/gate-policy", response_model=GatePolicyIO)
+def set_gate_policy(db: Db, project_id: int, body: GatePolicyIO) -> dict:
+    return gate.set_policy(db, project_id, GatePolicy(**body.model_dump()))
 
 
 @router.get("/models/{model_id}", response_model=ModelOut)
@@ -268,6 +282,12 @@ def list_findings(
 ) -> list[Finding]:
     filters = {"status": status, "severity": severity, "category": category, "rule": rule}
     return browse.findings(db, audit_id, filters, lang)
+
+
+@router.get("/audits/{audit_id}/gate", response_model=GateOut)
+def audit_gate(db: Db, audit_id: int) -> dict:
+    """Accept/reject decision for this delivery under the project's gate policy and current waivers."""
+    return gate.audit_gate(db, audit_id)
 
 
 @router.get("/audits/{audit_id}/health-index")

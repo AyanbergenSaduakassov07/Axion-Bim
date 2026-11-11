@@ -8,6 +8,7 @@ import { btn, Empty, fmt, Panel, Q, RevisionNav, SEVERITIES, Severity, Status, t
 import { ReportExport } from "./ComparisonView";
 import { useFocus, Viewport, type FocusResult, type Viewer } from "../viewer/Viewport";
 import { FindingsTable } from "./FindingsTable";
+import { GateDecision } from "./Gate";
 import { BulkIssueBar, IssueEditor } from "./IssueControls";
 
 export function Quality() {
@@ -32,6 +33,7 @@ export function Quality() {
       <Q q={summary} rows={4}>
         {(s: AuditSummary) => (
           <>
+            {auditId != null && <GateDecision auditId={auditId} />}
             <HealthHeader mhi={s.mhi} />
             <IdsUsed projectId={rev.data?.project_id} hash={s.reproducibility.ids_hash as string | null} />
           </>

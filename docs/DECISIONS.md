@@ -340,3 +340,10 @@ Closes the core of audit gap G1: an audit now yields a delivery decision, not on
   the paper copy.
 - The Quality Center gate panel has "Issue certificate" (uses the name entered for issue history) and shows
   the latest one with its short hash.
+
+## D-43 — BCF extensions.xml declares topic values (2026-11-11)
+
+- BCF 3.0 tools check topic type, status, priority, labels and assignee against `extensions.xml`; it was
+  empty. It now lists all five statuses (so a designer's reply can use any of them) and every type,
+  priority, label and assignee the exported topics actually use.
+- Still not opened in BIMcollab or Solibri (R1 #4).

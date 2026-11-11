@@ -47,10 +47,26 @@ def to_bcf(report: dict) -> bytes:
         if f["status"] in OPEN:
             handler = _topic(f, now, report["audit"]["id"])
             bcf.topics[handler.guid] = handler
+    bcf.extensions = _extensions([h.topic for h in bcf.topics.values()])
     with tempfile.TemporaryDirectory() as tmp:  # bcf-client saves to a path only
         path = Path(tmp) / "audit.bcf"
         bcf.save(path)
         return path.read_bytes()
+
+
+def _extensions(topics: list[mdl.Topic]) -> mdl.Extensions:
+    """BCF 3.0 tools may reject values not declared here; list all five statuses so replies can use any."""
+
+    def used(values) -> list[str]:
+        return sorted({v for v in values if v})
+
+    return mdl.Extensions(
+        topic_types=mdl.ExtensionsTopicTypes(topic_type=used(t.topic_type for t in topics)),
+        topic_statuses=mdl.ExtensionsTopicStatuses(topic_status=list(BCF_STATUS.values())),
+        priorities=mdl.ExtensionsPriorities(priority=used(t.priority for t in topics)),
+        topic_labels=mdl.ExtensionsTopicLabels(topic_label=used(lb for t in topics for lb in t.labels.label)),
+        users=mdl.ExtensionsUsers(user=used(t.assigned_to for t in topics)),
+    )
 
 
 def _topic(f: dict, now: XmlDateTime, audit_id: int) -> TopicHandler:

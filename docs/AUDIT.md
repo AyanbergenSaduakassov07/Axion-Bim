@@ -103,6 +103,7 @@ Each phase has an exit criterion that can be observed, not a feature count.
 | G10 (core) | `axiom digest --project NAME` prints open issues per assignee, overdue first, as Markdown for email or a chat; run it from cron (D-40). Sending is left to the mail/Telegram tool |
 | G2 (part) | Issue change history (D-41): every field an update changes is recorded with old value, new value, time and the author name typed by the user; shown under "History" in the issue editor. Real users/login still open |
 | G1 (part) | Frozen acceptance certificate (D-42): the decision with file hash, ruleset version, IDS hash, policy and score, stored once and hash-checked on read, so a later policy or waiver change cannot rewrite it. Not a cryptographic signature until users exist |
+| G4 (part) | BCF `extensions.xml` declares the five statuses and every type, priority, label and assignee the topics use (D-43) |
 | Bug | An IDS uploaded with a revision did not appear in the library until the cache expired |
 
 ### R1 — usable by one team on one real project
@@ -151,4 +152,3 @@ Exit: a second company installs it without the developer in the room.
 - G1 remainder: per-stage gate policy; certificate is hash-checked but unsigned, and has no PDF.
 - G5 remainder: origin offset between models needs the geometry pass (shared reference points); checks compare the latest revision only, not a chosen delivery set.
 - "Fragments: Problematic geometry" console noise from the converter worker is still unfiltered.
-- BCF `extensions.xml` is empty; a strict BCF tool may want the five topic statuses declared there. Check in R1 #4.

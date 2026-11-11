@@ -92,3 +92,17 @@ def test_report_findings_carry_issue_triage(client, ifc_path):  # noqa: F811
     header, *rows = csv_text.splitlines()
     assert header.endswith("state,assignee,due_date,note")
     assert sum(",open,Dana,," in r for r in rows) == 1
+
+
+def test_extensions_declare_every_value_the_topics_use(tmp_path):
+    issue = {"state": "disputed", "assignee": "Dana"}
+    report = {**REPORT, "findings": [{**REPORT["findings"][0], "issue": issue}, REPORT["findings"][1]]}
+    bcf = _load(tmp_path, render(report, "bcf"))
+    ext = bcf.extensions
+    assert ext.topic_statuses.topic_status == ["Open", "In Progress", "Disputed", "Accepted", "Closed"]
+    for handler in bcf.topics.values():
+        t = handler.topic
+        assert t.topic_type in ext.topic_types.topic_type
+        assert t.priority in ext.priorities.priority
+        assert set(t.labels.label) <= set(ext.topic_labels.topic_label)
+    assert ext.users.user == ["Dana"]

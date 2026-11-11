@@ -151,3 +151,11 @@ def test_report_renders_stored_audit_with_comparison(ifc_path, tmp_path, monkeyp
     assert bcf.read_bytes().startswith(b"PK")  # zip archive
     no_out = runner.invoke(app, ["report", "1", "--format", "bcf"])
     assert no_out.exit_code == 2 and "--out" in no_out.output
+
+
+def test_audit_gate_flag_exits_nonzero_unless_the_delivery_would_be_accepted(ifc_path, tmp_path, monkeypatch):
+    monkeypatch.setenv("AXIOM_DATA_DIR", str(tmp_path))
+    plain = runner.invoke(app, ["audit", str(ifc_path("clean"))])
+    assert plain.exit_code == 0 and "delivery decision: undecided (ids_not_evaluated)" in plain.output
+    gated = runner.invoke(app, ["audit", str(ifc_path("clean")), "--gate"])
+    assert gated.exit_code == 1 and "delivery decision: undecided" in gated.output

@@ -1,5 +1,6 @@
 import { useParams, useSearchParams } from "react-router";
 import type { Quantities as Q_, QuantityDelta } from "../api/client";
+import { decisionLabel } from "./Gate";
 import { useQuantities, useRevision, useRevisions } from "../api/queries";
 import { btn, fmt, input, Panel, Q, RevisionNav } from "../ui";
 import { useT } from "../i18n";
@@ -7,20 +8,22 @@ import { useT } from "../i18n";
 const GROUPS = ["class", "storey", "material", "classification"] as const;
 const keyOf = (r: { group: string; qto: string; quantity: string }) => `${r.group}|${r.qto}|${r.quantity}`;
 
-/** Qto totals per group, with the change against the previous revision of the same model. */
+/** Qto totals per group, with the change against an earlier revision (default: the previous one). */
 export function Quantities() {
   const revisionId = Number(useParams().revisionId);
   const [params, setParams] = useSearchParams();
   const by = params.get("by") ?? "class";
   const rev = useRevision(revisionId).data;
   const revs = useRevisions(rev?.model_id ?? 0).data;
-  const prev = revs?.filter((r) => rev && r.seq < rev.seq).at(-1);
+  const earlier = revs?.filter((r) => rev && r.seq < rev.seq) ?? [];
+  const prev = earlier.find((r) => String(r.id) === params.get("against")) ?? earlier.at(-1);
+  const set = (key: string, value: string) => setParams({ ...Object.fromEntries(params), [key]: value });
   const q = useQuantities(revisionId, by, prev?.id);
   const { t } = useT();
   const groupBy = (
     <label className="flex items-center gap-2 text-sm">
       {t("Group by")}
-      <select className={input} value={by} onChange={(e) => setParams({ by: e.target.value })}>
+      <select className={input} value={by} onChange={(e) => set("by", e.target.value)}>
         {GROUPS.map((g) => (
           <option key={g} value={g}>
             {t(g)}
@@ -37,6 +40,19 @@ export function Quantities() {
         actions={
           <div className="flex items-center gap-3">
             {groupBy}
+            {earlier.length > 1 && (
+              <label className="flex items-center gap-2 text-sm">
+                {t("Compare with")}
+                <select className={input} value={prev?.id} onChange={(e) => set("against", e.target.value)}>
+                  {earlier.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      r{r.seq}
+                      {r.decision ? ` · ${decisionLabel(t, r.decision)}` : ""}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             <a className={btn} href={`/api/v1/revisions/${revisionId}/quantities?by=${by}&format=csv${prev ? `&against=${prev.id}` : ""}`} download>
               {t("Export CSV (Excel)")}
             </a>

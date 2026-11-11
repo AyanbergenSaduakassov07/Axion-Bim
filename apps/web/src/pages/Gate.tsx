@@ -5,14 +5,14 @@ import { tokenLabel, useT, type T } from "../i18n";
 import { btn, fmt, input, Panel } from "../ui";
 
 const BLOCK_SEVERITIES = ["critical", "high", "medium", "low"] as const;
-const TONE: Record<Gate["decision"], string> = {
+export const TONE: Record<Gate["decision"], string> = {
   accepted: "border-ok text-ok",
   accepted_with_comments: "border-sev-medium text-sev-medium",
   rejected: "border-sev-critical text-sev-critical",
   undecided: "border-line text-muted",
 };
 
-function decisionLabel(t: T, d: Gate["decision"]): string {
+export function decisionLabel(t: T, d: Gate["decision"]): string {
   if (d === "accepted") return t("Accepted");
   if (d === "accepted_with_comments") return t("Accepted with comments");
   if (d === "rejected") return t("Rejected");

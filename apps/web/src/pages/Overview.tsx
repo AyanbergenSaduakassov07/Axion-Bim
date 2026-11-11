@@ -6,7 +6,7 @@ import { btn, btnPrimary, bytes, date, fmt, Panel, Q, Severity, SEVERITIES } fro
 import { CopilotPanel } from "../copilot/CopilotPanel";
 import { NameForm } from "./Projects";
 import { Dashboard } from "./Dashboard";
-import { GatePolicyPanel } from "./Gate";
+import { decisionLabel, GatePolicyPanel, TONE } from "./Gate";
 import { IdsLibrary } from "./IdsLibrary";
 import { useT } from "../i18n";
 
@@ -102,6 +102,11 @@ function TimelineRow({ r }: { r: Revision }) {
       <span className="w-14 text-right" title={t("Model Health Index")}>
         {fmt(r.score)}
       </span>
+      {r.decision && (
+        <span className={`rounded border px-1.5 text-xs ${TONE[r.decision]}`} data-testid="timeline-decision">
+          {decisionLabel(t, r.decision)}
+        </span>
+      )}
       {r.blocked && <ShieldAlert size={14} className="text-sev-critical" aria-label={t("blocked")} />}
       <Link className="text-accent hover:underline" to={`/revisions/${r.id}/quality`}>
         {t("Quality")}

@@ -14,6 +14,7 @@ from axiom.repo import browse as repo
 from axiom.repo import comparisons as cmp_repo
 from axiom.repo import revisions as rev_repo
 from axiom.revision import FindingEvent
+from axiom.services import gate
 
 FINDING_FILTERS = {"status": "status", "severity": "severity", "category": "category", "rule": "rule_id"}
 
@@ -51,7 +52,15 @@ def list_revisions(engine: Engine, model_id: int) -> list[dict]:
         for r in repo.list_revisions(conn, model_id):
             audit = cmp_repo.latest_audit(conn, r.id)
             mhi = audit.summary_json["mhi"] if audit else {}
-            out.append({**r._asdict(), "score": mhi.get("score"), "blocked": mhi.get("blocked")})
+            decision = gate.for_audit(conn, audit)["decision"] if audit else None
+            out.append(
+                {
+                    **r._asdict(),
+                    "score": mhi.get("score"),
+                    "blocked": mhi.get("blocked"),
+                    "decision": decision,
+                }
+            )
         return out
 
 

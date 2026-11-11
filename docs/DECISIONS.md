@@ -276,3 +276,14 @@ Closes the core of audit gap G1: an audit now yields a delivery decision, not on
   flagged valid elements in the clean fixture: two walls or beams that start at the same corner share an
   origin and differ only in rotation. A sound rule needs the world bounding box from the geometry pass
   (`quantities/geometry.py`), not the snapshot. A noisy rule would cost more trust than it adds.
+
+## D-38 — Gate decision on the timeline and in the CLI; quantity delta against a chosen revision (2026-11-11)
+
+- **Revisions list carries `decision`** (same `gate.for_audit` as the Quality Center, latest audit of each
+  revision; `null` when never audited). The timeline shows it per row.
+- **`axiom audit` prints the delivery decision and its reason codes; `--gate` exits 1 unless the decision is
+  `accepted` or `accepted_with_comments`.** `undecided` fails the gate too: a delivery that was not checked
+  against the client's IDS has not passed. Same service as the API, so designer and client see one result.
+- **Quantities "Compare with".** The page picks any earlier revision (`?against=`), default the previous one;
+  each option names that revision's decision. No "last accepted" shortcut is computed: the decision is read
+  at request time from the current policy and waivers, so it is shown, not frozen.

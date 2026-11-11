@@ -171,6 +171,7 @@ export const ru: Record<string, string> = {
 
   // quantities
   "Group by": "Группировать по",
+  "Compare with": "Сравнить с",
   "No quantity sets (Qto_*) in this revision.": "В этой ревизии нет наборов количеств (Qto_*).",
   "Method qto: values declared in the model's Qto_* property sets. Method geometry: volume measured from the element's 3D shape (shown after a geometry audit). Missing: elements of the group without that quantity.":
     "Метод qto: значения из наборов Qto_* в модели. Метод «геометрия»: объём, измеренный по 3D-форме элемента (появляется после проверки с геометрией). «Нет данных»: элементы группы без этой величины.",

@@ -15,6 +15,7 @@ from axiom.findings import CheckStatus
 from axiom.repo.db import get_engine, migrate
 from axiom.score import MhiResult
 from axiom.services import audits, comparisons, projects, quantities, reports, revisions
+from axiom.services import gate as gate_service
 from axiom.services.comparisons import ComparisonResult
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
@@ -90,6 +91,7 @@ def audit(
     json_out: Path | None = typer.Option(None, "--json", help="Write the full JSON report here."),
     ids: Path | None = IdsOption,
     geometry: bool = GeometryOption,
+    gate: bool = typer.Option(False, "--gate", help="Exit 1 unless the delivery would be accepted."),
 ) -> None:
     """Ingest (if new) and audit an IFC file with the built-in rules (and an IDS file, if given)."""
     engine, model_id = _open(project, model or path.stem)
@@ -118,6 +120,11 @@ def audit(
         }
         json_out.write_text(json.dumps(report, indent=2))
         typer.echo(f"report written to {json_out}")
+    decision = gate_service.audit_gate(engine, result.audit_run_id)
+    reasons = ", ".join(r["code"] + (f"={r['n']}" if "n" in r else "") for r in decision["reasons"])
+    typer.echo(f"delivery decision: {decision['decision']}" + (f" ({reasons})" if reasons else ""))
+    if gate and not decision["decision"].startswith("accepted"):
+        raise typer.Exit(1)
 
 
 @app.command()

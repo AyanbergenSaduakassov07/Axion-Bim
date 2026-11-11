@@ -1763,6 +1763,23 @@
             "title": "Created At",
             "type": "string"
           },
+          "decision": {
+            "anyOf": [
+              {
+                "enum": [
+                  "accepted",
+                  "accepted_with_comments",
+                  "rejected",
+                  "undecided"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision"
+          },
           "file_sha256": {
             "title": "File Sha256",
             "type": "string"

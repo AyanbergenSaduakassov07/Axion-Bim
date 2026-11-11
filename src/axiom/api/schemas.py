@@ -12,6 +12,9 @@ class NameIn(BaseModel):
     name: str = Field(min_length=1, max_length=200)
 
 
+GateDecision = Literal["accepted", "accepted_with_comments", "rejected", "undecided"]
+
+
 class GatePolicyIO(BaseModel):
     min_score: float = Field(ge=0, le=100)
     block_severity: Literal["critical", "high", "medium", "low"]
@@ -21,7 +24,7 @@ class GatePolicyIO(BaseModel):
 class GateOut(BaseModel):
     """Delivery decision for one audit. `reasons` are machine-coded: {code, n | score, minimum}."""
 
-    decision: Literal["accepted", "accepted_with_comments", "rejected", "undecided"]
+    decision: GateDecision
     reasons: list[dict[str, Any]]
     policy: GatePolicyIO
 
@@ -47,6 +50,7 @@ class RevisionOut(BaseModel):
     created_at: datetime
     score: float | None = None  # MHI of the latest audit; None until audited
     blocked: bool | None = None
+    decision: GateDecision | None = None  # acceptance gate of the latest audit (D-36)
 
 
 class RevisionSummary(BaseModel):

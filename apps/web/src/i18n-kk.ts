@@ -153,6 +153,7 @@ export const kk: Record<string, string> = {
   "None declared.": "Көрсетілмеген.",
   Materials: "Материалдар",
   "Group by": "Топтау",
+  "Compare with": "Салыстыру",
   "No quantity sets (Qto_*) in this revision.": "Бұл ревизияда көлем жиынтықтары (Qto_*) жоқ.",
   "Method qto: values declared in the model's Qto_* property sets. Method geometry: volume measured from the element's 3D shape (shown after a geometry audit). Missing: elements of the group without that quantity.":
     "qto әдісі: модельдің Qto_* қасиет жиынтықтарында көрсетілген мәндер. geometry әдісі: элементтің 3D пішінінен өлшенген көлем (геометриялық тексеруден кейін көрсетіледі). Жоқ: топтағы осы шамасы жоқ элементтер.",

@@ -52,6 +52,7 @@ def test_gate_endpoint_follows_policy_and_waivers(client, ifc_path):  # noqa: F8
     keys = [f["identity_key"] for f in c.get(f"{V1}/audits/{aid}/findings").json()]
     c.put(f"{V1}/models/{mid}/issues", json={"identity_keys": keys, "state": "accepted"})
     assert c.get(f"{V1}/audits/{aid}/gate").json()["decision"] == "accepted_with_comments"
+    assert [r["decision"] for r in c.get(f"{V1}/models/{mid}/revisions").json()] == ["accepted_with_comments"]
 
     assert c.put(f"{V1}/projects/{pid}/gate-policy", json=policy | {"min_score": 101}).status_code == 422
     assert c.get(f"{V1}/audits/999/gate").status_code == 404

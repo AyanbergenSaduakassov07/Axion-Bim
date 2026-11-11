@@ -1147,6 +1147,8 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Decision */
+            decision?: ("accepted" | "accepted_with_comments" | "rejected" | "undecided") | null;
             /** File Sha256 */
             file_sha256: string;
             /** File Size */

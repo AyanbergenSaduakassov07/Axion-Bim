@@ -39,7 +39,7 @@ audit is a score, not an accept/reject decision I can sign.
 | G3 | Thin requirement library | 8 rules: presence of name, material, classification, quantities, geometry, containment, unique GlobalId, storeys. A real EIR also asks: required properties per class **per stage**, naming conventions, valid classification codes (not just "has one"), type vs occurrence data, georeferencing and units, storey/grid consistency. Most of this is expressible as IDS, so the answer is requirement packs, not more Python | M |
 | G4 | One-way loop to designers (F2) | BCF goes out, nothing comes back. The designer's reply ("fixed", "by design") in Revit/Solibri never reaches the tracker. The export is XSD-valid but has still not been opened in BIMcollab or Solibri | M |
 | G5 | One model at a time | A project is ARCH + STR + MEP. There is no project-level gate and no cross-model check (same storeys, same origin, same coordinate system across disciplines). Misaligned origins are among the most common coordination defects and are cheap to detect | M |
-| G6 | Quantities stop before the estimate | Totals by class, storey, material and classification with the revision delta exist, and export as CSV for Excel (D-37). Still missing: the delta against the last *accepted* revision rather than the previous one | S |
+| G6 | Quantities stop before the estimate | Totals by class, storey, material and classification with the revision delta exist, and export as CSV for Excel (D-37). The delta can be taken against any earlier revision, each labelled with its delivery decision (D-38) | S |
 | G7 | No geometric sanity beyond presence | No duplicate/overlapping elements (two walls in the same place double every quantity), no elements far from the model, no elements outside their storey's height range. Full clash detection should stay out (see §5) | M |
 | G8 | Local market (F4, F5) | Rule texts and reports are EN/RU only; Kazakh UI falls back to Russian. No requirement packs for Kazakhstan practice. The pack content must come from the actual normative documents and a local BIM manager — do not write it from memory | L |
 | G9 | Re-exports break identity | If the authoring tool regenerates GlobalIds, every element reads as removed + added. The comparison is flagged "identity unstable", which is honest, but the history is lost | L |
@@ -97,6 +97,8 @@ Each phase has an exit criterion that can be observed, not a feature count.
 | G1 (core) | Acceptance gate (D-36): accepted / accepted with comments / rejected / not decided per audit, from a per-project policy and reviewer waivers; shown on the Quality Center and at the top of the report. Still open: per-stage policy, frozen signed certificate |
 | G6 | Quantities table exports as CSV (Excel) with unit, method, previous total and change (D-37) |
 | F3 | IDS version diff: specifications added / removed / changed between two library entries (D-37) |
+| G1, loop step 2 | Delivery decision on every timeline row and in `axiom audit`; `--gate` exits 1 unless the delivery would be accepted, for a designer's pre-submission self-check (D-38) |
+| G6 | Quantities: "Compare with" any earlier revision, labelled with its decision, so the delta can be read against the last accepted delivery (D-38) |
 | Bug | An IDS uploaded with a revision did not appear in the library until the cache expired |
 
 ### R1 — usable by one team on one real project

@@ -37,6 +37,10 @@ test("upload rev1, wait for the job, Quality Center shows the golden findings", 
   // issue history (D-41): a state change is recorded and listed with the name typed by the user
   await detail.getByLabel("Your name").fill("E2E reviewer");
   await detail.getByLabel("Your name").blur();
+  // the name just typed enables the certificate at once, with no other change in between (2026-11-11 user test)
+  const certificate = page.getByTestId("certificate");
+  await certificate.getByRole("button", { name: "Issue certificate" }).click();
+  await expect(certificate).toContainText("by E2E reviewer: Accepted with comments");
   await detail.getByRole("combobox", { name: "State", exact: true }).selectOption("disputed");
   await detail.getByText("History").press("Enter"); // keyboard: the toggle can sit below the side panel fold
   await expect(detail.getByText("State: open → disputed · E2E reviewer")).toBeVisible();

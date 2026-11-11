@@ -28,3 +28,6 @@ apps/web/playwright-report/
 apps/web/public/wasm/
 apps/web/public/fragments-worker.mjs
 apps/web/tsconfig.tsbuildinfo
+
+# Demo models and database (third-party samples, not redistributed)
+/demo/

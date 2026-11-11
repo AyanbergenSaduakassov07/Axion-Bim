@@ -2,160 +2,172 @@
 
 [![CI](https://github.com/AyanbergenSaduakassov07/Axion-Bim/actions/workflows/ci.yml/badge.svg)](https://github.com/AyanbergenSaduakassov07/Axion-Bim/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+![Python 3.12](https://img.shields.io/badge/python-3.12-3776AB)
+![TypeScript](https://img.shields.io/badge/TypeScript-React-3178C6)
 
-Axiom BIM is a local-first quality and revision analysis tool for IFC building models. It turns IFC files into searchable model data, checks them against IDS requirements and deterministic rules, and makes model changes and information gaps easier to review.
+**Quality control for building information models.** Axiom checks an IFC model against the client's requirements,
+says whether a delivery can be accepted, shows what changed since the last revision, and points to every
+problem element in 3D. Each result comes with its evidence.
 
-The project includes a Python engine and CLI, a FastAPI service, and a React web app with an interactive 3D viewer. The Model Health Index (MHI) summarizes information completeness; it is not a structural safety score.
+On a real buildingSMART revision pair it catches the architect's fix: 42 of 47 walls gained the required
+`FireRating`. The health index rises from 81.1 to 96.9, and it names the five walls still missing it.
 
-## What it does
+![Quality Center: a wall without FireRating highlighted in the 3D model](docs/images/real-quality.png)
 
-- Extracts IFC elements, properties, materials, classifications, quantities, units, and spatial relationships into revision snapshots.
-- Runs built-in checks and IDS specifications through IfcTester, then records findings with evidence and reproducibility metadata.
-- Scores model information quality with a versioned MHI configuration.
-- Compares revisions by IFC `GlobalId` and tracks findings as new, resolved, persistent, recurring, changed, or uncertain.
-- Compares reported quantities with geometry-derived volumes, keeping quantity methods separate.
-- Provides a 3D model explorer, quality findings, revision history, quantity summaries, and printable reports.
-- Exports open findings as BCF 3.0 issues (one topic per finding, element selected by GlobalId, stable topic GUIDs across revisions, issue history as dated comments, declared `extensions.xml`) for BIMcollab, Solibri, Revit and other BCF tools.
-- Decides each delivery: accepted, accepted with comments, or rejected, against a per-project policy (minimum MHI, blocking severity, IDS required) that can differ per stage (concept, design, working documentation, as-built). The decision can be frozen as a certificate that hashes the file, ruleset and IDS.
-- Tracks issues per finding (state, assignee, due date, notes, waivers) with a full change history, and sends a Markdown digest of open issues per assignee.
-- Coordinates a project: the latest delivery of every discipline model, optionally for one stage, side by side.
-- Offers an optional read-only AI copilot in English, Russian and Kazakh. Citation tokens are checked against tool output from that response.
+## Why
 
-## Screenshots
+On a construction project, design firms hand over IFC models at every stage. Someone on the receiving side has
+to check them before the models feed quantities, coordination and drawings. Today that check is mostly manual,
+or it runs in desktop tools that cost thousands per seat. Axiom does it in a browser or from a CI job and gives
+reproducible answers:
 
-### Quality findings with 3D highlighting
+- **Can we accept this delivery?** Accepted, accepted with comments, or rejected, under a per-project and
+  per-stage policy. The decision can be frozen as a certificate that hashes the file, ruleset and IDS.
+- **What is wrong, exactly?** Every finding carries the element's GlobalId, the rule id and version, the
+  expected and actual values, and the evidence.
+- **What changed since last time?** Elements are matched across revisions by GlobalId. Each finding is tracked
+  as `new`, `resolved`, `persistent`, `recurring`, `changed` or `uncertain`.
 
-![Quality Center highlighting an element in the 3D viewer](docs/images/quality-3d.png)
+Axiom measures *information quality*. It does not assess structural safety, and it never claims to.
 
-### Revision comparison and MHI waterfall
+## Tested on real models
 
-![Revision comparison and health score waterfall](docs/images/revisions.png)
+The tool ran end to end on **15 public sample models**. The largest has
+17,553 elements; the files span IFC2X3, IFC4 and IFC4X3, 2–49 MB. It found no crashes. Each model ran the audit,
+the geometry pass and the BCF export in **0.9–24.5 s**, with peak memory **under 2.7 GB**.
+Full tables: [heavy models](benchmarks/RESULTS-heavy.md) and [popular samples](benchmarks/RESULTS-popular.md).
 
-### Copilot with citations
+A [civil-engineer walkthrough](docs/user-test.md) of the web app on the Revit ARC/STR samples found real defects
+*in the models*:
+- Revit wrote wall volumes twice, once in mm³ under a declared m³ unit: off by 10⁹.
+- The architectural and structural models are georeferenced about 290 km apart.
 
-![Copilot response with linked citations](docs/images/copilot.png)
+It also found three bugs *in Axiom*, fixed the same day ([D-49](docs/DECISIONS.md)).
 
-## Quickstart
+| | |
+|---|---|
+| ![Revision comparison r1 → r2](docs/images/real-revisions.png) | ![Project coordination across disciplines](docs/images/real-coordination.png) |
+| Revision comparison: 42 findings resolved, MHI +15.8 | Coordination: units agree, georeferencing does not |
 
-### Run locally
+## Features
 
-Requirements: Python 3.12, [uv](https://docs.astral.sh/uv/), and Node.js 22 or newer.
-
-```bash
-# From the repository root
-uv sync
-uv run axiom serve --port 8000
-```
-
-In a second terminal:
-
-```bash
-cd apps/web
-npm ci
-npm run dev
-```
-
-Open [http://localhost:5173](http://localhost:5173). The web development server proxies API requests to `http://127.0.0.1:8000`. By default, Axiom stores its SQLite database and uploaded files in `data/`; set `AXIOM_DATA_DIR` to choose another location.
-
-### Run with Docker Compose
-
-```bash
-docker compose up --build
-```
-
-Open [http://localhost:3000](http://localhost:3000). The API is also available at [http://localhost:8000](http://localhost:8000). Compose stores data in the `axiom-data` volume and publishes both services on loopback for local use.
-
-## Try the CLI
-
-Generate the deterministic demo IFCs and inspect them:
-
-```bash
-uv run python scripts/e2e_fixtures.py /tmp/axiom-models
-uv run axiom inspect /tmp/axiom-models/rev1.ifc
-uv run axiom audit /tmp/axiom-models/rev1.ifc --ids examples/ids/structural-basic.ids
-uv run axiom compare \
-  /tmp/axiom-models/rev1.ifc \
-  /tmp/axiom-models/rev2.ifc \
-  /tmp/axiom-models/rev3.ifc \
-  --ids examples/ids/structural-basic.ids
-```
-
-`axiom audit` prints the audit ID. Use that value to render a report:
-
-```bash
-uv run axiom report <audit-id> --format html --out report.html
-uv run axiom report <audit-id> --format bcf --out issues.bcf   # BCF 3.0 for coordination tools
-```
-
-More commands:
-
-```bash
-uv run axiom audit model.ifc --ids requirements.ids --gate   # exit 1 unless the delivery is accepted (CI gate)
-uv run axiom audit model.ifc --geometry                      # adds QTO-002: reported vs geometric volume
-uv run axiom quantities model.ifc --by storey --against previous.ifc
-uv run axiom digest --project "Tower A" --out digest.md      # open issues per assignee, overdue first
-```
-
-The demo revisions show a missing material issue being fixed and later reappearing. Axiom marks the reappearing finding as recurring. See the [demo script](docs/demo-script.md) and [fixture source and license notes](examples/models/SOURCES.md).
-
-## Optional AI copilot
-
-The core inspection, audit, comparison, and viewer features work without an AI provider. To enable the copilot, set one provider key in the environment before starting the API:
-
-```bash
-export ANTHROPIC_API_KEY=your-key
-# Or use an OpenRouter key:
-export OPENROUTER_API_KEY=your-key
-```
-
-Anthropic is used when both keys are set. The default Anthropic model is `claude-sonnet-5-5`; set `AXIOM_COPILOT_MODEL` to override it. Without a key, the copilot panel is hidden and its API endpoint returns `503 copilot_unavailable`. Keys stay on the server and are not sent to the browser.
-
-The copilot calls read-only Axiom tools. Its element and finding citation tokens are accepted only when those tokens appeared in tool output from the same response. This check validates citations; it does not certify every uncited statement as correct.
+| Area | What it does |
+|---|---|
+| **Extraction** | Elements, property sets, materials, classifications, quantities, units and spatial structure into versioned revision snapshots |
+| **Validation** | IDS 1.0 via IfcTester plus 10 deterministic rules: materials, classification, spatial containment, geometry, placement outliers, quantity plausibility, and declared vs geometric volume |
+| **Scoring** | Model Health Index (MHI) over seven weighted dimensions, with a versioned config. Unevaluated checks lower coverage, never the score ([formula](docs/PLAN.md)) |
+| **Delivery gate** | Per-project, per-stage policy (concept → as-built) and a hash-frozen certificate. `axiom audit --gate` fails a CI job when a delivery is rejected |
+| **Revisions** | GlobalId diff, finding event history, MHI waterfall, recurring-issue detection |
+| **Issues** | State, assignee, due date, notes, waivers, full change history, Markdown digest per assignee |
+| **Exchange** | BCF 3.0 export: stable topic GUIDs across revisions and issue history as comments, so findings open in BIMcollab, Solibri and Revit. Printable HTML reports and CSV quantities |
+| **3D viewer** | Browser viewer (ThatOpen / web-ifc): a click on a finding focuses the element, findings can be coloured, models are cached locally |
+| **Coordination** | Latest delivery of every discipline side by side: units, georeferencing, storey levels |
+| **Copilot** (optional) | Read-only assistant in English, Russian and Kazakh. It answers through tools over stored results, and a post-check strips every element id it did not see in a tool result |
 
 ## Architecture
 
-```text
-React + Vite web app ── REST/OpenAPI ── FastAPI
-                                          │
-CLI ─────────────────────────────────────┤
-                                          ▼
-                              services → repositories → SQLite
-                                          ▲
-IFC file → isolated job runner → extract → audit → score → compare
+```mermaid
+flowchart LR
+  subgraph Clients
+    W[React + TS web app<br/>3D viewer]
+    C[CLI / CI gate]
+  end
+  W -- REST / OpenAPI --> A[FastAPI routes]
+  C --> S
+  A --> S[Services]
+  S --> R[Repositories<br/>SQLAlchemy Core]
+  R --> D[(SQLite + content-addressed files)]
+  A -- enqueue --> J[Supervised job runner<br/>subprocess, time + memory limits]
+  J --> P[extract → rules + IDS → MHI → diff]
+  P --> R
+  S --> L[Copilot: tool loop<br/>+ citation check]
 ```
 
-The API coordinates jobs and services. IFC parsing and geometry work run in supervised subprocesses with time and memory limits. The database and content-addressed IFC files are local by default. The browser viewer renders models and links viewer elements to backend `GlobalId` values.
+Design rules the code enforces ([all 49 decisions](docs/DECISIONS.md)):
+- **The backend is the source of truth.** The viewer renders and the LLM explains; neither computes an
+  engineering result.
+- **Strict layering.** Routes → services → repositories; routes never touch the database, and the CLI uses
+  the same services.
+- **IFC never runs inside a request.** Parsing and geometry run in subprocesses with time and memory limits,
+  so a malformed 50 MB file cannot take down the API.
+- **No false passes.** Statuses are `pass | fail | warning | not_applicable | not_evaluated | error`. A check
+  that could not run is never reported as passed.
+- **Reproducible findings.** Identity keys are stable across revisions, and every finding records the rule
+  version and config it was produced with.
+
+## Engineering quality
+
+- **Tests:** 267 passing backend tests (pytest) on generated IFC fixtures with golden `expected.yaml` results, plus
+  unit tests and Playwright end-to-end tests for the web app. CI runs both on every push.
+- **Copilot safety:** a live evaluation suite (`axiom.copilot.eval`), prompt-injection fixtures and a citation
+  post-check. Model output never reaches the database.
+- **Security review:** Host allowlist (DNS rebinding), Origin check on writes, XML entity expansion blocked in
+  IDS, a strict CSP, non-root containers, and rate limits on the copilot ([release check](docs/release-check.md)).
+- **Tooling:** uv, ruff, Alembic migrations, typed OpenAPI client generated for the frontend.
+
+## Quickstart
+
+Requirements: Python 3.12, [uv](https://docs.astral.sh/uv/), Node.js 22+.
+
+```bash
+uv sync
+uv run axiom serve --port 8000            # API + job runner; data in ./data (AXIOM_DATA_DIR to change)
+cd apps/web && npm ci && npm run dev      # http://localhost:5173
+```
+
+Or with Docker: `docker compose up --build`, then open http://localhost:3000.
+
+### Demo
+
+The local `demo/` folder (gitignored, not part of the repository) holds the sample models and a database
+preloaded with the walkthrough project:
+
+```bash
+AXIOM_DATA_DIR=demo/data uv run axiom serve --port 8000
+cd apps/web && npm run dev                # open "Office Building – Revit sample"
+```
+
+The models in `demo/models/` can be uploaded live. The best story is `Ifc4_Revit_ARC.ifc`, then
+`Ifc4_Revit_ARC_FireRatingAdded.ifc` as revision 2, with `examples/ids/structural-basic.ids`. Without the
+folder, `uv run python scripts/e2e_fixtures.py /tmp/axiom-models` generates a small deterministic set. The
+[demo script](docs/demo-script.md) walks through it.
+
+### CLI
+
+```bash
+uv run axiom audit model.ifc --ids requirements.ids --gate      # exit 1 unless the delivery is accepted
+uv run axiom audit model.ifc --geometry                         # adds declared-vs-geometric volume check
+uv run axiom compare rev1.ifc rev2.ifc rev3.ifc --ids requirements.ids
+uv run axiom report <audit-id> --format bcf --out issues.bcf    # or --format html
+uv run axiom quantities model.ifc --by storey --against previous.ifc
+uv run axiom digest --project "Tower A" --out digest.md         # open issues per assignee, overdue first
+```
+
+### Copilot (optional)
+
+Set `ANTHROPIC_API_KEY` (default model `claude-sonnet-5-5`) or `OPENROUTER_API_KEY` before starting the API.
+Without a key the panel is hidden and everything else works. Keys stay on the server.
 
 ## Checks
 
-Run the backend checks from the repository root:
-
 ```bash
-uv run ruff check .
-uv run ruff format --check .
-uv run pytest -q
+uv run ruff check . && uv run ruff format --check . && uv run pytest -q
+cd apps/web && npm run typecheck && npm test && npm run build && npx playwright test
+uv run python benchmarks/run.py --local <folder-of-ifc-files>   # benchmark your own models
 ```
 
-Run the web checks from `apps/web`:
+## Scope
 
-```bash
-npm ci
-npm run typecheck
-npm run build
-npm test
-npx playwright install chromium
-npx playwright test
-```
+Axiom is local-first and single-user: there is no authentication, so keep it on a trusted network. Revision
+matching relies on GlobalId, so a re-export that renews ids shows as removed plus added. The tool does no clash
+detection, no structural capacity checks and no code-compliance calculations. Read the
+[limitations](docs/limitations.md) before using results on a project.
 
-Backend benchmarks on public CC-BY models: `uv run python benchmarks/run.py` → [benchmarks/RESULTS.md](benchmarks/RESULTS.md). Heavy real models (`--local DIR`): seven buildingSMART samples up to 49 MB and 17,553 elements ran end to end with the geometry pass and BCF export in 0.9–24.5 s each, peak memory under 1.7 GB → [benchmarks/RESULTS-heavy.md](benchmarks/RESULTS-heavy.md).
-The latest release walkthrough is in [docs/release-check.md](docs/release-check.md).
+## Stack
 
-## Scope and deployment
-
-Axiom is designed for local, single-user workflows and does not include authentication or multi-tenant access controls. Keep the API on a trusted network; add authentication and rate limiting before exposing it to other users. Revision matching uses `GlobalId`, so re-exported elements with new IDs appear as removed and added. Clash detection and structural capacity or code-compliance calculations are outside the current scope.
-
-Read the full [limitations and scope](docs/limitations.md) before using results in a project workflow.
+Python 3.12 · ifcopenshell / IfcTester 0.9 · FastAPI · Pydantic v2 · SQLAlchemy Core + Alembic · SQLite ·
+React · TypeScript · Vite · Tailwind · TanStack Query · ThatOpen Components / web-ifc · Playwright · Docker
 
 ## License
 
-Axiom BIM is licensed under the [MIT License](LICENSE). See [NOTICE](NOTICE) for third-party licenses and attribution.
+MIT, see [LICENSE](LICENSE). Third-party notices are in [NOTICE](NOTICE).

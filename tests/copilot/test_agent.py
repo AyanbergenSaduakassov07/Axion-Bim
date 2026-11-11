@@ -1,7 +1,7 @@
 import json
 from types import SimpleNamespace as NS
 
-from axiom.copilot.agent import SYSTEM, ask
+from axiom.copilot.agent import SYSTEM, ask, client_from_env
 from axiom.copilot.tools import Scope
 from tests.fixtures.factory import INJECTION_TEXT, stable_guid
 
@@ -115,6 +115,15 @@ def test_reply_without_content_is_an_empty_answer_not_a_crash(seeded):
     scope = Scope(seeded.engine, seeded.project.project_id)
     empty = ask(FakeClient(NS(stop_reason="end_turn", content=None)), scope, "?")
     assert "empty answer" in empty.answer and empty.citations == () and empty.unverified == ()
+
+
+def test_client_gives_up_on_a_hanging_provider_within_minutes(monkeypatch):
+    # seen live: a free OpenRouter upstream held the request open; SDK defaults (600 s x 3 tries) left the
+    # chat silent for up to half an hour
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
+    client = client_from_env()
+    assert client.timeout <= 90 and client.max_retries <= 1
 
 
 def test_injection_text_reaches_the_model_only_as_data(seeded):

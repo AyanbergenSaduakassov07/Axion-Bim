@@ -398,3 +398,21 @@ Closes the core of audit gap G1: an audit now yields a delivery decision, not on
 - Found by the same live run: an overloaded OpenRouter upstream returned `content: null`, and the agent
   raised a TypeError, which the copilot endpoint would surface as a 500. Null content is now treated as an
   empty reply, and the user sees "The model returned an empty answer. Please ask again."
+
+## D-49 — End-user test on real models; three fixes from it (2026-11-11)
+
+A civil-engineer walkthrough of the web app on the buildingSMART Revit ARC/STR samples (`docs/user-test.md`)
+found three issues, all fixed:
+- **Certificate button stayed disabled** after the user typed a name in an issue panel, until a page reload.
+  `Certificate` read the name from localStorage once per render, and nothing re-rendered it. The name is now
+  a small external store (`useAuthorName`, `useSyncExternalStore` plus a window event from
+  `setAuthorName`). The e2e smoke issues a certificate right after typing the name. In e2e another query
+  usually re-renders the page in between, so the manual reproduction is the regression evidence.
+- **Copilot could hang silently for ~30 min** when a free OpenRouter upstream held the request open: SDK
+  defaults are a 600 s timeout and 2 retries. The client now uses a 60 s timeout with 1 retry. A timeout is an
+  `APIError`, so the user gets `503 copilot_unavailable` instead of an empty chat.
+- **Coordination printed float noise** ("2.70000000000008 m", 15-digit coordinates). Display now rounds
+  storey levels to the millimetre and coordinates to 6 decimals; the API keeps full values.
+
+Kept as is, recorded as limitations: QTO-002 checks volumes only, so the Revit mm²-as-m² `OuterSurfaceArea`
+defect is shown in Quantities but not flagged.

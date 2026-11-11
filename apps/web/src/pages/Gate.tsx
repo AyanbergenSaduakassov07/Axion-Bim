@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Gate, GatePolicy } from "../api/client";
-import { authorName, useCertificates, useGate, useGatePolicy, useIssueCertificate, useSetGatePolicy, useSetStage } from "../api/queries";
+import { useAuthorName, useCertificates, useGate, useGatePolicy, useIssueCertificate, useSetGatePolicy, useSetStage } from "../api/queries";
 import { tokenLabel, useT, type T } from "../i18n";
 import { btn, fmt, input, Panel } from "../ui";
 
@@ -90,7 +90,7 @@ function Certificate({ auditId }: { auditId: number }) {
   const { t } = useT();
   const last = useCertificates(auditId).data?.at(-1);
   const issue = useIssueCertificate(auditId);
-  const name = authorName();
+  const name = useAuthorName();
   return (
     <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted" data-testid="certificate">
       <button className={btn} disabled={!name || issue.isPending} title={name ? undefined : t("Enter your name in an issue first")} onClick={() => issue.mutate(name)}>

@@ -11,10 +11,13 @@ function checkLabel(t: T, c: Coordination["checks"][number]["check"]): string {
   return t("Storey levels");
 }
 
+/** Display rounding only: drops float noise like 2.70000000000008 (the backend keeps full values). */
+const round = (x: unknown, digits: number) => (typeof x === "number" ? String(Number(x.toFixed(digits))) : String(x));
+
 function value(v: unknown): string {
   if (v == null) return "—";
-  if (Array.isArray(v)) return v.map((e) => `${e} m`).join(", ") || "—";
-  if (typeof v === "object") return Object.entries(v).map(([k, x]) => `${k} ${x}`).join(", ");
+  if (Array.isArray(v)) return v.map((e) => `${round(e, 3)} m`).join(", ") || "—"; // storey levels to the mm
+  if (typeof v === "object") return Object.entries(v).map(([k, x]) => `${k} ${round(x, 6)}`).join(", "); // ~0.1 m
   return String(v);
 }
 

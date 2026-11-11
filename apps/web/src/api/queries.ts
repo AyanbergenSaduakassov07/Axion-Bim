@@ -1,5 +1,6 @@
 import { backendLang, useT } from "../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSyncExternalStore } from "react";
 import { api, postForm, postJson, putJson, type IdsEntry, type IdsDiff, type Gate, type GatePolicy, type Coordination, type Dashboard, type Issue, type IssueUpdate, type IssueEvent, type CertificateOut, type CopilotAnswer, type CopilotStatus, type Audit, type Change, type Comparison, type FindingEvent, type Quantities, type AuditSummary, type Element, type SpatialTree, type Finding, type Job, type Model, type Project, type Revision, type RevisionSummary } from "./client";
 
 export const useProjects = () => useQuery({ queryKey: ["projects"], queryFn: () => api<Project[]>("/projects") });
@@ -116,12 +117,21 @@ export function authorName(): string {
     return "";
   }
 }
+const AUTHOR_EVENT = "axiom:author";
 export function setAuthorName(name: string): void {
   try {
     localStorage.setItem(AUTHOR_KEY, name);
   } catch {
     // private window: the name is simply not remembered
   }
+  window.dispatchEvent(new Event(AUTHOR_EVENT));
+}
+/** Re-renders when the name is typed anywhere on the page (the certificate button waits for it). */
+export function useAuthorName(): string {
+  return useSyncExternalStore((onChange) => {
+    window.addEventListener(AUTHOR_EVENT, onChange);
+    return () => window.removeEventListener(AUTHOR_EVENT, onChange);
+  }, authorName);
 }
 
 export function useUpdateIssues(modelId: number) {

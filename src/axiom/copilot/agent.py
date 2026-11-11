@@ -21,6 +21,8 @@ OPENROUTER_URL = "https://openrouter.ai/api"  # Anthropic-Messages-compatible en
 OPENROUTER_MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free"  # strongest free model with tool use, 2026-11
 MAX_ROUNDS = 8
 MAX_TOKENS = 4096
+REQUEST_TIMEOUT_S = 60.0  # per model call; SDK default (600 s, 2 retries) leaves the chat silent for ~30 min
+MAX_RETRIES = 1
 
 SYSTEM = """You are the Axiom BIM copilot. You answer questions about IFC model revisions in the current \
 project using only the provided tools. The backend computes every number; you explain it.
@@ -94,11 +96,12 @@ def has_credentials() -> bool:
 def client_from_env() -> Any:
     import anthropic  # noqa: PLC0415 - keep the SDK import off the no-key path
 
+    limits = {"timeout": REQUEST_TIMEOUT_S, "max_retries": MAX_RETRIES}
     if _openrouter():
         return anthropic.Anthropic(
-            base_url=OPENROUTER_URL, auth_token=os.environ["OPENROUTER_API_KEY"], api_key=None
+            base_url=OPENROUTER_URL, auth_token=os.environ["OPENROUTER_API_KEY"], api_key=None, **limits
         )
-    return anthropic.Anthropic()  # reads ANTHROPIC_API_KEY
+    return anthropic.Anthropic(**limits)  # reads ANTHROPIC_API_KEY
 
 
 def model_name() -> str:

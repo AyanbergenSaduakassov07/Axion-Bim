@@ -15,8 +15,11 @@ The project includes a Python engine and CLI, a FastAPI service, and a React web
 - Compares revisions by IFC `GlobalId` and tracks findings as new, resolved, persistent, recurring, changed, or uncertain.
 - Compares reported quantities with geometry-derived volumes, keeping quantity methods separate.
 - Provides a 3D model explorer, quality findings, revision history, quantity summaries, and printable reports.
-- Exports open findings as BCF 3.0 issues (one topic per finding, element selected by GlobalId, stable topic GUIDs across revisions) for BIMcollab, Solibri, Revit and other BCF tools.
-- Offers an optional read-only AI copilot. Citation tokens are checked against tool output from that response.
+- Exports open findings as BCF 3.0 issues (one topic per finding, element selected by GlobalId, stable topic GUIDs across revisions, issue history as dated comments, declared `extensions.xml`) for BIMcollab, Solibri, Revit and other BCF tools.
+- Decides each delivery: accepted, accepted with comments, or rejected, against a per-project policy (minimum MHI, blocking severity, IDS required) that can differ per stage (concept, design, working documentation, as-built). The decision can be frozen as a certificate that hashes the file, ruleset and IDS.
+- Tracks issues per finding (state, assignee, due date, notes, waivers) with a full change history, and sends a Markdown digest of open issues per assignee.
+- Coordinates a project: the latest delivery of every discipline model, optionally for one stage, side by side.
+- Offers an optional read-only AI copilot in English, Russian and Kazakh. Citation tokens are checked against tool output from that response.
 
 ## Screenshots
 
@@ -84,6 +87,15 @@ uv run axiom report <audit-id> --format html --out report.html
 uv run axiom report <audit-id> --format bcf --out issues.bcf   # BCF 3.0 for coordination tools
 ```
 
+More commands:
+
+```bash
+uv run axiom audit model.ifc --ids requirements.ids --gate   # exit 1 unless the delivery is accepted (CI gate)
+uv run axiom audit model.ifc --geometry                      # adds QTO-002: reported vs geometric volume
+uv run axiom quantities model.ifc --by storey --against previous.ifc
+uv run axiom digest --project "Tower A" --out digest.md      # open issues per assignee, overdue first
+```
+
 The demo revisions show a missing material issue being fixed and later reappearing. Axiom marks the reappearing finding as recurring. See the [demo script](docs/demo-script.md) and [fixture source and license notes](examples/models/SOURCES.md).
 
 ## Optional AI copilot
@@ -135,7 +147,7 @@ npx playwright install chromium
 npx playwright test
 ```
 
-Backend benchmarks on public CC-BY models: `uv run python benchmarks/run.py` → [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
+Backend benchmarks on public CC-BY models: `uv run python benchmarks/run.py` → [benchmarks/RESULTS.md](benchmarks/RESULTS.md). Heavy real models (`--local DIR`): seven buildingSMART samples up to 49 MB and 17,553 elements ran end to end with the geometry pass and BCF export in 0.9–24.5 s each, peak memory under 1.7 GB → [benchmarks/RESULTS-heavy.md](benchmarks/RESULTS-heavy.md).
 The latest release walkthrough is in [docs/release-check.md](docs/release-check.md).
 
 ## Scope and deployment

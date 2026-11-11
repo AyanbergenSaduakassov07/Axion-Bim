@@ -139,21 +139,24 @@ def _loop(client: Any, scope: Scope, turn: _Turn, model: str, max_rounds: int) -
         resp = client.messages.create(
             model=model, max_tokens=MAX_TOKENS, system=system, tools=TOOLS, messages=turn.messages
         )
-        turn.messages.append({"role": "assistant", "content": resp.content})
+        content = resp.content or []  # some OpenRouter upstreams send null content when overloaded
+        turn.messages.append({"role": "assistant", "content": content})
         if resp.stop_reason == "pause_turn":
             continue
         if resp.stop_reason != "tool_use":
-            return _final_text(resp), resp.stop_reason
-        uses = [b for b in resp.content if b.type == "tool_use"]
+            return _final_text(resp.stop_reason, content), resp.stop_reason
+        uses = [b for b in content if b.type == "tool_use"]
         turn.messages.append({"role": "user", "content": [_execute(scope, b, turn) for b in uses]})
     return f"Stopped after {max_rounds} tool rounds without a final answer.", "max_rounds"
 
 
-def _final_text(resp: Any) -> str:
-    if resp.stop_reason == "refusal":
+def _final_text(stop_reason: str, content: list) -> str:
+    if stop_reason == "refusal":
         return "The model declined to answer this question."
-    text = "".join(b.text for b in resp.content if b.type == "text").strip()
-    return text + (" [answer truncated]" if resp.stop_reason == "max_tokens" else "")
+    text = "".join(b.text for b in content if b.type == "text").strip()
+    if not text:
+        return "The model returned an empty answer. Please ask again."
+    return text + (" [answer truncated]" if stop_reason == "max_tokens" else "")
 
 
 def _execute(scope: Scope, block: Any, turn: _Turn) -> dict:

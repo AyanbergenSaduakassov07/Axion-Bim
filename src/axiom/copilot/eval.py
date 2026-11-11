@@ -92,20 +92,26 @@ Result = tuple[str, list[str], dict]
 def run_cases(
     cases: list[dict], answer: Callable[[dict], dict], guid: Callable[[str], str]
 ) -> tuple[list[Result], list[str]]:
-    """Grade each case; on a provider rate limit stop and return the ids not run (free tiers cap per day)."""
+    """Grade each case. A rate limit stops the run (free tiers cap per day); a provider outage after the SDK's
+    retries skips only that case. Both return the ids not run, so an outage is never graded as a fail."""
     import anthropic  # noqa: PLC0415
 
     results: list[Result] = []
+    not_run: list[str] = []
     for i, case in enumerate(cases):
         try:
             a = answer(case)
         except anthropic.RateLimitError as e:
             log.warning("rate limited at %s, stopping: %s", case["id"], e.message)
-            return results, [c["id"] for c in cases[i:]]
+            return results, not_run + [c["id"] for c in cases[i:]]
+        except (anthropic.InternalServerError, anthropic.APIConnectionError) as e:
+            log.warning("provider error at %s, skipping: %s", case["id"], e.message)
+            not_run.append(case["id"])
+            continue
         fails = grade(case, a, guid)
         results.append((case["id"], fails, a))
         log.info("%s %s %s", "PASS" if not fails else "FAIL", case["id"], "; ".join(fails))
-    return results, []
+    return results, not_run
 
 
 def _report(results: list[Result], not_run: list[str] | None = None) -> int:
@@ -120,7 +126,9 @@ def _report(results: list[Result], not_run: list[str] | None = None) -> int:
         if fails:
             sys.stdout.write(f"  {cid}: {'; '.join(fails)}\n")
     if not_run:
-        sys.stdout.write(f"  not run (rate limit): {','.join(c.split('-')[0] for c in not_run)}\n")
+        sys.stdout.write(
+            f"  not run (rate limit or provider error): {','.join(c.split('-')[0] for c in not_run)}\n"
+        )
     return 0 if rate >= PASS_TARGET and fabricated == 0 and not not_run else 1
 
 

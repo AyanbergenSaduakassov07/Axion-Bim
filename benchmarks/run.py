@@ -1,9 +1,11 @@
-"""Backend benchmarks: `uv run python benchmarks/run.py [--cache DIR]` from the repo root.
+"""Backend benchmarks: `uv run python benchmarks/run.py [--cache DIR | --local DIR]` from the repo root.
 
-Downloads the CC-BY 4.0 buildingSMART models listed in examples/models/SOURCES.md into a cache dir outside
-the repo, runs each in a fresh subprocess (so peak RSS is per model) through the same services as an upload:
-ingest (extract) → audit (rules + IDS + MHI) → second ingest of the same file → compare. Writes
-benchmarks/RESULTS.md. Viewer load time is measured separately (docs/spikes/00-findings.md, P10).
+Default: downloads the CC-BY 4.0 buildingSMART models listed in examples/models/SOURCES.md into a cache dir
+outside the repo. `--local DIR` benchmarks every *.ifc in DIR instead (heavier public samples you fetched
+yourself). Each model runs in a fresh subprocess (so peak RSS is per model) through the same services as an
+upload: ingest (extract) → audit (rules + IDS + MHI) → gate → geometry pass (QTO-002) → HTML + BCF report →
+Writes benchmarks/RESULTS.md (or `--out FILE`).
+Viewer load time is measured separately (docs/spikes/00-findings.md, P10).
 """
 
 from __future__ import annotations
@@ -28,7 +30,20 @@ BASE = (
 MODELS = ("Building-Architecture", "Building-Structural", "Building-Landscaping", "Infra-Bridge")
 log = logging.getLogger(__name__)
 RSS_DIVISOR = 1e6 if sys.platform == "darwin" else 1e3  # ru_maxrss: bytes on macOS, KiB on Linux
-COLUMNS = ("Model", "Size MB", "Elements", "Extract s", "Audit s", "Compare s", "Peak RSS MB")
+COLUMNS = (
+    "Model",
+    "Schema",
+    "Size MB",
+    "Elements",
+    "Extract s",
+    "Audit s",
+    "Geometry s",
+    "Report s",
+    "Peak RSS MB",
+    "Fail / warn",
+    "MHI",
+    "Gate",
+)
 
 
 def fetch(cache: Path) -> list[Path]:
@@ -43,68 +58,98 @@ def fetch(cache: Path) -> list[Path]:
     return paths
 
 
+def _timed(fn, *args, **kwargs):
+    t0 = time.perf_counter()
+    return fn(*args, **kwargs), time.perf_counter() - t0
+
+
 def measure(ifc: Path) -> dict:
     """One model, in-process. Called in a child process by main()."""
     from axiom.repo.db import get_engine, migrate  # noqa: PLC0415
-    from axiom.services import audits, comparisons, projects, revisions  # noqa: PLC0415
+    from axiom.services import audits, gate, projects, reports, revisions  # noqa: PLC0415
 
     with tempfile.TemporaryDirectory() as tmp:
         engine = get_engine(f"sqlite:///{Path(tmp) / 'b.db'}")
         migrate(engine)
         files = Path(tmp) / "files"
         mid = projects.create_model(engine, projects.create_project(engine, "bench"), ifc.stem)
-        t0 = time.perf_counter()
-        r1 = revisions.ingest(engine, mid, ifc, files_dir=files)
-        t1 = time.perf_counter()
-        audits.run_audit(engine, r1.revision_id, ids_path=IDS, files_dir=files)
-        t2 = time.perf_counter()
-        r2 = revisions.ingest(engine, mid, ifc, files_dir=files)
-        t3 = time.perf_counter()
-        comparisons.compare_with_previous(engine, r2.revision_id)
-        t4 = time.perf_counter()
-        elements = len(revisions.load_snapshot(engine, r1.revision_id).elements)
+        r1, extract_s = _timed(revisions.ingest, engine, mid, ifc, files_dir=files)
+        audit, audit_s = _timed(audits.run_audit, engine, r1.revision_id, ids_path=IDS, files_dir=files)
+        decision = gate.audit_gate(engine, audit.audit_run_id)["decision"]
+        _, geometry_s = _timed(
+            audits.run_audit, engine, r1.revision_id, ids_path=IDS, files_dir=files, geometry=True
+        )
+        report_s = _report(engine, audit.audit_run_id, reports)
+        snap = revisions.load_snapshot(engine, r1.revision_id)
+    statuses = [str(f.status) for f in audit.findings]
     return {
         "model": ifc.stem,
+        "schema": snap.meta.schema_name,
         "size_mb": ifc.stat().st_size / 1e6,
-        "elements": elements,
-        "extract_s": t1 - t0,
-        "audit_s": t2 - t1,
-        "compare_s": t4 - t3,
-        "peak_rss_mb": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-        / (1e6 if sys.platform == "darwin" else 1e3),
+        "elements": len(snap.elements),
+        "extract_s": extract_s,
+        "audit_s": audit_s,
+        "geometry_s": geometry_s,
+        "report_s": report_s,
+        "peak_rss_mb": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / RSS_DIVISOR,
+        "fail": statuses.count("fail"),
+        "warn": statuses.count("warning"),
+        "mhi": audit.mhi.score,
+        "gate": decision,
     }
 
 
-def write_results(rows: list[dict]) -> Path:
-    head = "| " + " | ".join(COLUMNS) + " |\n|" + "---|" * len(COLUMNS) + "\n"
-    body = "".join(
-        f"| {r['model']} | {r['size_mb']:.2f} | {r['elements']} | {r['extract_s']:.2f} | {r['audit_s']:.2f} "
-        f"| {r['compare_s']:.2f} | {r['peak_rss_mb']:.0f} |\n"
-        for r in rows
+def _report(engine, audit_run_id: int, reports) -> float:
+    """HTML + BCF render of the stored audit; asserts the BCF is a non-empty zip."""
+    t0 = time.perf_counter()
+    report = reports.build(engine, audit_run_id)
+    reports.render(report, "html")
+    bcf = reports.render(report, "bcf")
+    assert bcf[:2] == b"PK", "BCF export is not a zip"  # noqa: S101 - benchmark self-check
+    return time.perf_counter() - t0
+
+
+def _row(r: dict) -> str:
+    mhi = "—" if r["mhi"] is None else f"{r['mhi']:.1f}"
+    return (
+        f"| {r['model']} | {r['schema']} | {r['size_mb']:.2f} | {r['elements']} | {r['extract_s']:.2f} "
+        f"| {r['audit_s']:.2f} | {r['geometry_s']:.2f} | {r['report_s']:.2f} "
+        f"| {r['peak_rss_mb']:.0f} | {r['fail']} / {r['warn']} | {mhi} | {r['gate']} |\n"
     )
-    out = ROOT / "benchmarks" / "RESULTS.md"
+
+
+def write_results(rows: list[dict], out: Path, source: str) -> Path:
+    head = "| " + " | ".join(COLUMNS) + " |\n|" + "---|" * len(COLUMNS) + "\n"
     out.write_text(
-        "# Benchmarks\n\nGenerated by `benchmarks/run.py`. Models: buildingSMART Certification-datasets, "
-        "CC-BY 4.0 (see examples/models/SOURCES.md). "
-        "Audit = built-in rules + `examples/ids/structural-basic.ids` + MHI; "
-        "compare = second ingest of the same file vs the first (no changes expected). One run, wall clock, "
-        "single process; peak RSS includes the Python interpreter.\n\n"
-        f"Machine: {platform.platform()}, Python {platform.python_version()}.\n\n{head}{body}"
+        f"# Benchmarks\n\nGenerated by `benchmarks/run.py`. Models: {source}. "
+        "Audit = built-in rules + `examples/ids/structural-basic.ids` + MHI; geometry = audit again with "
+        "the QTO-002 geometry pass; report = HTML + BCF render. "
+        "One run, wall clock, single process; peak RSS includes the "
+        "Python interpreter. Gate = decision under the default project policy.\n\n"
+        f"Machine: {platform.platform()}, Python {platform.python_version()}.\n\n"
+        f"{head}{''.join(_row(r) for r in rows)}"
     )
     return out
 
 
+def _arg(name: str) -> str | None:
+    return sys.argv[sys.argv.index(name) + 1] if name in sys.argv else None
+
+
 def main() -> int:
-    if "--one" in sys.argv:
-        sys.stdout.write(json.dumps(measure(Path(sys.argv[sys.argv.index("--one") + 1]))))
+    if one := _arg("--one"):
+        sys.stdout.write(json.dumps(measure(Path(one))))
         return 0
-    cache = (
-        Path(sys.argv[sys.argv.index("--cache") + 1])
-        if "--cache" in sys.argv
-        else Path.home() / ".cache/axiom-bench"
-    )
+    if local := _arg("--local"):
+        paths, source = sorted(Path(local).glob("*.ifc")), "local public samples (see the notes below)"
+    else:
+        cache = Path(_arg("--cache") or Path.home() / ".cache/axiom-bench")
+        paths, source = (
+            fetch(cache),
+            "buildingSMART Certification-datasets, CC-BY 4.0 (examples/models/SOURCES.md)",
+        )
     rows = []
-    for ifc in fetch(cache):
+    for ifc in paths:
         out = subprocess.run(
             [sys.executable, __file__, "--one", str(ifc)],
             capture_output=True,
@@ -114,7 +159,8 @@ def main() -> int:
         )
         rows.append(json.loads(out.stdout.strip().splitlines()[-1]))
         log.info("%s", rows[-1])
-    log.info("wrote %s", write_results(rows))
+    out_file = Path(_arg("--out") or ROOT / "benchmarks" / "RESULTS.md")
+    log.info("wrote %s", write_results(rows, out_file, source))
     return 0
 
 

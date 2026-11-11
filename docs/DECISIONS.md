@@ -383,3 +383,18 @@ Closes the core of audit gap G1: an audit now yields a delivery decision, not on
 - Maps to MHI `geometry_integrity`; scoring config bumped to `2026.11-2` (stored with each audit), ruleset
   version changes with it. Scores of the fixtures are unchanged (every element passes).
 - Still open from G7: duplicate/overlap and storey height-range rules, both need the geometry pass.
+
+## D-48 — Heavy-model benchmark; eval survives provider outages (2026-11-11)
+
+- `benchmarks/run.py --local DIR [--out FILE]` benchmarks any folder of IFC files. Per model, in a fresh
+  subprocess, it times ingest, audit (rules + IDS + MHI), the geometry pass and the HTML + BCF render, and
+  records peak RSS, fail and warning counts, MHI and the gate decision. The BCF must be a zip. The old
+  "compare" column was dropped: re-ingesting an identical file is deduplicated by hash, so it timed a no-op.
+  Real revision pairs are measured with `axiom compare`. Results are in `benchmarks/RESULTS-heavy.md`
+  (seven buildingSMART samples up to 49 MB and 17.5k elements; no crash, peak memory < 1.7 GB).
+- The live copilot eval (`axiom.copilot.eval`) used to abort on a single provider 5xx or connection error.
+  Such a case is now listed as *not run* and the run continues. A rate limit still stops the run. An outage
+  is never graded as a fail, and a run with any case not run exits non-zero.
+- Found by the same live run: an overloaded OpenRouter upstream returned `content: null`, and the agent
+  raised a TypeError, which the copilot endpoint would surface as a 500. Null content is now treated as an
+  empty reply, and the user sees "The model returned an empty answer. Please ask again."

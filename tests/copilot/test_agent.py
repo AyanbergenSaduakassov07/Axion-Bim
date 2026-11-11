@@ -110,6 +110,13 @@ def test_refusal_and_round_limit(seeded):
     assert capped.stop_reason == "max_rounds" and len(loop.requests) == 3
 
 
+def test_reply_without_content_is_an_empty_answer_not_a_crash(seeded):
+    # seen live on OpenRouter: an overloaded upstream returned stop_reason end_turn with content null
+    scope = Scope(seeded.engine, seeded.project.project_id)
+    empty = ask(FakeClient(NS(stop_reason="end_turn", content=None)), scope, "?")
+    assert "empty answer" in empty.answer and empty.citations == () and empty.unverified == ()
+
+
 def test_injection_text_reaches_the_model_only_as_data(seeded):
     w2 = stable_guid("W2")
     args = {"revision_id": seeded.project.revisions["injection"], "global_id": w2}

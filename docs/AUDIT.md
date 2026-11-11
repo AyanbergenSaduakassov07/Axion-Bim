@@ -108,6 +108,7 @@ Each phase has an exit criterion that can be observed, not a feature count.
 | G1 (part) | Gate policy per delivery stage (concept / design / working documentation / as-built), falling back to the project default; the reviewer sets the stage of each delivery (D-45) |
 | G5 (part) | Coordination per stage: the project decision and cross-model checks over each model's latest delivery at the chosen stage (D-46) |
 | G7 (part) | GEO-003: elements placed far from the rest of the model (max 1 km or 10x the model's spread) are warned about, with distance as evidence (D-47) |
+| Verification | Seven real buildingSMART models (up to 49 MB, 17.5k elements, IFC2X3/4/4X3) run end to end with no crash, peak memory under 1.7 GB; results in `benchmarks/RESULTS-heavy.md`. The live copilot eval no longer aborts on a provider outage, and a null model reply no longer crashes the copilot (D-48) |
 | Bug | An IDS uploaded with a revision did not appear in the library until the cache expired |
 
 ### R1 — usable by one team on one real project

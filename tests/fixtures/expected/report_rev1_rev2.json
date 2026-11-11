@@ -215,6 +215,9 @@
     "GEO-002": {
       "pass": 16
     },
+    "GEO-003": {
+      "pass": 16
+    },
     "IDS:STR-BEAM": {
       "pass": 10
     },
@@ -255,7 +258,7 @@
   "mhi": {
     "blocked": false,
     "blocking": [],
-    "config_version": "2026.11-1",
+    "config_version": "2026.11-2",
     "coverage": 100.0,
     "dimensions": {
       "classification_quality": {
@@ -275,7 +278,7 @@
         "errors": 0,
         "failed": 0,
         "not_evaluated": 0,
-        "passed": 16,
+        "passed": 32,
         "score": 100.0,
         "warnings": 0,
         "weight": 0.15
@@ -345,8 +348,8 @@
     "file_sha256": "<volatile>",
     "geometry": false,
     "ids_hash": "57148fa81f05d01a105f9151b7e70329a5b2ac49bbb9ac63ba3c3cbd7b52463b",
-    "ruleset_version": "7c2166b34235c512",
-    "scoring_config": "2026.11-1"
+    "ruleset_version": "ebf3d050a4c6d9cd",
+    "scoring_config": "2026.11-2"
   },
   "rules": [
     {
@@ -389,6 +392,17 @@
       "name": "GlobalId is unique",
       "scope": "model",
       "severity": "critical",
+      "version": "1"
+    },
+    {
+      "applies_to": [],
+      "category": "geometry",
+      "description": "Placement origin within max(1 km, 10x the median distance) of the model's median origin. Stray elements far away usually come from a wrong unit or a copy-paste in the authoring tool.",
+      "dimension": "geometry",
+      "id": "GEO-003",
+      "name": "Element is placed near the rest of the model",
+      "scope": "model",
+      "severity": "medium",
       "version": "1"
     },
     {

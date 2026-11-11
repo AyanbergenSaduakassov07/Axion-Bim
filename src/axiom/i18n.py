@@ -30,6 +30,9 @@ _PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = tuple(
             r"\1: не размещён ни в одном пространственном элементе",
         ),
         (r"GlobalId (\S+) is shared by (\d+) elements", r"GlobalId \1 используется \2 элементами"),
+        (rf"{_C} is (\d+) m from the rest of the model", r"\1 находится в \2 м от остальной модели"),
+        (r"within (\d+) m of the model centre", r"в пределах \1 м от центра модели"),
+        (r"(\d+) m", r"\1 м"),
         (
             r"declared volume disagrees with geometry; likely unit-scale error \((x[\d.e+]+)\)",
             r"заявленный объём расходится с геометрией; вероятна ошибка масштаба единиц (\1)",

@@ -371,3 +371,15 @@ Closes the core of audit gap G1: an audit now yields a delivery decision, not on
   (D-45) instead of its latest upload, so the project decision and cross-model checks compare one stage's
   delivery set. A model without a delivery at that stage leaves the decision undecided. No stage = latest.
 - The coordination panel has a stage picker.
+
+## D-47 — GEO-003: element far from the rest of the model (2026-11-11)
+
+- Model-scope rule over the world placement origins stored at extraction (no geometry pass, so it runs in
+  every audit). Centre = per-axis median of all origins; limit = max(1 km, 10 × median distance to the
+  centre), so a long road or rail model is not flagged for its own length.
+- Beyond the limit: `warning` (medium), issue key `placement:far`, evidence distance, limit and centre. A
+  warning, not a fail: a site hut or a survey point may be far on purpose. Fewer than 3 placed elements, or an
+  element without a placement: `not_evaluated`.
+- Maps to MHI `geometry_integrity`; scoring config bumped to `2026.11-2` (stored with each audit), ruleset
+  version changes with it. Scores of the fixtures are unchanged (every element passes).
+- Still open from G7: duplicate/overlap and storey height-range rules, both need the geometry pass.

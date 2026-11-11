@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+import statistics
 from collections import defaultdict
 from collections.abc import Iterable
 
@@ -73,6 +75,62 @@ def geo_002(ctx: ModelContext) -> Iterable[tuple[Element | None, CheckResult]]:
                 },
             ),
         )
+
+
+FAR_MIN_M = 1000.0  # never flag closer than this: a building site fits well inside 1 km
+FAR_SPREAD_FACTOR = (
+    10  # ...nor within 10x the model's typical distance, so long infrastructure is not flagged
+)
+MIN_PLACED = 3  # a centre needs a few placements to mean anything
+
+
+@rule(
+    id="GEO-003",
+    version="1",
+    name="Element is placed near the rest of the model",
+    category="geometry",
+    severity="medium",
+    dimension="geometry",
+    scope=Scope.MODEL,
+    description=(
+        "Placement origin within max(1 km, 10x the median distance) of the model's median origin. "
+        "Stray elements far away usually come from a wrong unit or a copy-paste in the authoring tool."
+    ),
+)
+def geo_003(ctx: ModelContext) -> Iterable[tuple[Element | None, CheckResult]]:
+    """World placement origin from extraction, no geometry pass. Warning, not fail: it may be intended."""
+    placed = [e for e in ctx.snapshot.elements if e.origin_m is not None]
+    if len(placed) < MIN_PLACED:
+        for e in ctx.snapshot.elements:
+            yield (
+                e,
+                CheckResult(CheckStatus.NOT_EVALUATED, message="too few placed elements to find a centre"),
+            )
+        return
+    centre = tuple(statistics.median(e.origin_m[i] for e in placed) for i in range(3))
+    dist = {e.step_id: math.dist(e.origin_m, centre) for e in placed}
+    limit = max(FAR_MIN_M, FAR_SPREAD_FACTOR * statistics.median(dist.values()))
+    for e in ctx.snapshot.elements:
+        if e.origin_m is None:
+            yield e, CheckResult(CheckStatus.NOT_EVALUATED, message="element has no placement")
+        elif dist[e.step_id] <= limit:
+            yield e, PASS
+        else:
+            yield (
+                e,
+                CheckResult(
+                    CheckStatus.WARNING,
+                    "placement:far",
+                    expected=f"within {limit:.0f} m of the model centre",
+                    actual=f"{dist[e.step_id]:.0f} m",
+                    message=f"{e.ifc_class} is {dist[e.step_id]:.0f} m from the rest of the model",
+                    evidence={
+                        "distance_m": round(dist[e.step_id], 1),
+                        "limit_m": round(limit, 1),
+                        "centre_m": [round(c, 2) for c in centre],
+                    },
+                ),
+            )
 
 
 @rule(

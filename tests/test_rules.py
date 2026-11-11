@@ -148,3 +148,23 @@ def test_virtual_elements_are_not_extracted(tmp_path):
     ifcopenshell.api.run("root.create_entity", f, ifc_class="IfcWall", name="W")
     f.write(str(tmp_path / "v.ifc"))
     assert [e.ifc_class for e in extract(tmp_path / "v.ifc").elements] == ["IfcWall"]
+
+
+def test_an_element_far_from_the_rest_of_the_model_is_flagged(ifc_path):
+    snap = extract(ifc_path("clean"))
+    stray = next(e for e in snap.elements if e.name == "C2")
+    moved = stray.model_copy(update={"origin_m": (5000.0, 0.0, 0.0)})
+    snap = snap.model_copy(update={"elements": tuple(moved if e is stray else e for e in snap.elements)})
+    out = run_rules(snap, model_id=1)
+    [f] = [f for f in out.findings if f.rule_id == "GEO-003"]
+    assert (f.element_name, f.status, f.issue_key) == ("C2", CheckStatus.WARNING, "placement:far")
+    assert f.evidence["distance_m"] > 4990 and f.evidence["limit_m"] == 1000
+    assert "fail" not in out.counts["GEO-003"]
+
+
+def test_far_element_rule_is_not_evaluated_without_enough_placements(ifc_path):
+    snap = extract(ifc_path("clean"))
+    snap = snap.model_copy(
+        update={"elements": tuple(e.model_copy(update={"origin_m": None}) for e in snap.elements)}
+    )
+    assert set(run_rules(snap, model_id=1).counts["GEO-003"]) == {"not_evaluated"}

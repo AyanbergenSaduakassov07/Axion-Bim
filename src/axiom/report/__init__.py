@@ -16,6 +16,7 @@ FORMATS = {"json": "application/json", "csv": "text/csv", "html": "text/html", "
 CSV_FIELDS = (
     "global_id", "element_name", "ifc_class", "rule_id", "rule_version", "status", "severity",
     "category", "dimension", "expected", "actual", "message", "identity_key",
+    "state", "assignee", "due_date", "note",
 )  # fmt: skip
 
 _env = Environment(
@@ -49,5 +50,6 @@ def _csv(findings: list[dict]) -> str:
     out = io.StringIO()
     w = csv.DictWriter(out, fieldnames=CSV_FIELDS, extrasaction="ignore", lineterminator="\n")
     w.writeheader()
-    w.writerows(findings)
+    # triage columns: a finding nobody touched is open and unassigned
+    w.writerows({"state": "open", **f, **(f.get("issue") or {})} for f in findings)
     return out.getvalue()

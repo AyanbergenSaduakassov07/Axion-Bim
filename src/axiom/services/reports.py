@@ -9,7 +9,9 @@ from sqlalchemy import Connection, Engine
 from axiom.repo import audits as audit_repo
 from axiom.repo import browse as repo
 from axiom.repo import comparisons as cmp_repo
+from axiom.repo import issues as issue_repo
 from axiom.report import FORMAT_VERSION, render  # noqa: F401  (render re-exported for callers)
+from axiom.services.issues import EDITABLE
 
 REVISION_META = ("project_name", "authoring_app")
 
@@ -46,8 +48,12 @@ def build(engine: Engine, audit_run_id: int, comparison_id: int | None = None) -
 
 def _findings(conn: Connection, audit_run_id: int, revision_id: int) -> list[dict]:
     origins = repo.element_origins(conn, revision_id)  # for BCF viewpoints
+    model_id = repo.get_revision(conn, revision_id).model_id
+    triage = {
+        i.identity_key: {k: getattr(i, k) for k in EDITABLE} for i in issue_repo.list_issues(conn, model_id)
+    }
     return [
-        {**f.model_dump(), "origin_m": origins.get(f.step_id)}
+        {**f.model_dump(), "origin_m": origins.get(f.step_id), "issue": triage.get(f.identity_key)}
         for f in audit_repo.load_findings(conn, audit_run_id)
     ]
 

@@ -2,7 +2,7 @@ import { Highlighter, ShieldAlert, TriangleAlert, X } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 import { useParams, useSearchParams } from "react-router";
 import type { AuditSummary, Dimension, Finding, Mhi, RuleMeta } from "../api/client";
-import { useAuditSummary, useFindings, useIssues, useRevision } from "../api/queries";
+import { useAuditSummary, useFindings, useIdsLibrary, useIssues, useRevision } from "../api/queries";
 import { tokenLabel, useT, type T } from "../i18n";
 import { btn, Empty, fmt, Panel, Q, RevisionNav, SEVERITIES, Severity, Status, tokenColor } from "../ui";
 import { ReportExport } from "./ComparisonView";
@@ -30,7 +30,12 @@ export function Quality() {
     <div className="flex h-[calc(100dvh-4.5rem)] flex-col gap-3">
       <RevisionNav revisionId={revisionId} title={t("Quality Center")} actions={auditId != null && <ReportExport auditId={auditId} />} />
       <Q q={summary} rows={4}>
-        {(s: AuditSummary) => <HealthHeader mhi={s.mhi} />}
+        {(s: AuditSummary) => (
+          <>
+            <HealthHeader mhi={s.mhi} />
+            <IdsUsed projectId={rev.data?.project_id} hash={s.reproducibility.ids_hash as string | null} />
+          </>
+        )}
       </Q>
       <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[1fr_400px]">
         <section className="flex min-h-0 min-w-0 flex-col rounded border border-line bg-panel">
@@ -247,6 +252,17 @@ function FindingDetail({ f, rule, onClose, children }: { f: Finding; rule?: Rule
         </div>
       </div>
     </section>
+  );
+}
+
+/** Which client requirements this audit was checked against: the library name, or the file hash if it was removed. */
+function IdsUsed({ projectId, hash }: { projectId: number | undefined; hash: string | null }) {
+  const name = useIdsLibrary(projectId).data?.find((e) => e.ids_hash === hash)?.name;
+  const { t } = useT();
+  return (
+    <p className="text-xs text-muted" title={hash ?? undefined}>
+      {hash ? t("Requirements checked: {name}", { name: name ?? `IDS ${hash.slice(0, 12)}` }) : t("No requirements file (IDS) was used in this audit.")}
+    </p>
   );
 }
 

@@ -305,4 +305,11 @@ export const kk: Record<string, string> = {
   "IDS requirements (optional)": "IDS талаптары (міндетті емес)",
   None: "Жоқ",
   "Upload a new file…": "Жаңа файл жүктеу…",
+  "Rename": "Атын өзгерту",
+  "Rename {name}": "{name} атын өзгерту",
+  "Remove": "Жою",
+  "Remove {name}": "{name} жою",
+  "Remove “{name}” from the library? Past audits keep their results.": "«{name}» кітапханадан жойылсын ба? Бұрынғы тексерулердің нәтижелері сақталады.",
+  "Requirements checked: {name}": "Талаптар бойынша тексерілді: {name}",
+  "No requirements file (IDS) was used in this audit.": "Бұл тексеруде талаптар файлы (IDS) қолданылмады.",
 };

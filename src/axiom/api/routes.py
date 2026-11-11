@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import asdict
-from datetime import date
+from datetime import date, datetime
 from typing import Annotated, Any, Literal
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile
 from fastapi.responses import FileResponse, Response
@@ -89,8 +90,15 @@ def create_model(db: Db, project_id: int, body: NameIn) -> dict:
 
 
 @router.get("/projects/{project_id}/dashboard", response_model=Dashboard)
-def project_dashboard(db: Db, project_id: int) -> dict:
-    return dashboard.project_dashboard(db, project_id, date.today())
+def project_dashboard(
+    db: Db, project_id: int, tz: Annotated[str | None, Query(max_length=64)] = None
+) -> dict:
+    """`tz` (IANA name, sent by the browser) decides which day "overdue" is measured against."""
+    try:
+        today = datetime.now(ZoneInfo(tz)).date() if tz else date.today()
+    except (ZoneInfoNotFoundError, ValueError) as e:
+        raise ValueError(f"unknown timezone {tz!r}") from e
+    return dashboard.project_dashboard(db, project_id, today)
 
 
 @router.get("/models/{model_id}", response_model=ModelOut)
@@ -150,6 +158,16 @@ def add_project_ids(
 @router.put("/projects/{project_id}/ids/{entry_id}/default", response_model=list[IdsEntry])
 def set_default_ids(db: Db, project_id: int, entry_id: int, body: DefaultIn) -> list[dict]:
     return ids_library.set_default(db, project_id, entry_id, body.is_default)
+
+
+@router.patch("/projects/{project_id}/ids/{entry_id}", response_model=IdsEntry)
+def rename_project_ids(db: Db, project_id: int, entry_id: int, body: NameIn) -> dict:
+    return ids_library.rename(db, project_id, entry_id, body.name)
+
+
+@router.delete("/projects/{project_id}/ids/{entry_id}", status_code=204)
+def delete_project_ids(db: Db, project_id: int, entry_id: int) -> None:
+    ids_library.remove(db, project_id, entry_id)
 
 
 @router.post("/ids", response_model=IdsOut, status_code=201)

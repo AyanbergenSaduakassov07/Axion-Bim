@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy import Connection, Row, insert, select, update
+from sqlalchemy import Connection, Row, delete, insert, select, update
 
 from axiom.repo.tables import project_ids
 
@@ -46,3 +46,11 @@ def set_default(conn: Connection, project_id: int, entry_id: int, is_default: bo
             update(project_ids).where(project_ids.c.project_id == project_id).values(is_default=False)
         )
     conn.execute(update(project_ids).where(project_ids.c.id == entry_id).values(is_default=is_default))
+
+
+def rename(conn: Connection, entry_id: int, name: str) -> None:
+    conn.execute(update(project_ids).where(project_ids.c.id == entry_id).values(name=name))
+
+
+def delete_entry(conn: Connection, entry_id: int) -> None:
+    conn.execute(delete(project_ids).where(project_ids.c.id == entry_id))

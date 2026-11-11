@@ -7,6 +7,7 @@ from bcf.v3.bcfxml import BcfXml
 
 from axiom.report import render
 from axiom.report.bcf import topic_guid
+from tests.test_api import V1, _model, _upload, client  # noqa: F401 - client is a fixture
 
 
 def _finding(status: str, gid: str | None, key: str, origin=None) -> dict:
@@ -67,3 +68,27 @@ def test_camera_looks_at_the_element_origin(tmp_path):
     norm = sum(c * c for c in to_target) ** 0.5
     assert 3.0 < norm < 30.0  # close-up, not the 52 m origin overview
     assert (d.x, d.y, d.z) == pytest.approx(tuple(c / norm for c in to_target))
+
+
+def test_issue_triage_travels_with_the_topic(tmp_path):
+    issue = {"state": "in_progress", "assignee": "Dana", "due_date": "2026-12-01", "note": "fix in r3"}
+    report = {**REPORT, "findings": [{**REPORT["findings"][0], "issue": issue}, REPORT["findings"][1]]}
+    bcf = _load(tmp_path, render(report, "bcf"))  # keep the handle: topics read the zip lazily
+    topics = bcf.topics
+    t = topics[topic_guid("k-fail")].topic
+    assert (t.topic_status, t.assigned_to) == ("In Progress", "Dana")
+    assert str(t.due_date).startswith("2026-12-01")
+    assert [c.comment for c in topics[topic_guid("k-fail")].comments] == ["fix in r3"]
+    assert topics[topic_guid("k-warn")].topic.topic_status == "Open"  # untriaged stays open
+
+
+def test_report_findings_carry_issue_triage(client, ifc_path):  # noqa: F811
+    c = client
+    mid = _model(c)
+    aid = _upload(c, mid, ifc_path("rev1"))["result"]["audit_run_id"]
+    key = c.get(f"{V1}/audits/{aid}/findings").json()[0]["identity_key"]
+    c.put(f"{V1}/models/{mid}/issues", json={"identity_keys": [key], "assignee": "Dana"})
+    csv_text = c.post(f"{V1}/audits/{aid}/reports", params={"format": "csv"}).text
+    header, *rows = csv_text.splitlines()
+    assert header.endswith("state,assignee,due_date,note")
+    assert sum(",open,Dana,," in r for r in rows) == 1

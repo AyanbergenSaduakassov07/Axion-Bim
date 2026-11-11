@@ -108,8 +108,11 @@ export function useUpdateIssues(modelId: number) {
   });
 }
 
+/** "Overdue" is judged against the viewer's calendar day, not the server's. */
+const TZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
 export const useDashboard = (projectId: number) =>
-  useQuery({ queryKey: ["dashboard", projectId], queryFn: () => api<Dashboard>(`/projects/${projectId}/dashboard`) });
+  useQuery({ queryKey: ["dashboard", projectId], queryFn: () => api<Dashboard>(`/projects/${projectId}/dashboard?tz=${encodeURIComponent(TZ)}`) });
 
 export const useModel = (modelId: number) => useQuery({ queryKey: ["model", modelId], queryFn: () => api<Model>(`/models/${modelId}`) });
 
@@ -131,6 +134,15 @@ export function useIdsMutations(projectId: number) {
     setDefault: useMutation({
       mutationFn: ({ id, is_default }: { id: number; is_default: boolean }) =>
         putJson<IdsEntry[]>(`/projects/${projectId}/ids/${id}/default`, { is_default }),
+      onSuccess: refresh,
+    }),
+    rename: useMutation({
+      mutationFn: ({ id, name }: { id: number; name: string }) =>
+        api<IdsEntry>(`/projects/${projectId}/ids/${id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ name }) }),
+      onSuccess: refresh,
+    }),
+    remove: useMutation({
+      mutationFn: (id: number) => api<void>(`/projects/${projectId}/ids/${id}`, { method: "DELETE" }),
       onSuccess: refresh,
     }),
   };

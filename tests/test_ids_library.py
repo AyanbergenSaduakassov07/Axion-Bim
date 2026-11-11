@@ -40,3 +40,16 @@ def test_rejects_invalid_ids_file(client):  # noqa: F811
         f"{V1}/projects/{pid}/ids", files={"file": ("bad.ids", b"<not-ids/>")}, data={"name": "x"}
     )
     assert r.status_code in (400, 422)
+
+
+def test_rename_and_delete_entry(client):  # noqa: F811
+    pid = _project(client)
+    eid = _add(client, pid).json()["id"]
+    r = client.patch(f"{V1}/projects/{pid}/ids/{eid}", json={"name": "  Client EIR v2 "})
+    assert r.status_code == 200 and r.json()["name"] == "Client EIR v2"
+    assert client.patch(f"{V1}/projects/{pid}/ids/{eid}", json={"name": " "}).status_code == 400
+    assert client.patch(f"{V1}/projects/{pid}/ids/999", json={"name": "x"}).status_code == 404
+    assert client.delete(f"{V1}/projects/{pid}/ids/{eid}").status_code == 204
+    assert client.get(f"{V1}/projects/{pid}/ids").json() == []
+    assert client.delete(f"{V1}/projects/{pid}/ids/{eid}").status_code == 404
+    assert _add(client, pid).status_code == 201  # the stored file survives, so it can be added again

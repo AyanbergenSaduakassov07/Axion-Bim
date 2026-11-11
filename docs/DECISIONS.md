@@ -224,3 +224,19 @@ data remain English; the copilot answers in the language of the question.
   default; at most one default per project.
 - The revision upload stays explicit: it takes an `ids_hash` or nothing. The default only preselects the choice in the
   upload form, so a CLI or API upload never picks up requirements silently.
+
+## D-35 Closing the small future-work items (2026-11-11)
+
+- **Issues in reports (F2 export).** `services.reports` attaches `issue` (state, assignee, due_date, note; `null`
+  when untriaged) to every finding. BCF: `topic_status` from the state (Open / In Progress / Disputed / Accepted /
+  Closed), `assigned_to`, `due_date`, and the note as one comment whose GUID derives from the topic GUID, so a
+  re-export updates it. CSV gains `state, assignee, due_date, note`; an untriaged finding is `open`. Accepted and
+  closed issues are still exported, so a BCF tool sees the status change. BCF import is not built.
+- **IDS library (F3).** `PATCH /projects/{id}/ids/{entry}` renames, `DELETE` removes the library row only: the
+  content-addressed file stays because past audits cite its hash. The Quality Center shows the library name of
+  the audit's `ids_hash`, or the short hash when the entry was removed.
+- **Overdue date (F7).** `GET /projects/{id}/dashboard?tz=<IANA>`; the browser sends its own zone. This is the
+  viewer's day, not a project setting: two people in different zones can see different overdue counts near midnight.
+- **Revisions list (F8)** returns `score` and `blocked` of the latest audit (`null` until audited).
+- **Explorer tree (F9)** uses CSS `content-visibility: auto` per row instead of a windowing library.
+- Engineer's audit, product vision and phased roadmap: `docs/AUDIT.md`.

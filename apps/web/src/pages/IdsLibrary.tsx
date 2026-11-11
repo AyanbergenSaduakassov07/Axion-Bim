@@ -1,4 +1,4 @@
-import { FileCheck2, Star } from "lucide-react";
+import { FileCheck2, Pencil, Star, Trash2 } from "lucide-react";
 import type { IdsEntry } from "../api/client";
 import { useIdsLibrary, useIdsMutations } from "../api/queries";
 import { useT } from "../i18n";
@@ -7,7 +7,7 @@ import { btn, date, ErrorState, Panel, Q } from "../ui";
 /** Project IDS library (D-34): the client's requirement files, kept once and offered on every upload. */
 export function IdsLibrary({ projectId }: { projectId: number }) {
   const q = useIdsLibrary(projectId);
-  const { add, setDefault } = useIdsMutations(projectId);
+  const { add, setDefault, rename, remove } = useIdsMutations(projectId);
   const { t } = useT();
   return (
     <Panel
@@ -47,6 +47,27 @@ export function IdsLibrary({ projectId }: { projectId: number }) {
                 >
                   <Star size={12} aria-hidden className={r.is_default ? "fill-accent text-accent" : ""} />
                   {r.is_default ? t("Default for uploads") : t("Make default")}
+                </button>
+                <button
+                  className={`${btn} shrink-0`}
+                  aria-label={t("Rename {name}", { name: r.name })}
+                  title={t("Rename")}
+                  onClick={() => {
+                    const name = window.prompt(t("Rename"), r.name)?.trim();
+                    if (name && name !== r.name) rename.mutate({ id: r.id, name });
+                  }}
+                >
+                  <Pencil size={12} aria-hidden />
+                </button>
+                <button
+                  className={`${btn} shrink-0`}
+                  aria-label={t("Remove {name}", { name: r.name })}
+                  title={t("Remove")}
+                  onClick={() => {
+                    if (window.confirm(t("Remove “{name}” from the library? Past audits keep their results.", { name: r.name }))) remove.mutate(r.id);
+                  }}
+                >
+                  <Trash2 size={12} aria-hidden />
                 </button>
               </li>
             ))}

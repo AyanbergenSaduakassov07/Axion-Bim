@@ -24,6 +24,13 @@ from xsdata.models.datatype import XmlDateTime
 OPEN = frozenset({"fail", "warning"})
 NAMESPACE = uuid.UUID("6f7d2c1e-3b4a-4f0e-9a8b-41c0f1e2d3a4")  # fixed: same finding -> same topic GUID
 AUTHOR = "Axiom BIM"
+BCF_STATUS = {
+    "open": "Open",
+    "in_progress": "In Progress",
+    "disputed": "Disputed",
+    "accepted": "Accepted",
+    "closed": "Closed",
+}
 OVERVIEW_OFFSET_M = np.array((30.0, 30.0, 30.0))
 CLOSE_UP_OFFSET_M = np.array((6.0, -8.0, 5.0))  # ~11 m away, from the south-east, above
 
@@ -49,12 +56,17 @@ def to_bcf(report: dict) -> bytes:
 def _topic(f: dict, now: XmlDateTime, audit_id: int) -> TopicHandler:
     guid = topic_guid(f["identity_key"])
     element = f["element_name"] or f["global_id"] or "project"
+    issue = f.get("issue") or {}
+    due = issue.get("due_date")
     topic = mdl.Topic(
         guid=guid,
         title=f"{f['rule_id']} · {element}: {f['message']}"[:250],
         description=_description(f, audit_id),
         topic_type="Information deficiency" if f["status"] == "fail" else "Warning",
-        topic_status="Open",
+        topic_status=BCF_STATUS[issue.get("state") or "open"],
+        assigned_to=issue.get("assignee"),
+        due_date=XmlDateTime.from_string(f"{due}T00:00:00Z") if due else None,
+        comments=_note(issue.get("note"), guid, now),
         priority=f["severity"],
         labels=mdl.TopicLabels(label=[f["rule_id"], f["dimension"] or f["category"] or "other"]),
         creation_date=now,
@@ -70,6 +82,13 @@ def _topic(f: dict, now: XmlDateTime, audit_id: int) -> TopicHandler:
         )
         handler.add_visinfo_handler(VisualizationInfoHandler(visualization_info=vi))
     return handler
+
+
+def _note(note: str | None, topic: str, now: XmlDateTime) -> mdl.TopicComments | None:
+    if not note:
+        return None
+    guid = str(uuid.uuid5(NAMESPACE, f"{topic}:note"))  # stable, so a re-export updates the comment
+    return mdl.TopicComments(comment=[mdl.Comment(guid=guid, date=now, author=AUTHOR, comment=note)])
 
 
 def _camera(origin: list[float] | None) -> mdl.PerspectiveCamera:

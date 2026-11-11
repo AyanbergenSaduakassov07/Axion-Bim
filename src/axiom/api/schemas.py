@@ -31,6 +31,8 @@ class RevisionOut(BaseModel):
     schema_name: str
     status: str
     created_at: datetime
+    score: float | None = None  # MHI of the latest audit; None until audited
+    blocked: bool | None = None
 
 
 class RevisionSummary(BaseModel):

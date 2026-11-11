@@ -47,7 +47,12 @@ def require_model(engine: Engine, model_id: int) -> None:
 def list_revisions(engine: Engine, model_id: int) -> list[dict]:
     with engine.connect() as conn:
         _found(repo.get_model(conn, model_id), "model", model_id)
-        return [r._asdict() for r in repo.list_revisions(conn, model_id)]
+        out = []
+        for r in repo.list_revisions(conn, model_id):
+            audit = cmp_repo.latest_audit(conn, r.id)
+            mhi = audit.summary_json["mhi"] if audit else {}
+            out.append({**r._asdict(), "score": mhi.get("score"), "blocked": mhi.get("blocked")})
+        return out
 
 
 def revision_summary(engine: Engine, revision_id: int) -> dict:

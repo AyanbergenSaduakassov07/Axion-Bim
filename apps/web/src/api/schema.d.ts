@@ -289,7 +289,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Project Dashboard */
+        /**
+         * Project Dashboard
+         * @description `tz` (IANA name, sent by the browser) decides which day "overdue" is measured against.
+         */
         get: operations["project_dashboard_api_v1_projects__project_id__dashboard_get"];
         put?: never;
         post?: never;
@@ -315,6 +318,24 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/ids/{entry_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Project Ids */
+        delete: operations["delete_project_ids_api_v1_projects__project_id__ids__entry_id__delete"];
+        options?: never;
+        head?: never;
+        /** Rename Project Ids */
+        patch: operations["rename_project_ids_api_v1_projects__project_id__ids__entry_id__patch"];
         trace?: never;
     };
     "/api/v1/projects/{project_id}/ids/{entry_id}/default": {
@@ -1002,6 +1023,8 @@ export interface components {
         };
         /** RevisionOut */
         RevisionOut: {
+            /** Blocked */
+            blocked?: boolean | null;
             /**
              * Created At
              * Format: date-time
@@ -1017,6 +1040,8 @@ export interface components {
             model_id: number;
             /** Schema Name */
             schema_name: string;
+            /** Score */
+            score?: number | null;
             /** Seq */
             seq: number;
             /** Status */
@@ -1751,7 +1776,9 @@ export interface operations {
     };
     project_dashboard_api_v1_projects__project_id__dashboard_get: {
         parameters: {
-            query?: never;
+            query?: {
+                tz?: string | null;
+            };
             header?: never;
             path: {
                 project_id: number;
@@ -1828,6 +1855,72 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdsEntry"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_project_ids_api_v1_projects__project_id__ids__entry_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: number;
+                entry_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rename_project_ids_api_v1_projects__project_id__ids__entry_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: number;
+                entry_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NameIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

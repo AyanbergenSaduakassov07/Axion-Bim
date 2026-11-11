@@ -332,4 +332,11 @@ export const ru: Record<string, string> = {
   "IDS requirements (optional)": "Требования IDS (необязательно)",
   "None": "Нет",
   "Upload a new file…": "Загрузить новый файл…",
+  "Rename": "Переименовать",
+  "Rename {name}": "Переименовать {name}",
+  "Remove": "Удалить",
+  "Remove {name}": "Удалить {name}",
+  "Remove “{name}” from the library? Past audits keep their results.": "Удалить «{name}» из библиотеки? Результаты прошлых проверок сохранятся.",
+  "Requirements checked: {name}": "Проверено по требованиям: {name}",
+  "No requirements file (IDS) was used in this audit.": "В этой проверке файл требований (IDS) не использовался.",
 };

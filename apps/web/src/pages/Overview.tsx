@@ -1,7 +1,7 @@
 import { ShieldAlert, Upload } from "lucide-react";
 import { Link, useParams, useSearchParams } from "react-router";
 import type { Finding, Model, Revision, RevisionSummary } from "../api/client";
-import { useAudits, useAuditSummary, useFindings, useModels, useProjects, useRevision, useRevisions } from "../api/queries";
+import { useAuditSummary, useFindings, useModels, useProjects, useRevision, useRevisions } from "../api/queries";
 import { btn, btnPrimary, bytes, date, fmt, Panel, Q, Severity, SEVERITIES } from "../ui";
 import { CopilotPanel } from "../copilot/CopilotPanel";
 import { NameForm } from "./Projects";
@@ -91,18 +91,16 @@ function ModelOverview({ modelId }: { modelId: number }) {
   );
 }
 
-// shortcut: one audits request per revision; add score to the revisions endpoint when timelines get long
 function TimelineRow({ r }: { r: Revision }) {
-  const a = useAudits(r.id).data?.[0];
   const { t } = useT();
   return (
     <li className="flex items-center gap-3 border-t border-line py-1.5 text-sm first:border-0">
       <span className="w-8 font-semibold">r{r.seq}</span>
       <span className="flex-1 text-muted">{date(r.created_at)}</span>
       <span className="w-14 text-right" title={t("Model Health Index")}>
-        {fmt(a?.score)}
+        {fmt(r.score)}
       </span>
-      {a?.blocked && <ShieldAlert size={14} className="text-sev-critical" aria-label={t("blocked")} />}
+      {r.blocked && <ShieldAlert size={14} className="text-sev-critical" aria-label={t("blocked")} />}
       <Link className="text-accent hover:underline" to={`/revisions/${r.id}/quality`}>
         {t("Quality")}
       </Link>

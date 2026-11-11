@@ -38,10 +38,31 @@ def add(
         return row._asdict()
 
 
+def _entry(conn, project_id: int, entry_id: int) -> None:
+    _project(conn, project_id)
+    if repo.find(conn, project_id, entry_id=entry_id) is None:
+        raise LookupError(f"IDS entry {entry_id} not found in project {project_id}")
+
+
 def set_default(engine: Engine, project_id: int, entry_id: int, is_default: bool) -> list[dict]:
     with engine.begin() as conn:
-        _project(conn, project_id)
-        if repo.find(conn, project_id, entry_id=entry_id) is None:
-            raise LookupError(f"IDS entry {entry_id} not found in project {project_id}")
+        _entry(conn, project_id, entry_id)
         repo.set_default(conn, project_id, entry_id, is_default)
         return [r._asdict() for r in repo.list_entries(conn, project_id)]
+
+
+def rename(engine: Engine, project_id: int, entry_id: int, name: str) -> dict:
+    name = name.strip()
+    if not name:
+        raise ValueError("name must not be blank")
+    with engine.begin() as conn:
+        _entry(conn, project_id, entry_id)
+        repo.rename(conn, entry_id, name)
+        return repo.find(conn, project_id, entry_id=entry_id)._asdict()
+
+
+def remove(engine: Engine, project_id: int, entry_id: int) -> None:
+    """Removes the library entry only: the stored file stays, because past audits cite its hash."""
+    with engine.begin() as conn:
+        _entry(conn, project_id, entry_id)
+        repo.delete_entry(conn, entry_id)

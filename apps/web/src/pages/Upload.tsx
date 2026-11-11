@@ -110,7 +110,9 @@ function JobStatus({ jobId, modelId }: { jobId: number; modelId: number }) {
   const result = job?.result as { revision_id?: number; created?: boolean; comparison_id?: number | null } | null | undefined;
   const { t } = useT();
   useEffect(() => {
-    if (job?.status === "done") qc.invalidateQueries({ queryKey: ["revisions"] });
+    if (job?.status !== "done") return;
+    qc.invalidateQueries({ queryKey: ["revisions"] });
+    qc.invalidateQueries({ queryKey: ["ids"] }); // an IDS uploaded with this revision joined the library
   }, [job?.status, qc]);
 
   return (

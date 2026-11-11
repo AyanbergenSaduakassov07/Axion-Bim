@@ -62,7 +62,7 @@ export function Explorer() {
   );
 }
 
-// shortcut: tree is not virtualized; fine for thousands of elements, virtualize if large models stutter.
+// Off-screen rows skip layout and paint (content-visibility); the DOM nodes still exist.
 function TreePanel({ tree, selected, onPick, viewer }: { tree: SpatialTree; selected: string | null; onPick: (g: string) => void; viewer: Viewer | null }) {
   const { roots, children, byContainer, classes } = useMemo(() => index(tree), [tree]);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
@@ -87,7 +87,7 @@ function TreePanel({ tree, selected, onPick, viewer }: { tree: SpatialTree; sele
         {(children.get(gid) ?? []).map((c) => node(c, depth + 1))}
         <ul className="pl-3">
           {els.map((e) => (
-            <li key={`${e.global_id}-${e.step_id}`}>
+            <li key={`${e.global_id}-${e.step_id}`} className="[contain-intrinsic-size:auto_1.25rem] [content-visibility:auto]">
               <button
                 className={`w-full truncate rounded px-1 text-left text-sm hover:bg-raised ${e.global_id === selected ? "bg-raised text-accent" : ""}`}
                 onClick={() => onPick(e.global_id)}

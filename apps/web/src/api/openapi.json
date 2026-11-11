@@ -1592,6 +1592,17 @@
       },
       "RevisionOut": {
         "properties": {
+          "blocked": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blocked"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -1616,6 +1627,17 @@
           "schema_name": {
             "title": "Schema Name",
             "type": "string"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
           },
           "seq": {
             "title": "Seq",
@@ -2860,6 +2882,7 @@
     },
     "/api/v1/projects/{project_id}/dashboard": {
       "get": {
+        "description": "`tz` (IANA name, sent by the browser) decides which day \"overdue\" is measured against.",
         "operationId": "project_dashboard_api_v1_projects__project_id__dashboard_get",
         "parameters": [
           {
@@ -2869,6 +2892,23 @@
             "schema": {
               "title": "Project Id",
               "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tz",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tz"
             }
           }
         ],
@@ -2985,6 +3025,103 @@
           }
         },
         "summary": "Add Project Ids"
+      }
+    },
+    "/api/v1/projects/{project_id}/ids/{entry_id}": {
+      "delete": {
+        "operationId": "delete_project_ids_api_v1_projects__project_id__ids__entry_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "entry_id",
+            "required": true,
+            "schema": {
+              "title": "Entry Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Project Ids"
+      },
+      "patch": {
+        "operationId": "rename_project_ids_api_v1_projects__project_id__ids__entry_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "entry_id",
+            "required": true,
+            "schema": {
+              "title": "Entry Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NameIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdsEntry"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rename Project Ids"
       }
     },
     "/api/v1/projects/{project_id}/ids/{entry_id}/default": {

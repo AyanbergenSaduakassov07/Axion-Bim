@@ -1172,6 +1172,23 @@
             },
             "title": "Reasons",
             "type": "array"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "enum": [
+                  "concept",
+                  "design",
+                  "working",
+                  "as_built"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
           }
         },
         "required": [
@@ -2073,6 +2090,23 @@
             "title": "Seq",
             "type": "integer"
           },
+          "stage": {
+            "anyOf": [
+              {
+                "enum": [
+                  "concept",
+                  "design",
+                  "working",
+                  "as_built"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          },
           "status": {
             "title": "Status",
             "type": "string"
@@ -2280,6 +2314,32 @@
           "elements"
         ],
         "title": "SpatialTree",
+        "type": "object"
+      },
+      "StageIn": {
+        "properties": {
+          "stage": {
+            "anyOf": [
+              {
+                "enum": [
+                  "concept",
+                  "design",
+                  "working",
+                  "as_built"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          }
+        },
+        "required": [
+          "stage"
+        ],
+        "title": "StageIn",
         "type": "object"
       },
       "ToolCallOut": {
@@ -3594,6 +3654,7 @@
     },
     "/api/v1/projects/{project_id}/gate-policy": {
       "get": {
+        "description": "The stage's policy, or the project default when that stage has none (D-45).",
         "operationId": "get_gate_policy_api_v1_projects__project_id__gate_policy_get",
         "parameters": [
           {
@@ -3603,6 +3664,28 @@
             "schema": {
               "title": "Project Id",
               "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "stage",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "concept",
+                    "design",
+                    "working",
+                    "as_built"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Stage"
             }
           }
         ],
@@ -3640,6 +3723,28 @@
             "schema": {
               "title": "Project Id",
               "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "stage",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "concept",
+                    "design",
+                    "working",
+                    "as_built"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Stage"
             }
           }
         ],
@@ -4466,6 +4571,55 @@
           }
         },
         "summary": "Get Quantities"
+      }
+    },
+    "/api/v1/revisions/{revision_id}/stage": {
+      "put": {
+        "operationId": "set_revision_stage_api_v1_revisions__revision_id__stage_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "revision_id",
+            "required": true,
+            "schema": {
+              "title": "Revision Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StageIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Revision Stage"
       }
     },
     "/api/v1/revisions/{revision_id}/tree": {

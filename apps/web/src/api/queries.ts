@@ -189,14 +189,23 @@ export function useIssueCertificate(auditId: number) {
 export const useCoordination = (projectId: number) =>
   useQuery({ queryKey: ["gate", "coordination", projectId], queryFn: () => api<Coordination>(`/projects/${projectId}/coordination`) });
 
-export const useGatePolicy = (projectId: number) =>
-  useQuery({ queryKey: ["gate-policy", projectId], queryFn: () => api<GatePolicy>(`/projects/${projectId}/gate-policy`) });
+export const useGatePolicy = (projectId: number, stage = "") =>
+  useQuery({ queryKey: ["gate-policy", projectId, stage], queryFn: () => api<GatePolicy>(`/projects/${projectId}/gate-policy${stage && `?stage=${stage}`}`) });
 
-export function useSetGatePolicy(projectId: number) {
+/** `stage` "" saves the project default; a stage saves that stage's own policy (D-45). */
+export function useSetGatePolicy(projectId: number, stage = "") {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (policy: GatePolicy) => putJson<GatePolicy>(`/projects/${projectId}/gate-policy`, policy),
+    mutationFn: (policy: GatePolicy) => putJson<GatePolicy>(`/projects/${projectId}/gate-policy${stage && `?stage=${stage}`}`, policy),
     onSuccess: () => Promise.all([qc.invalidateQueries({ queryKey: ["gate-policy", projectId] }), qc.invalidateQueries({ queryKey: ["gate"] })]),
+  });
+}
+
+export function useSetStage(revisionId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (stage: string | null) => putJson<Revision>(`/revisions/${revisionId}/stage`, { stage }),
+    onSuccess: () => Promise.all([qc.invalidateQueries({ queryKey: ["gate"] }), qc.invalidateQueries({ queryKey: ["revisions"] })]),
   });
 }
 

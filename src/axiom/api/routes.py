@@ -43,6 +43,8 @@ from axiom.api.schemas import (
     RevisionOut,
     RevisionSummary,
     SpatialTree,
+    Stage,
+    StageIn,
 )
 from axiom.extract.snapshot import Element
 from axiom.findings import Finding
@@ -132,13 +134,19 @@ def project_coordination(db: Db, project_id: int) -> dict:
 
 
 @router.get("/projects/{project_id}/gate-policy", response_model=GatePolicyIO)
-def get_gate_policy(db: Db, project_id: int) -> dict:
-    return gate.get_policy(db, project_id)
+def get_gate_policy(db: Db, project_id: int, stage: Stage | None = None) -> dict:
+    """The stage's policy, or the project default when that stage has none (D-45)."""
+    return gate.get_policy(db, project_id, stage)
 
 
 @router.put("/projects/{project_id}/gate-policy", response_model=GatePolicyIO)
-def set_gate_policy(db: Db, project_id: int, body: GatePolicyIO) -> dict:
-    return gate.set_policy(db, project_id, GatePolicy(**body.model_dump()))
+def set_gate_policy(db: Db, project_id: int, body: GatePolicyIO, stage: Stage | None = None) -> dict:
+    return gate.set_policy(db, project_id, GatePolicy(**body.model_dump()), stage)
+
+
+@router.put("/revisions/{revision_id}/stage", response_model=RevisionOut)
+def set_revision_stage(db: Db, revision_id: int, body: StageIn) -> dict:
+    return gate.set_stage(db, revision_id, body.stage)
 
 
 @router.get("/models/{model_id}", response_model=ModelOut)

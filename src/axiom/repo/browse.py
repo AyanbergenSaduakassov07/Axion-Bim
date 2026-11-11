@@ -31,6 +31,7 @@ REVISION_COLS = (
     revisions.c.file_size,
     revisions.c.schema_name,
     revisions.c.status,
+    revisions.c.stage,
     revisions.c.created_at,
 )
 

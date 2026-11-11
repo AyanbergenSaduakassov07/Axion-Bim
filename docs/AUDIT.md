@@ -94,7 +94,7 @@ Each phase has an exit criterion that can be observed, not a feature count.
 | F7 | "Overdue" is judged against the viewer's timezone (`?tz=`), not the server's date |
 | F8 | Revisions list returns MHI score and blocked flag; the timeline no longer fires one request per revision |
 | F9 | Explorer tree rows skip layout/paint off-screen (`content-visibility`) |
-| G1 (core) | Acceptance gate (D-36): accepted / accepted with comments / rejected / not decided per audit, from a per-project policy and reviewer waivers; shown on the Quality Center and at the top of the report. Still open: per-stage policy, signature |
+| G1 (core) | Acceptance gate (D-36): accepted / accepted with comments / rejected / not decided per audit, from a per-project policy and reviewer waivers; shown on the Quality Center and at the top of the report. Still open: signature |
 | G6 | Quantities table exports as CSV (Excel) with unit, method, previous total and change (D-37) |
 | F3 | IDS version diff: specifications added / removed / changed between two library entries (D-37) |
 | G1, loop step 2 | Delivery decision on every timeline row and in `axiom audit`; `--gate` exits 1 unless the delivery would be accepted, for a designer's pre-submission self-check (D-38) |
@@ -105,6 +105,7 @@ Each phase has an exit criterion that can be observed, not a feature count.
 | G1 (part) | Frozen acceptance certificate (D-42): the decision with file hash, ruleset version, IDS hash, policy and score, stored once and hash-checked on read, so a later policy or waiver change cannot rewrite it. Not a cryptographic signature until users exist |
 | G4 (part) | BCF `extensions.xml` declares the five statuses and every type, priority, label and assignee the topics use (D-43) |
 | G2/G4 (part) | Issue history travels with the report: JSON `history` per finding and dated BCF comments by author (D-44) |
+| G1 (part) | Gate policy per delivery stage (concept / design / working documentation / as-built), falling back to the project default; the reviewer sets the stage of each delivery (D-45) |
 | Bug | An IDS uploaded with a revision did not appear in the library until the cache expired |
 
 ### R1 — usable by one team on one real project
@@ -150,6 +151,6 @@ Exit: a second company installs it without the developer in the room.
 - F10: the one-off "useEffect returned a Promise" warning was not reproduced; no effect in `apps/web/src` returns a Promise today.
 - F3 remainder: archive (remove covers it for now); the IDS diff names the changed part, not the facet inside it.
 - G7: a snapshot-only duplicate rule gave false positives at wall/beam corners (D-37); build it on the geometry pass.
-- G1 remainder: per-stage gate policy; certificate is hash-checked but unsigned, and has no PDF.
+- G1 remainder: certificate is hash-checked but unsigned, and has no PDF; stage requirement packs (IDS per stage) not shipped.
 - G5 remainder: origin offset between models needs the geometry pass (shared reference points); checks compare the latest revision only, not a chosen delivery set.
 - "Fragments: Problematic geometry" console noise from the converter worker is still unfiltered.

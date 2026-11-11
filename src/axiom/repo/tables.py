@@ -77,6 +77,7 @@ revisions = Table(
     Column("length_scale", Float, nullable=False),
     Column("status", String, nullable=False),
     Column("metadata_json", JSON, nullable=False),  # full RevisionMeta
+    Column("stage", String, nullable=True),  # delivery stage picked by the reviewer (D-45); None = not set
     _created(),
     UniqueConstraint("model_id", "file_sha256"),
     UniqueConstraint("model_id", "seq"),
@@ -269,6 +270,19 @@ issues = Table(
     Column("note", Text),
     Column("updated_at", DateTime(timezone=True), server_default=func.now(), nullable=False),
     UniqueConstraint("model_id", "identity_key"),
+)
+
+# Gate policy for one project stage (D-45); same column names as the project default on `projects`.
+gate_policies = Table(
+    "gate_policies",
+    metadata,
+    _id(),
+    _fk("project_id", "projects"),
+    Column("stage", String, nullable=False),
+    Column("gate_min_score", Float, nullable=False),
+    Column("gate_block_severity", String, nullable=False),
+    Column("gate_require_ids", Boolean, nullable=False),
+    UniqueConstraint("project_id", "stage"),
 )
 
 # Gate decision of one audit as issued (D-42): never updated, so later policy/waiver edits do not alter it.

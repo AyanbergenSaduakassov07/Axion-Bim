@@ -354,3 +354,13 @@ Closes the core of audit gap G1: an audit now yields a delivery decision, not on
 - In BCF each event becomes a topic comment dated when it happened, authored by the typed name (or
   "Axiom BIM" when none), e.g. "State: Open → Disputed"; the current note follows. Comment GUIDs derive from
   topic + event index, so a re-export updates rather than duplicates them.
+
+## D-45 — Gate policy per delivery stage (2026-11-11)
+
+- Stages: `concept`, `design`, `working` (working documentation), `as_built`. A revision gets one by the
+  reviewer (`PUT /revisions/{id}/stage`, migration 0011 adds `revisions.stage`); it is not guessed from the file.
+- `gate_policies` stores one policy per project and stage (`PUT /projects/{id}/gate-policy?stage=…`). The gate
+  uses the stage's policy when one is stored and the project default otherwise; `GET` with a stage that has
+  none returns the default. Gate output names the stage it applied (`stage`, None = default), so the
+  certificate (D-42) records it too.
+- UI: a stage picker next to the delivery decision; the policy form edits the default or one stage.

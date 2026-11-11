@@ -1,8 +1,9 @@
 """Project/model rows."""
 
-from sqlalchemy import Connection, insert, select, update
+from sqlalchemy import Connection, Row, insert, select, update
+from sqlalchemy.dialects.sqlite import insert as upsert
 
-from axiom.repo.tables import models, projects
+from axiom.repo.tables import gate_policies, models, projects, revisions
 
 
 def insert_project(conn: Connection, name: str) -> int:
@@ -30,3 +31,17 @@ def find_project(conn: Connection, name: str) -> int | None:
 
 def set_gate_policy(conn: Connection, project_id: int, values: dict) -> None:
     conn.execute(update(projects).where(projects.c.id == project_id).values(**values))
+
+
+def stage_policy(conn: Connection, project_id: int, stage: str) -> Row | None:
+    g = gate_policies.c
+    return conn.execute(select(gate_policies).where(g.project_id == project_id, g.stage == stage)).first()
+
+
+def set_stage_policy(conn: Connection, project_id: int, stage: str, values: dict) -> None:
+    stmt = upsert(gate_policies).values(project_id=project_id, stage=stage, **values)
+    conn.execute(stmt.on_conflict_do_update(index_elements=["project_id", "stage"], set_=values))
+
+
+def set_revision_stage(conn: Connection, revision_id: int, stage: str | None) -> None:
+    conn.execute(update(revisions).where(revisions.c.id == revision_id).values(stage=stage))

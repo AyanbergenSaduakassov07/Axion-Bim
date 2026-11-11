@@ -33,7 +33,7 @@ export function Quality() {
       <Q q={summary} rows={4}>
         {(s: AuditSummary) => (
           <>
-            {auditId != null && <GateDecision auditId={auditId} />}
+            {auditId != null && <GateDecision auditId={auditId} revisionId={revisionId} />}
             <HealthHeader mhi={s.mhi} />
             <IdsUsed projectId={rev.data?.project_id} hash={s.reproducibility.ids_hash as string | null} />
           </>

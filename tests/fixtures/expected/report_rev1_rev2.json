@@ -249,7 +249,8 @@
       "min_score": 80.0,
       "require_ids": true
     },
-    "reasons": []
+    "reasons": [],
+    "stage": null
   },
   "mhi": {
     "blocked": false,

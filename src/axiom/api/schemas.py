@@ -15,6 +15,13 @@ class NameIn(BaseModel):
 GateDecision = Literal["accepted", "accepted_with_comments", "rejected", "undecided"]
 
 
+Stage = Literal["concept", "design", "working", "as_built"]  # delivery stages a policy can be set for (D-45)
+
+
+class StageIn(BaseModel):
+    stage: Stage | None
+
+
 class GatePolicyIO(BaseModel):
     min_score: float = Field(ge=0, le=100)
     block_severity: Literal["critical", "high", "medium", "low"]
@@ -27,6 +34,7 @@ class GateOut(BaseModel):
     decision: GateDecision
     reasons: list[dict[str, Any]]
     policy: GatePolicyIO
+    stage: Stage | None = None  # whose policy was applied; None = project default
 
 
 class ProjectOut(BaseModel):
@@ -50,6 +58,7 @@ class RevisionOut(BaseModel):
     created_at: datetime
     score: float | None = None  # MHI of the latest audit; None until audited
     blocked: bool | None = None
+    stage: Stage | None = None
     decision: GateDecision | None = None  # acceptance gate of the latest audit (D-36)
 
 

@@ -58,3 +58,30 @@ def test_gate_endpoint_follows_policy_and_waivers(client, ifc_path):  # noqa: F8
     assert c.get(f"{V1}/audits/999/gate").status_code == 404
     html = c.post(f"{V1}/audits/{aid}/reports", params={"format": "html"}).text
     assert "Delivery decision" in html and "Accepted with comments" in html
+
+
+def test_a_delivery_is_judged_by_its_stage_policy_and_falls_back_to_the_project_default(client, ifc_path):  # noqa: F811
+    c = client
+    mid = _model(c)
+    pid = c.get(f"{V1}/models/{mid}").json()["project_id"]
+    rev = _upload(c, mid, ifc_path("rev1"))["result"]  # 2 x MAT-001 (high)
+    aid, rid = rev["audit_run_id"], c.get(f"{V1}/models/{mid}/revisions").json()[0]["id"]
+    strict = {"min_score": 50, "block_severity": "high", "require_ids": False}
+    loose = strict | {"block_severity": "critical"}
+    c.put(f"{V1}/projects/{pid}/gate-policy", json=strict)
+    assert (
+        c.put(f"{V1}/projects/{pid}/gate-policy", params={"stage": "concept"}, json=loose).status_code == 200
+    )
+    assert c.get(f"{V1}/projects/{pid}/gate-policy", params={"stage": "design"}).json() == strict  # default
+    assert c.get(f"{V1}/audits/{aid}/gate").json()["decision"] == "rejected"  # no stage yet: default
+
+    r = c.put(f"{V1}/revisions/{rid}/stage", json={"stage": "concept"})
+    assert r.status_code == 200 and r.json()["stage"] == "concept"
+    g = c.get(f"{V1}/audits/{aid}/gate").json()
+    assert (g["decision"], g["stage"], g["policy"]) == ("accepted_with_comments", "concept", loose)
+    assert c.get(f"{V1}/models/{mid}/revisions").json()[0]["stage"] == "concept"
+
+    assert c.put(f"{V1}/revisions/{rid}/stage", json={"stage": None}).json()["stage"] is None
+    assert c.put(f"{V1}/revisions/{rid}/stage", json={"stage": "tender"}).status_code == 422
+    assert c.put(f"{V1}/projects/{pid}/gate-policy", params={"stage": "x"}, json=loose).status_code == 422
+    assert c.put(f"{V1}/revisions/999/stage", json={"stage": None}).status_code == 404

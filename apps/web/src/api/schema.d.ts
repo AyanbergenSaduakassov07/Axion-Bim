@@ -390,7 +390,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Gate Policy */
+        /**
+         * Get Gate Policy
+         * @description The stage's policy, or the project default when that stage has none (D-45).
+         */
         get: operations["get_gate_policy_api_v1_projects__project_id__gate_policy_get"];
         /** Set Gate Policy */
         put: operations["set_gate_policy_api_v1_projects__project_id__gate_policy_put"];
@@ -607,6 +610,23 @@ export interface paths {
          */
         get: operations["get_quantities_api_v1_revisions__revision_id__quantities_get"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/revisions/{revision_id}/stage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Revision Stage */
+        put: operations["set_revision_stage_api_v1_revisions__revision_id__stage_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1022,6 +1042,8 @@ export interface components {
             reasons: {
                 [key: string]: unknown;
             }[];
+            /** Stage */
+            stage?: ("concept" | "design" | "working" | "as_built") | null;
         };
         /** GatePolicyIO */
         GatePolicyIO: {
@@ -1312,6 +1334,8 @@ export interface components {
             score?: number | null;
             /** Seq */
             seq: number;
+            /** Stage */
+            stage?: ("concept" | "design" | "working" | "as_built") | null;
             /** Status */
             status: string;
         };
@@ -1379,6 +1403,11 @@ export interface components {
             elements: components["schemas"]["TreeElement"][];
             /** Nodes */
             nodes: components["schemas"]["SpatialNodeOut"][];
+        };
+        /** StageIn */
+        StageIn: {
+            /** Stage */
+            stage: ("concept" | "design" | "working" | "as_built") | null;
         };
         /** ToolCallOut */
         ToolCallOut: {
@@ -2237,7 +2266,9 @@ export interface operations {
     };
     get_gate_policy_api_v1_projects__project_id__gate_policy_get: {
         parameters: {
-            query?: never;
+            query?: {
+                stage?: ("concept" | "design" | "working" | "as_built") | null;
+            };
             header?: never;
             path: {
                 project_id: number;
@@ -2268,7 +2299,9 @@ export interface operations {
     };
     set_gate_policy_api_v1_projects__project_id__gate_policy_put: {
         parameters: {
-            query?: never;
+            query?: {
+                stage?: ("concept" | "design" | "working" | "as_built") | null;
+            };
             header?: never;
             path: {
                 project_id: number;
@@ -2782,6 +2815,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_revision_stage_api_v1_revisions__revision_id__stage_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                revision_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StageIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevisionOut"];
                 };
             };
             /** @description Validation Error */

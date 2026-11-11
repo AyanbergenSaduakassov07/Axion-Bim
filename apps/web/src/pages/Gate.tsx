@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Gate, GatePolicy } from "../api/client";
-import { authorName, useCertificates, useGate, useGatePolicy, useIssueCertificate, useSetGatePolicy } from "../api/queries";
+import { authorName, useCertificates, useGate, useGatePolicy, useIssueCertificate, useSetGatePolicy, useSetStage } from "../api/queries";
 import { tokenLabel, useT, type T } from "../i18n";
 import { btn, fmt, input, Panel } from "../ui";
 
@@ -11,6 +11,12 @@ export const TONE: Record<Gate["decision"], string> = {
   rejected: "border-sev-critical text-sev-critical",
   undecided: "border-line text-muted",
 };
+
+export const STAGES = ["concept", "design", "working", "as_built"] as const;
+
+export function stageLabel(t: T, s: string): string {
+  return ({ concept: t("Concept"), design: t("Design"), working: t("Working documentation"), as_built: t("As-built") } as Record<string, string>)[s] ?? s;
+}
 
 export function decisionLabel(t: T, d: Gate["decision"]): string {
   if (d === "accepted") return t("Accepted");
@@ -40,9 +46,10 @@ function reasonText(t: T, r: Gate["reasons"][number], policy: GatePolicy): strin
 }
 
 /** Delivery decision (D-36). Computed by the backend from findings, waivers and the project's gate policy. */
-export function GateDecision({ auditId }: { auditId: number }) {
+export function GateDecision({ auditId, revisionId }: { auditId: number; revisionId: number }) {
   const { t } = useT();
   const g = useGate(auditId).data;
+  const setStage = useSetStage(revisionId);
   if (!g) return null;
   return (
     <div className="rounded border border-line bg-panel px-4 py-3" data-testid="gate">
@@ -54,6 +61,17 @@ export function GateDecision({ auditId }: { auditId: number }) {
         <span className="text-xs text-muted">
           {t("Policy: MHI ≥ {minimum}, blocking from {severity}", { minimum: fmt(g.policy.min_score, 0), severity: tokenLabel(t, g.policy.block_severity) })}
         </span>
+        <label className="ml-auto flex items-center gap-1 text-xs text-muted">
+          {t("Stage")}
+          <select className={`${input} text-fg`} value={g.stage ?? ""} disabled={setStage.isPending} onChange={(e) => setStage.mutate(e.target.value || null)}>
+            <option value="">{t("Not set (project default)")}</option>
+            {STAGES.map((s) => (
+              <option key={s} value={s}>
+                {stageLabel(t, s)}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
       {g.reasons.length > 0 && (
         <ul className="mt-2 list-disc space-y-0.5 pl-5 text-sm">
@@ -93,8 +111,9 @@ function Certificate({ auditId }: { auditId: number }) {
 /** Per-project acceptance thresholds; they belong in the BEP, so they are editable and printed in the report. */
 export function GatePolicyPanel({ projectId }: { projectId: number }) {
   const { t } = useT();
-  const stored = useGatePolicy(projectId).data;
-  const save = useSetGatePolicy(projectId);
+  const [stage, setStage] = useState("");
+  const stored = useGatePolicy(projectId, stage).data;
+  const save = useSetGatePolicy(projectId, stage);
   const [draft, setDraft] = useState<GatePolicy | null>(null);
   const p = draft ?? stored;
   if (!p) return null;
@@ -108,6 +127,17 @@ export function GatePolicyPanel({ projectId }: { projectId: number }) {
           save.mutate(p, { onSuccess: () => setDraft(null) });
         }}
       >
+        <label className="flex flex-col gap-1 text-xs text-muted">
+          {t("Stage")}
+          <select className={`${input} text-fg`} value={stage} onChange={(e) => (setStage(e.target.value), setDraft(null))}>
+            <option value="">{t("Project default")}</option>
+            {STAGES.map((s) => (
+              <option key={s} value={s}>
+                {stageLabel(t, s)}
+              </option>
+            ))}
+          </select>
+        </label>
         <label className="flex flex-col gap-1 text-xs text-muted">
           {t("Minimum MHI")}
           <input

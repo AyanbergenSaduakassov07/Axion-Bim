@@ -99,6 +99,7 @@ Each phase has an exit criterion that can be observed, not a feature count.
 | F3 | IDS version diff: specifications added / removed / changed between two library entries (D-37) |
 | G1, loop step 2 | Delivery decision on every timeline row and in `axiom audit`; `--gate` exits 1 unless the delivery would be accepted, for a designer's pre-submission self-check (D-38) |
 | G6 | Quantities: "Compare with" any earlier revision, labelled with its decision, so the delta can be read against the last accepted delivery (D-38) |
+| G5 (core) | Project coordination (D-39): one decision over the latest delivery of every model (worst wins, a model without a delivery leaves it undecided) and cross-model checks of length unit, georeferencing and storey levels |
 | Bug | An IDS uploaded with a revision did not appear in the library until the cache expired |
 
 ### R1 — usable by one team on one real project
@@ -144,6 +145,7 @@ Exit: a second company installs it without the developer in the room.
 - F10: the one-off "useEffect returned a Promise" warning was not reproduced; no effect in `apps/web/src` returns a Promise today.
 - F3 remainder: archive (remove covers it for now); the IDS diff names the changed part, not the facet inside it.
 - G7: a snapshot-only duplicate rule gave false positives at wall/beam corners (D-37); build it on the geometry pass.
-- G1 remainder: per-stage gate policy, frozen signed certificate, project-level gate over several models.
+- G1 remainder: per-stage gate policy, frozen signed certificate.
+- G5 remainder: origin offset between models needs the geometry pass (shared reference points); checks compare the latest revision only, not a chosen delivery set.
 - "Fragments: Problematic geometry" console noise from the converter worker is still unfiltered.
 - BCF `extensions.xml` is empty; a strict BCF tool may want the five topic statuses declared there. Check in R1 #4.

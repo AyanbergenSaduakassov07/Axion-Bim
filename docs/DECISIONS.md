@@ -287,3 +287,19 @@ Closes the core of audit gap G1: an audit now yields a delivery decision, not on
 - **Quantities "Compare with".** The page picks any earlier revision (`?against=`), default the previous one;
   each option names that revision's decision. No "last accepted" shortcut is computed: the decision is read
   at request time from the current policy and waivers, so it is shown, not frozen.
+
+## D-39 — Project coordination: project decision and cross-model checks (2026-11-11)
+
+- `GET /projects/{id}/coordination` takes the latest revision of every model in the project.
+- **Project decision = worst model decision** (accepted < with comments < undecided < rejected). A model with
+  no audited delivery makes the project `undecided`: an absent discipline is not a passed one.
+- **Checks** (`axiom/coordination.py`, pure, snapshot facts only):
+  - `length_unit` — same LENGTHUNIT in every model, else `fail`.
+  - `georeferencing` — same IfcMapConversion / site reference in every model; a model without one next to a
+    georeferenced model is a `fail`; nobody georeferenced is `not_evaluated`.
+  - `storey_elevations` — each model's levels must exist in the others within 10 mm. A mismatch is a
+    `warning`, not a fail: a structural model may legitimately carry a foundation level. `actual` lists only
+    the unmatched levels per model.
+  - Fewer than two models with the fact → `not_evaluated`, never `pass`.
+- Not done: origin offset between models (needs shared reference points from the geometry pass); choosing
+  which revision of each model forms the delivery set.

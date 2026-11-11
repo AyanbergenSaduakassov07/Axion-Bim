@@ -24,6 +24,7 @@ export type IdsEntry = S["IdsEntry"];
 export type Gate = S["GateOut"];
 export type IdsDiff = S["IdsDiff"];
 export type GatePolicy = S["GatePolicyIO"];
+export type Coordination = S["Coordination"];
 
 export type ComparisonSummary = {
   changes: Record<string, number>;

@@ -1,0 +1,63 @@
+import type { Coordination } from "../api/client";
+import { useCoordination } from "../api/queries";
+import { useT, type T } from "../i18n";
+import { Panel, Status } from "../ui";
+import { decisionLabel, TONE } from "./Gate";
+
+function checkLabel(t: T, c: Coordination["checks"][number]["check"]): string {
+  if (c === "length_unit") return t("Length unit");
+  if (c === "georeferencing") return t("Georeferencing");
+  return t("Storey levels");
+}
+
+function value(v: unknown): string {
+  if (v == null) return "—";
+  if (Array.isArray(v)) return v.map((e) => `${e} m`).join(", ") || "—";
+  if (typeof v === "object") return Object.entries(v).map(([k, x]) => `${k} ${x}`).join(", ");
+  return String(v);
+}
+
+/** Project-level decision over every model's latest delivery and cross-model consistency (D-39). */
+export function CoordinationPanel({ projectId }: { projectId: number }) {
+  const { t } = useT();
+  const d = useCoordination(projectId).data;
+  if (!d || d.models.length === 0) return null;
+  return (
+    <Panel title={t("Project coordination")}>
+      <div className="space-y-3 px-3 py-2 text-sm">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className={`rounded border px-2 py-0.5 font-semibold ${TONE[d.decision]}`} data-testid="project-decision">
+            {decisionLabel(t, d.decision)}
+          </span>
+          {d.models.map((m) => (
+            <span key={m.model_id} className="text-muted">
+              {m.name} {m.seq != null ? `r${m.seq}` : ""}: {m.decision ? decisionLabel(t, m.decision) : t("no delivery")}
+            </span>
+          ))}
+        </div>
+        <table className="w-full text-left">
+          <tbody>
+            {d.checks.map((c) => (
+              <tr key={c.check} className="border-t border-line">
+                <td className="py-1 pr-3">{checkLabel(t, c.check)}</td>
+                <td className="py-1 pr-3">
+                  <Status value={c.status} />
+                </td>
+                <td className="py-1 text-muted">
+                  {Object.entries(c.actual).map(([model, v]) => (
+                    <div key={model}>
+                      {model}: {value(v)}
+                    </div>
+                  ))}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="text-xs text-muted">
+          {t("Latest revision of each model. Storey levels lists only the levels that the other models do not have (10 mm tolerance).")}
+        </p>
+      </div>
+    </Panel>
+  );
+}

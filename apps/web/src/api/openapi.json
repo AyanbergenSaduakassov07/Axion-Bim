@@ -419,6 +419,81 @@
         "title": "ComparisonOut",
         "type": "object"
       },
+      "Coordination": {
+        "properties": {
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/CoordinationCheck"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "decision": {
+            "enum": [
+              "accepted",
+              "accepted_with_comments",
+              "rejected",
+              "undecided"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "models": {
+            "items": {
+              "$ref": "#/components/schemas/ModelDelivery"
+            },
+            "title": "Models",
+            "type": "array"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "project_id",
+          "decision",
+          "models",
+          "checks"
+        ],
+        "title": "Coordination",
+        "type": "object"
+      },
+      "CoordinationCheck": {
+        "properties": {
+          "actual": {
+            "additionalProperties": true,
+            "title": "Actual",
+            "type": "object"
+          },
+          "check": {
+            "enum": [
+              "length_unit",
+              "georeferencing",
+              "storey_elevations"
+            ],
+            "title": "Check",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pass",
+              "fail",
+              "warning",
+              "not_evaluated"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "check",
+          "status",
+          "actual"
+        ],
+        "title": "CoordinationCheck",
+        "type": "object"
+      },
       "CopilotAnswer": {
         "properties": {
           "answer": {
@@ -1547,6 +1622,66 @@
           "kind"
         ],
         "title": "MaterialRef",
+        "type": "object"
+      },
+      "ModelDelivery": {
+        "properties": {
+          "decision": {
+            "anyOf": [
+              {
+                "enum": [
+                  "accepted",
+                  "accepted_with_comments",
+                  "rejected",
+                  "undecided"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision"
+          },
+          "model_id": {
+            "title": "Model Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "revision_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Id"
+          },
+          "seq": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seq"
+          }
+        },
+        "required": [
+          "model_id",
+          "name",
+          "revision_id",
+          "seq",
+          "decision"
+        ],
+        "title": "ModelDelivery",
         "type": "object"
       },
       "ModelHealth": {
@@ -3090,6 +3225,46 @@
           }
         },
         "summary": "Create Project"
+      }
+    },
+    "/api/v1/projects/{project_id}/coordination": {
+      "get": {
+        "description": "Project-level delivery decision and cross-model consistency of the latest revisions (D-39).",
+        "operationId": "project_coordination_api_v1_projects__project_id__coordination_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Coordination"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Project Coordination"
       }
     },
     "/api/v1/projects/{project_id}/dashboard": {

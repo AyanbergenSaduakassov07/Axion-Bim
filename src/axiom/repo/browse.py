@@ -100,6 +100,12 @@ def spatial_tree(conn: Connection, revision_id: int) -> tuple[list[Row], list[Ro
     )
 
 
+def storeys(conn: Connection, revision_id: int) -> list[Row]:
+    n = spatial_nodes.c
+    q = select(n.name, n.elevation_m).where(n.revision_id == revision_id, n.ifc_class == "IfcBuildingStorey")
+    return conn.execute(q.order_by(n.id)).all()
+
+
 def list_audits(conn: Connection, revision_id: int) -> list[Row]:
     q = select(audit_runs).where(audit_runs.c.revision_id == revision_id).order_by(audit_runs.c.id)
     return conn.execute(q).all()

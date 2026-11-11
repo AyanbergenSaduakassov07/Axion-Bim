@@ -274,6 +274,27 @@ class Dashboard(BaseModel):
     issues: IssueTally
 
 
+class ModelDelivery(BaseModel):
+    model_id: int
+    name: str
+    revision_id: int | None  # latest revision; null when nothing was delivered yet
+    seq: int | None
+    decision: GateDecision | None
+
+
+class CoordinationCheck(BaseModel):
+    check: Literal["length_unit", "georeferencing", "storey_elevations"]
+    status: Literal["pass", "fail", "warning", "not_evaluated"]
+    actual: dict[str, Any]  # model name -> value found (storeys: the levels no other model has)
+
+
+class Coordination(BaseModel):
+    project_id: int
+    decision: GateDecision  # worst decision over the models' latest deliveries
+    models: list[ModelDelivery]
+    checks: list[CoordinationCheck]
+
+
 class IdsEntry(BaseModel):
     id: int
     name: str

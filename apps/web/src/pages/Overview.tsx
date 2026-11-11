@@ -6,6 +6,7 @@ import { btn, btnPrimary, bytes, date, fmt, Panel, Q, Severity, SEVERITIES } fro
 import { CopilotPanel } from "../copilot/CopilotPanel";
 import { NameForm } from "./Projects";
 import { Dashboard } from "./Dashboard";
+import { CoordinationPanel } from "./Coordination";
 import { decisionLabel, GatePolicyPanel, TONE } from "./Gate";
 import { IdsLibrary } from "./IdsLibrary";
 import { useT } from "../i18n";
@@ -22,6 +23,7 @@ export function Overview() {
     <div className="mx-auto max-w-6xl space-y-4">
       <h1 className="text-lg font-semibold">{project?.name ?? t("Project {id}", { id: projectId })}</h1>
       <Dashboard projectId={projectId} />
+      <CoordinationPanel projectId={projectId} />
       <Panel
         title={t("Models")}
         actions={

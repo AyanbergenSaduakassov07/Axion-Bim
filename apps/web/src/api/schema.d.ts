@@ -302,6 +302,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{project_id}/coordination": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Project Coordination
+         * @description Project-level delivery decision and cross-model consistency of the latest revisions (D-39).
+         */
+        get: operations["project_coordination_api_v1_projects__project_id__coordination_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects/{project_id}/dashboard": {
         parameters: {
             query?: never;
@@ -720,6 +740,37 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** Coordination */
+        Coordination: {
+            /** Checks */
+            checks: components["schemas"]["CoordinationCheck"][];
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "accepted" | "accepted_with_comments" | "rejected" | "undecided";
+            /** Models */
+            models: components["schemas"]["ModelDelivery"][];
+            /** Project Id */
+            project_id: number;
+        };
+        /** CoordinationCheck */
+        CoordinationCheck: {
+            /** Actual */
+            actual: {
+                [key: string]: unknown;
+            };
+            /**
+             * Check
+             * @enum {string}
+             */
+            check: "length_unit" | "georeferencing" | "storey_elevations";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pass" | "fail" | "warning" | "not_evaluated";
+        };
         /** CopilotAnswer */
         CopilotAnswer: {
             /** Answer */
@@ -1066,6 +1117,19 @@ export interface components {
             kind: string;
             /** Name */
             name: string;
+        };
+        /** ModelDelivery */
+        ModelDelivery: {
+            /** Decision */
+            decision: ("accepted" | "accepted_with_comments" | "rejected" | "undecided") | null;
+            /** Model Id */
+            model_id: number;
+            /** Name */
+            name: string;
+            /** Revision Id */
+            revision_id: number | null;
+            /** Seq */
+            seq: number | null;
         };
         /** ModelHealth */
         ModelHealth: {
@@ -1911,6 +1975,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProjectOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    project_coordination_api_v1_projects__project_id__coordination_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Coordination"];
                 };
             };
             /** @description Validation Error */

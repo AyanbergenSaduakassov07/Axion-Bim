@@ -17,6 +17,7 @@ from axiom.api.schemas import (
     ChangeOut,
     CompareIn,
     ComparisonOut,
+    Coordination,
     CopilotAnswer,
     CopilotQuery,
     CopilotStatus,
@@ -49,6 +50,7 @@ from axiom.revision import FindingEvent
 from axiom.score.gate import GatePolicy
 from axiom.services import (
     browse,
+    coordination,
     copilot,
     dashboard,
     gate,
@@ -105,6 +107,12 @@ def project_dashboard(
     except (ZoneInfoNotFoundError, ValueError) as e:
         raise ValueError(f"unknown timezone {tz!r}") from e
     return dashboard.project_dashboard(db, project_id, today)
+
+
+@router.get("/projects/{project_id}/coordination", response_model=Coordination)
+def project_coordination(db: Db, project_id: int) -> dict:
+    """Project-level delivery decision and cross-model consistency of the latest revisions (D-39)."""
+    return coordination.project_coordination(db, project_id)
 
 
 @router.get("/projects/{project_id}/gate-policy", response_model=GatePolicyIO)

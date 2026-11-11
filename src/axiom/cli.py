@@ -4,17 +4,19 @@ import json
 import logging
 import time
 from dataclasses import asdict
+from datetime import date
 from pathlib import Path
 
 import typer
 
 from axiom import __version__
 from axiom.config import load_settings
+from axiom.digest import to_markdown
 from axiom.extract import extract, profile
 from axiom.findings import CheckStatus
 from axiom.repo.db import get_engine, migrate
 from axiom.score import MhiResult
-from axiom.services import audits, comparisons, projects, quantities, reports, revisions
+from axiom.services import audits, browse, comparisons, digest, projects, quantities, reports, revisions
 from axiom.services import gate as gate_service
 from axiom.services.comparisons import ComparisonResult
 
@@ -208,6 +210,26 @@ def quantities_cmd(
         report = {"rows": [asdict(r) for r in rows], "delta": [asdict(d) for d in delta]}
         json_out.write_text(json.dumps(report, indent=2))
         typer.echo(f"report written to {json_out}")
+
+
+@app.command(name="digest")
+def digest_cmd(
+    project: str = typer.Option(..., help="Project name."),
+    out: Path | None = typer.Option(None, "--out", help="Write the Markdown here instead of stdout."),
+) -> None:
+    """Open issues per assignee, overdue first, as Markdown for email or a chat (run it from cron)."""
+    engine = get_engine(load_settings().db_url)
+    migrate(engine)
+    pid = next((p["id"] for p in browse.list_projects(engine) if p["name"] == project), None)
+    if pid is None:
+        typer.echo(f"error: no project named {project!r}", err=True)
+        raise typer.Exit(2)
+    md = to_markdown(digest.project_digest(engine, pid, date.today()))
+    if out:
+        out.write_text(md, encoding="utf-8")
+        typer.echo(f"digest written to {out}")
+    else:
+        typer.echo(md, nl=False)
 
 
 def _print_quantities(rows, delta: dict) -> None:

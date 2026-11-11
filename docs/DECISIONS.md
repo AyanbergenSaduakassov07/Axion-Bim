@@ -303,3 +303,13 @@ Closes the core of audit gap G1: an audit now yields a delivery decision, not on
   - Fewer than two models with the fact → `not_evaluated`, never `pass`.
 - Not done: origin offset between models (needs shared reference points from the geometry pass); choosing
   which revision of each model forms the delivery set.
+
+## D-40 — Issue digest per assignee (2026-11-11)
+
+- `axiom digest --project NAME [--out FILE]` renders Markdown: one section per assignee (most overdue first),
+  each issue as model · rule · element (class, name, GlobalId) · state · due date, overdue items first;
+  then the count of open findings with no assignee. Over each model's latest audit; done = accepted or closed,
+  the same rule as the dashboard.
+- No mail or Telegram client in Axiom: the CLI writes text and cron + `mail`/a bot sends it. That keeps
+  credentials out of the app until there are users (G11).
+- English only for now, like the CLI.

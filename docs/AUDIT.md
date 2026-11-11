@@ -100,6 +100,7 @@ Each phase has an exit criterion that can be observed, not a feature count.
 | G1, loop step 2 | Delivery decision on every timeline row and in `axiom audit`; `--gate` exits 1 unless the delivery would be accepted, for a designer's pre-submission self-check (D-38) |
 | G6 | Quantities: "Compare with" any earlier revision, labelled with its decision, so the delta can be read against the last accepted delivery (D-38) |
 | G5 (core) | Project coordination (D-39): one decision over the latest delivery of every model (worst wins, a model without a delivery leaves it undecided) and cross-model checks of length unit, georeferencing and storey levels |
+| G10 (core) | `axiom digest --project NAME` prints open issues per assignee, overdue first, as Markdown for email or a chat; run it from cron (D-40). Sending is left to the mail/Telegram tool |
 | Bug | An IDS uploaded with a revision did not appear in the library until the cache expired |
 
 ### R1 — usable by one team on one real project

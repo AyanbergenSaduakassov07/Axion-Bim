@@ -56,3 +56,22 @@ def test_coordination_endpoint_compares_the_latest_revision_of_each_model(client
     assert checks["length_unit"]["actual"] == {"ARCH": "METRE", "MEP": "MILLIMETRE"}
     assert checks["storey_elevations"]["status"] == "pass"
     assert c.get(f"{V1}/projects/999/coordination").status_code == 404
+
+
+def test_coordination_for_a_stage_takes_each_models_latest_delivery_at_that_stage(client, ifc_path):  # noqa: F811
+    c = client
+    pid = c.post(f"{V1}/projects", json={"name": "Staged"}).json()["id"]
+    arch = c.post(f"{V1}/projects/{pid}/models", json={"name": "ARCH"}).json()["id"]
+    mep = c.post(f"{V1}/projects/{pid}/models", json={"name": "MEP"}).json()["id"]
+    _upload(c, arch, ifc_path("clean"))
+    _upload(c, arch, ifc_path("rev1"))  # later, but not marked as a design delivery
+    _upload(c, mep, ifc_path("weird_units"))
+    first = c.get(f"{V1}/models/{arch}/revisions").json()[0]["id"]
+    c.put(f"{V1}/revisions/{first}/stage", json={"stage": "design"})
+
+    d = c.get(f"{V1}/projects/{pid}/coordination", params={"stage": "design"}).json()
+    assert d["stage"] == "design"
+    assert [(m["name"], m["seq"]) for m in d["models"]] == [("ARCH", 1), ("MEP", None)]
+    assert {k["status"] for k in d["checks"]} == {"not_evaluated"}  # only one model has a design delivery
+    assert c.get(f"{V1}/projects/{pid}/coordination").json()["models"][0]["seq"] == 2  # no stage: latest
+    assert c.get(f"{V1}/projects/{pid}/coordination", params={"stage": "x"}).status_code == 422

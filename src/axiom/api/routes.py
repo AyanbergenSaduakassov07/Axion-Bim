@@ -128,9 +128,9 @@ def list_certificates(db: Db, audit_run_id: int) -> list[dict]:
 
 
 @router.get("/projects/{project_id}/coordination", response_model=Coordination)
-def project_coordination(db: Db, project_id: int) -> dict:
-    """Project-level delivery decision and cross-model consistency of the latest revisions (D-39)."""
-    return coordination.project_coordination(db, project_id)
+def project_coordination(db: Db, project_id: int, stage: Stage | None = None) -> dict:
+    """Project-level delivery decision and cross-model consistency of the latest revisions (D-39, D-46)."""
+    return coordination.project_coordination(db, project_id, stage)
 
 
 @router.get("/projects/{project_id}/gate-policy", response_model=GatePolicyIO)

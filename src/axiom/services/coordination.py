@@ -10,8 +10,8 @@ from axiom.repo import comparisons as cmp_repo
 from axiom.services import gate
 
 
-def _latest(conn: Connection, model) -> tuple[dict, ModelFacts | None]:
-    revs = repo.list_revisions(conn, model.id)
+def _latest(conn: Connection, model, stage: str | None) -> tuple[dict, ModelFacts | None]:
+    revs = [r for r in repo.list_revisions(conn, model.id) if stage is None or r.stage == stage]
     row = {"model_id": model.id, "name": model.name, "revision_id": None, "seq": None, "decision": None}
     if not revs:
         return row, None
@@ -24,14 +24,16 @@ def _latest(conn: Connection, model) -> tuple[dict, ModelFacts | None]:
     return {**row, "revision_id": rev.id, "seq": rev.seq, "decision": decision}, facts
 
 
-def project_coordination(engine: Engine, project_id: int) -> dict:
+def project_coordination(engine: Engine, project_id: int, stage: str | None = None) -> dict:
+    """`stage` limits each model to its latest delivery marked with that stage (D-46)."""
     with engine.connect() as conn:
         if repo.get_project(conn, project_id) is None:
             raise LookupError(f"project {project_id} not found")
-        pairs = [_latest(conn, m) for m in repo.list_models(conn, project_id)]
+        pairs = [_latest(conn, m, stage) for m in repo.list_models(conn, project_id)]
     models = [row for row, _ in pairs]
     return {
         "project_id": project_id,
+        "stage": stage,
         "decision": worst_decision([m["decision"] for m in models]),
         "models": models,
         "checks": check([facts for _, facts in pairs if facts is not None]),

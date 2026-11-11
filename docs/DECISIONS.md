@@ -364,3 +364,10 @@ Closes the core of audit gap G1: an audit now yields a delivery decision, not on
   none returns the default. Gate output names the stage it applied (`stage`, None = default), so the
   certificate (D-42) records it too.
 - UI: a stage picker next to the delivery decision; the policy form edits the default or one stage.
+
+## D-46 — Coordination per stage (2026-11-11)
+
+- `GET /projects/{id}/coordination?stage=design` takes each model's latest delivery marked with that stage
+  (D-45) instead of its latest upload, so the project decision and cross-model checks compare one stage's
+  delivery set. A model without a delivery at that stage leaves the decision undecided. No stage = latest.
+- The coordination panel has a stage picker.

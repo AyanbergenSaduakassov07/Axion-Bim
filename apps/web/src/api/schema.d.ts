@@ -352,7 +352,7 @@ export interface paths {
         };
         /**
          * Project Coordination
-         * @description Project-level delivery decision and cross-model consistency of the latest revisions (D-39).
+         * @description Project-level delivery decision and cross-model consistency of the latest revisions (D-39, D-46).
          */
         get: operations["project_coordination_api_v1_projects__project_id__coordination_get"];
         put?: never;
@@ -837,6 +837,8 @@ export interface components {
             models: components["schemas"]["ModelDelivery"][];
             /** Project Id */
             project_id: number;
+            /** Stage */
+            stage?: ("concept" | "design" | "working" | "as_built") | null;
         };
         /** CoordinationCheck */
         CoordinationCheck: {
@@ -2202,7 +2204,9 @@ export interface operations {
     };
     project_coordination_api_v1_projects__project_id__coordination_get: {
         parameters: {
-            query?: never;
+            query?: {
+                stage?: ("concept" | "design" | "working" | "as_built") | null;
+            };
             header?: never;
             path: {
                 project_id: number;

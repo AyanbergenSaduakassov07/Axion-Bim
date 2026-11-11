@@ -310,6 +310,7 @@ class CoordinationCheck(BaseModel):
 
 class Coordination(BaseModel):
     project_id: int
+    stage: Stage | None = None  # None = each model's latest delivery, whatever its stage
     decision: GateDecision  # worst decision over the models' latest deliveries
     models: list[ModelDelivery]
     checks: list[CoordinationCheck]

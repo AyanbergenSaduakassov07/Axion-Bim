@@ -106,6 +106,7 @@ Each phase has an exit criterion that can be observed, not a feature count.
 | G4 (part) | BCF `extensions.xml` declares the five statuses and every type, priority, label and assignee the topics use (D-43) |
 | G2/G4 (part) | Issue history travels with the report: JSON `history` per finding and dated BCF comments by author (D-44) |
 | G1 (part) | Gate policy per delivery stage (concept / design / working documentation / as-built), falling back to the project default; the reviewer sets the stage of each delivery (D-45) |
+| G5 (part) | Coordination per stage: the project decision and cross-model checks over each model's latest delivery at the chosen stage (D-46) |
 | Bug | An IDS uploaded with a revision did not appear in the library until the cache expired |
 
 ### R1 — usable by one team on one real project
@@ -152,5 +153,5 @@ Exit: a second company installs it without the developer in the room.
 - F3 remainder: archive (remove covers it for now); the IDS diff names the changed part, not the facet inside it.
 - G7: a snapshot-only duplicate rule gave false positives at wall/beam corners (D-37); build it on the geometry pass.
 - G1 remainder: certificate is hash-checked but unsigned, and has no PDF; stage requirement packs (IDS per stage) not shipped.
-- G5 remainder: origin offset between models needs the geometry pass (shared reference points); checks compare the latest revision only, not a chosen delivery set.
+- G5 remainder: origin offset between models needs the geometry pass (shared reference points); checks compare the latest delivery, or the latest at a chosen stage (D-46).
 - "Fragments: Problematic geometry" console noise from the converter worker is still unfiltered.

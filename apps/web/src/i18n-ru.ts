@@ -372,6 +372,7 @@ export const ru: Record<string, string> = {
   "Design": "Проект",
   "Working documentation": "Рабочая документация",
   "As-built": "Исполнительная модель",
+  "Latest delivery": "Последняя выдача",
   "Acceptance gate": "Правила приёмки",
   "Minimum MHI": "Минимальный MHI",
   "Reject on open findings from severity": "Отклонять при открытых замечаниях с важностью от",

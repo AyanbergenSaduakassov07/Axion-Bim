@@ -498,6 +498,23 @@
           "project_id": {
             "title": "Project Id",
             "type": "integer"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "enum": [
+                  "concept",
+                  "design",
+                  "working",
+                  "as_built"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
           }
         },
         "required": [
@@ -3557,7 +3574,7 @@
     },
     "/api/v1/projects/{project_id}/coordination": {
       "get": {
-        "description": "Project-level delivery decision and cross-model consistency of the latest revisions (D-39).",
+        "description": "Project-level delivery decision and cross-model consistency of the latest revisions (D-39, D-46).",
         "operationId": "project_coordination_api_v1_projects__project_id__coordination_get",
         "parameters": [
           {
@@ -3567,6 +3584,28 @@
             "schema": {
               "title": "Project Id",
               "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "stage",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "concept",
+                    "design",
+                    "working",
+                    "as_built"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Stage"
             }
           }
         ],

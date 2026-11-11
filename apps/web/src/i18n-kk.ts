@@ -345,6 +345,7 @@ export const kk: Record<string, string> = {
   "Design": "Жоба",
   "Working documentation": "Жұмыс құжаттамасы",
   "As-built": "Атқарушы модель",
+  "Latest delivery": "Соңғы тапсырылым",
   "Acceptance gate": "Қабылдау ережелері",
   "Minimum MHI": "Ең төменгі MHI",
   "Reject on open findings from severity": "Ашық ескертулер мына маңыздылықтан бастап болса, қабылдамау",

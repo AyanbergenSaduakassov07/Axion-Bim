@@ -1,8 +1,9 @@
+import { useState } from "react";
 import type { Coordination } from "../api/client";
 import { useCoordination } from "../api/queries";
 import { useT, type T } from "../i18n";
-import { Panel, Status } from "../ui";
-import { decisionLabel, TONE } from "./Gate";
+import { input, Panel, Status } from "../ui";
+import { decisionLabel, STAGES, stageLabel, TONE } from "./Gate";
 
 function checkLabel(t: T, c: Coordination["checks"][number]["check"]): string {
   if (c === "length_unit") return t("Length unit");
@@ -20,7 +21,8 @@ function value(v: unknown): string {
 /** Project-level decision over every model's latest delivery and cross-model consistency (D-39). */
 export function CoordinationPanel({ projectId }: { projectId: number }) {
   const { t } = useT();
-  const d = useCoordination(projectId).data;
+  const [stage, setStage] = useState("");
+  const d = useCoordination(projectId, stage).data;
   if (!d || d.models.length === 0) return null;
   return (
     <Panel title={t("Project coordination")}>
@@ -34,6 +36,17 @@ export function CoordinationPanel({ projectId }: { projectId: number }) {
               {m.name} {m.seq != null ? `r${m.seq}` : ""}: {m.decision ? decisionLabel(t, m.decision) : t("no delivery")}
             </span>
           ))}
+          <label className="ml-auto flex items-center gap-1 text-xs text-muted">
+            {t("Stage")}
+            <select className={`${input} text-fg`} value={stage} onChange={(e) => setStage(e.target.value)}>
+              <option value="">{t("Latest delivery")}</option>
+              {STAGES.map((s) => (
+                <option key={s} value={s}>
+                  {stageLabel(t, s)}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
         <table className="w-full text-left">
           <tbody>

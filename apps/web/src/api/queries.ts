@@ -186,8 +186,8 @@ export function useIssueCertificate(auditId: number) {
   });
 }
 
-export const useCoordination = (projectId: number) =>
-  useQuery({ queryKey: ["gate", "coordination", projectId], queryFn: () => api<Coordination>(`/projects/${projectId}/coordination`) });
+export const useCoordination = (projectId: number, stage = "") =>
+  useQuery({ queryKey: ["gate", "coordination", projectId, stage], queryFn: () => api<Coordination>(`/projects/${projectId}/coordination${stage && `?stage=${stage}`}`) });
 
 export const useGatePolicy = (projectId: number, stage = "") =>
   useQuery({ queryKey: ["gate-policy", projectId, stage], queryFn: () => api<GatePolicy>(`/projects/${projectId}/gate-policy${stage && `?stage=${stage}`}`) });

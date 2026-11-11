@@ -154,7 +154,9 @@ def compare(
 @app.command()
 def report(
     audit_id: int = typer.Argument(..., help="Audit number, as printed by `axiom audit`."),
-    fmt: str = typer.Option("json", "--format", help="json | csv | html | bcf (BCF 3.0 zip, needs --out)."),
+    fmt: str = typer.Option(
+        "json", "--format", help="json | csv | html | bcf (3.0) | bcf21 (BCF 2.1, Revit); bcf needs --out."
+    ),
     comparison: int | None = typer.Option(None, help="Comparison to include; default: the latest one."),
     out: Path | None = typer.Option(None, "--out", help="Write here instead of stdout."),
 ) -> None:
@@ -168,7 +170,7 @@ def report(
         raise typer.Exit(2) from e
     if isinstance(body, bytes):
         if out is None:
-            typer.echo("error: --format bcf is a zip archive; pass --out FILE.bcf", err=True)
+            typer.echo("error: BCF is a zip archive; pass --out FILE.bcf", err=True)
             raise typer.Exit(2)
         out.write_bytes(body)
     elif out is None:

@@ -133,6 +133,7 @@ def _element(f: ifcopenshell.file, el: ifcopenshell.entity_instance, length_scal
         materials=_materials(el),
         classifications=_classifications(el),
         origin_m=_origin(el, length_scale),
+        tag=getattr(el, "Tag", None) or None,  # only IfcElement has Tag
     )
 
 

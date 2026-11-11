@@ -318,6 +318,7 @@ export function ReportExport({ auditId, comparisonId }: { auditId: number | null
         {form("html", t("Printable HTML"))}
         {form("csv", t("Findings CSV (Excel)"))}
         {form("bcf", t("BCF 3.0 issues (Revit, Solibri, BIMcollab)"))}
+        {form("bcf21", t("BCF 2.1 for Revit add-ins and Autodesk Construction Cloud"))}
         {form("json", "JSON")}
       </div>
     </details>

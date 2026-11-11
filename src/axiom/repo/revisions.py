@@ -97,6 +97,7 @@ def _element_row(revision_id: int, e: Element) -> dict:
         "has_geometry": e.has_representation,
         "representation_types": ",".join(e.representation_types),
         **dict(zip(ORIGIN_COLS, e.origin_m or (None, None, None), strict=True)),
+        "tag": e.tag,
     }
 
 

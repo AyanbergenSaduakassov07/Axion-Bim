@@ -51,7 +51,7 @@ from axiom.findings import Finding
 from axiom.i18n import Lang
 from axiom.quantities import GROUPS
 from axiom.quantities.export import to_csv
-from axiom.report import FORMATS
+from axiom.report import FORMATS, SUFFIX
 from axiom.revision import FindingEvent
 from axiom.score.gate import GatePolicy
 from axiom.services import (
@@ -362,17 +362,18 @@ def health_index(db: Db, audit_id: int) -> dict[str, Any]:
 def audit_report(
     db: Db,
     audit_id: int,
-    fmt: Annotated[Literal["json", "csv", "html", "bcf"], Query(alias="format")] = "json",
+    fmt: Annotated[Literal["json", "csv", "html", "bcf", "bcf21"], Query(alias="format")] = "json",
     comparison_id: int | None = None,
     lang: Lang = "en",
 ) -> Response:
     """Render the audit report (with the comparison headed by this audit, if any). HTML opens inline."""
     body = reports.render(reports.build(db, audit_id, comparison_id), fmt, lang)
     disposition = "inline" if fmt == "html" else "attachment"
+    suffix = SUFFIX.get(fmt, f".{fmt}")
     return Response(
         body,
         media_type=FORMATS[fmt],
-        headers={"Content-Disposition": f'{disposition}; filename="axiom-audit-{audit_id}.{fmt}"'},
+        headers={"Content-Disposition": f'{disposition}; filename="axiom-audit-{audit_id}{suffix}"'},
     )
 
 

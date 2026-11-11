@@ -1,4 +1,4 @@
-"""Audit reports: one canonical JSON dict, rendered to JSON, CSV (findings), HTML or BCF 3.0."""
+"""Audit reports: one canonical JSON dict, rendered to JSON, CSV (findings), HTML or BCF 3.0 / 2.1."""
 
 from __future__ import annotations
 
@@ -12,7 +12,14 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from axiom.i18n import localize_finding, token, tr
 
 FORMAT_VERSION = "axiom-report/1"
-FORMATS = {"json": "application/json", "csv": "text/csv", "html": "text/html", "bcf": "application/zip"}
+FORMATS = {
+    "json": "application/json",
+    "csv": "text/csv",
+    "html": "text/html",
+    "bcf": "application/zip",
+    "bcf21": "application/zip",  # BCF 2.1: Revit add-ins, Autodesk Construction Cloud
+}
+SUFFIX = {"bcf21": ".bcf"}  # file extension when it differs from the format name
 CSV_FIELDS = (
     "global_id", "element_name", "ifc_class", "rule_id", "rule_version", "status", "severity",
     "category", "dimension", "expected", "actual", "message", "identity_key",
@@ -39,10 +46,10 @@ def render(report: dict, fmt: str, lang: str = "en") -> str | bytes:
         return _env.get_template("report.html.j2").render(
             r=report, lang=lang, _=lambda text, **v: tr(lang, text, **v), tok=lambda v: token(lang, v)
         )
-    if fmt == "bcf":
+    if fmt in ("bcf", "bcf21"):
         from axiom.report.bcf import to_bcf  # noqa: PLC0415 - loads bcf-client/xsdata only when asked
 
-        return to_bcf(report)
+        return to_bcf(report, "2.1" if fmt == "bcf21" else "3.0")
     raise ValueError(f"unknown report format {fmt!r}; use one of {', '.join(FORMATS)}")
 
 

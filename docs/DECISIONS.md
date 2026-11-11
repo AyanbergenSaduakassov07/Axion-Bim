@@ -416,3 +416,20 @@ found three issues, all fixed:
 
 Kept as is, recorded as limitations: QTO-002 checks volumes only, so the Revit mm²-as-m² `OuterSurfaceArea`
 defect is shown in Quantities but not flagged.
+
+## D-50 — Revit hand-off: BCF 2.1 export and the Revit ElementId (2026-11-11)
+
+Goal: issues found in Axiom reach the designer inside Revit, and the fixed model comes back as the next revision.
+
+- **BCF 2.1 next to 3.0** (`format=bcf21`, CLI `--format bcf21`, UI export menu). Most Revit BCF add-ins
+  (BCFier, older BCF Managers) and Autodesk Construction Cloud import 2.1 only. Same bcf-client library and
+  the same topic GUIDs, so a team can switch versions without duplicating topics. 2.1 differs only in where
+  labels and comments live. Its extensions file is an XSD and is optional, so it is not written.
+- **`IfcElement.Tag` stored per element** (migration 0012, `elements.tag`). Revit writes its ElementId there.
+  It goes out as the BCF component's `AuthoringToolId` next to `IfcGuid`, so add-ins can select the element
+  even when the model was exported without the IFC GUID parameter. Spatial elements have no Tag: NULL.
+- No BCF import: triage stays in Axiom. Statuses changed in Revit do not come back. The next IFC upload is
+  the evidence of what was fixed.
+
+Verified on `Ifc4_Revit_ARC.ifc`: both exports are valid against the buildingSMART XSDs (all 404 topic
+files), and every viewpoint carries the ElementId. Not yet opened in Revit itself. Workflow: `docs/revit.md`.

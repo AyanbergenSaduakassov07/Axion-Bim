@@ -86,3 +86,13 @@ def test_element_origin_is_world_placement_in_metres(name, ifc_path):
     snap = extract(ifc_path(name))
     assert by_name(snap, "W1").origin_m == pytest.approx((0.0, 0.0, 3.0))
     assert by_name(snap, "S1").origin_m == pytest.approx((3.0, 3.0, -0.2))
+
+
+def test_element_tag_is_kept_as_the_authoring_tool_id(ifc_path, tmp_path):
+    # Revit writes its ElementId to IfcElement.Tag; BCF add-ins use it to select the element in Revit
+    f = ifcopenshell.open(ifc_path("clean"))
+    next(e for e in f.by_type("IfcWall") if e.Name == "W1").Tag = "348812"
+    f.write(str(tmp_path / "tagged.ifc"))
+    snap = extract(tmp_path / "tagged.ifc")
+    assert by_name(snap, "W1").tag == "348812"
+    assert by_name(snap, "S1").tag is None

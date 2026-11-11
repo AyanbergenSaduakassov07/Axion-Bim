@@ -215,6 +215,7 @@ export const kk: Record<string, string> = {
   "Printable HTML": "Басып шығаруға арналған HTML",
   "Findings CSV (Excel)": "Ескертпелер CSV (Excel)",
   "BCF 3.0 issues (Revit, Solibri, BIMcollab)": "BCF 3.0 мәселелері (Revit, Solibri, BIMcollab)",
+  "BCF 2.1 for Revit add-ins and Autodesk Construction Cloud": "Revit қондырмалары мен Autodesk Construction Cloud үшін BCF 2.1",
   Copilot: "Көмекші",
   "Ask about this project": "Осы жоба туралы сұраңыз",
   "Ask about revisions, findings, health index or quantities": "Ревизиялар, ескертпелер, сапа индексі немесе көлемдер туралы сұраңыз",

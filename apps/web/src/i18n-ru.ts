@@ -237,6 +237,7 @@ export const ru: Record<string, string> = {
   "Printable HTML": "HTML для печати",
   "Findings CSV (Excel)": "Замечания CSV (Excel)",
   "BCF 3.0 issues (Revit, Solibri, BIMcollab)": "Замечания BCF 3.0 (Revit, Solibri, BIMcollab)",
+  "BCF 2.1 for Revit add-ins and Autodesk Construction Cloud": "BCF 2.1 для надстроек Revit и Autodesk Construction Cloud",
 
   // copilot
   Copilot: "Ассистент",

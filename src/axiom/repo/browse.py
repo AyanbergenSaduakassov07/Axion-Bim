@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy import Connection, Row, func, select
+from sqlalchemy import Connection, Row, func, or_, select
 
 from axiom.repo.tables import (
     audit_runs,
@@ -137,12 +137,15 @@ def latest_comparison_for_audit(conn: Connection, audit_run_id: int) -> Row | No
     return conn.execute(q.order_by(comparisons.c.id.desc())).first()
 
 
-def element_origins(conn: Connection, revision_id: int) -> dict[int, tuple[float, float, float]]:
-    """step_id -> world placement origin in metres, for elements that have one."""
+def element_locators(conn: Connection, revision_id: int) -> dict[int, tuple[tuple | None, str | None]]:
+    """step_id -> (world placement origin in metres, authoring-tool id) for BCF viewpoints."""
     e = elements.c
     rows = conn.execute(
-        select(e.step_id, e.origin_x, e.origin_y, e.origin_z).where(
-            e.revision_id == revision_id, e.origin_x.is_not(None)
+        select(e.step_id, e.origin_x, e.origin_y, e.origin_z, e.tag).where(
+            e.revision_id == revision_id, or_(e.origin_x.is_not(None), e.tag.is_not(None))
         )
     )
-    return {r.step_id: (r.origin_x, r.origin_y, r.origin_z) for r in rows}
+    return {
+        r.step_id: ((r.origin_x, r.origin_y, r.origin_z) if r.origin_x is not None else None, r.tag)
+        for r in rows
+    }

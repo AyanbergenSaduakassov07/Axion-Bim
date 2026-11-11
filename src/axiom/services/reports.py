@@ -49,7 +49,7 @@ def build(engine: Engine, audit_run_id: int, comparison_id: int | None = None) -
 
 
 def _findings(conn: Connection, audit_run_id: int, revision_id: int) -> list[dict]:
-    origins = repo.element_origins(conn, revision_id)  # for BCF viewpoints
+    locators = repo.element_locators(conn, revision_id)  # for BCF viewpoints
     model_id = repo.get_revision(conn, revision_id).model_id
     triage = {
         i.identity_key: {k: getattr(i, k) for k in EDITABLE} for i in issue_repo.list_issues(conn, model_id)
@@ -58,7 +58,8 @@ def _findings(conn: Connection, audit_run_id: int, revision_id: int) -> list[dic
     return [
         {
             **f.model_dump(),
-            "origin_m": origins.get(f.step_id),
+            "origin_m": locators.get(f.step_id, (None, None))[0],
+            "authoring_tool_id": locators.get(f.step_id, (None, None))[1],
             "issue": triage.get(f.identity_key),
             "history": history.get(f.identity_key, []),
         }

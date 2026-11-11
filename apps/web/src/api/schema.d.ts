@@ -951,6 +951,8 @@ export interface components {
             step_id: number;
             /** Storey Global Id */
             storey_global_id: string | null;
+            /** Tag */
+            tag?: string | null;
         };
         /** ElementPage */
         ElementPage: {
@@ -1610,7 +1612,7 @@ export interface operations {
     audit_report_api_v1_audits__audit_id__reports_post: {
         parameters: {
             query?: {
-                format?: "json" | "csv" | "html" | "bcf";
+                format?: "json" | "csv" | "html" | "bcf" | "bcf21";
                 comparison_id?: number | null;
                 lang?: "en" | "ru";
             };

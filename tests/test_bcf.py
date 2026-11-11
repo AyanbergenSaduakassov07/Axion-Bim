@@ -3,6 +3,7 @@
 import zipfile
 
 import pytest
+from bcf.v2.bcfxml import BcfXml as BcfXml21
 from bcf.v3.bcfxml import BcfXml
 
 from axiom.report import render
@@ -131,3 +132,50 @@ def test_issue_history_becomes_dated_comments_by_their_author(tmp_path):
         ("Axiom BIM", "by design"),
     ]
     assert str(comments[0].date).startswith("2026-11-10T09:00")
+
+
+def _load21(tmp_path, body: bytes) -> BcfXml21:
+    path = tmp_path / "a21.bcf"
+    path.write_bytes(body)
+    return BcfXml21.load(path)
+
+
+REVIT = {
+    **REPORT,
+    "findings": [{**REPORT["findings"][0], "authoring_tool_id": "348812"}, REPORT["findings"][1]],
+}
+
+
+def test_bcf21_for_revit_addins_keeps_topics_viewpoints_and_triage(tmp_path):
+    # most Revit BCF add-ins and Autodesk Construction Cloud import BCF 2.1, not 3.0
+    issue = {"state": "in_progress", "assignee": "Dana", "note": "fix in r3"}
+    report = {**REVIT, "findings": [{**REVIT["findings"][0], "issue": issue}, REVIT["findings"][1]]}
+    body = render(report, "bcf21")
+    (tmp_path / "v.bcf").write_bytes(body)
+    with zipfile.ZipFile(tmp_path / "v.bcf") as z:
+        assert 'VersionId="2.1"' in z.read("bcf.version").decode()
+    bcf = _load21(tmp_path, body)
+    topics = bcf.topics
+    assert set(topics) == {topic_guid("k-fail"), topic_guid("k-warn")}  # same GUIDs as the 3.0 export
+    failing = topics[topic_guid("k-fail")]
+    t = failing.topic
+    assert (t.topic_status, t.assigned_to, t.priority) == ("In Progress", "Dana", "high")
+    assert t.labels == ["MAT-001", "completeness"]
+    assert [c.comment for c in failing.comments] == ["fix in r3"]
+    (vp,) = failing.viewpoints.values()
+    (component,) = vp.visualization_info.components.selection.component
+    assert (component.ifc_guid, component.authoring_tool_id) == ("2O2Fr$t4X7Zf8NOew3FLOH", "348812")
+    assert vp.visualization_info.perspective_camera is not None
+
+
+def test_bcf3_component_carries_the_revit_element_id(tmp_path):
+    bcf = _load(tmp_path, render(REVIT, "bcf"))
+    (vp,) = bcf.topics[topic_guid("k-fail")].viewpoints.values()
+    (component,) = vp.visualization_info.components.selection.component
+    assert component.authoring_tool_id == "348812"
+
+
+def test_api_serves_bcf21_as_a_bcf_file(client, ifc_path):  # noqa: F811
+    aid = _upload(client, _model(client), ifc_path("rev1"))["result"]["audit_run_id"]
+    r = client.post(f"{V1}/audits/{aid}/reports", params={"format": "bcf21"})
+    assert r.content.startswith(b"PK") and r.headers["content-disposition"].endswith('.bcf"')

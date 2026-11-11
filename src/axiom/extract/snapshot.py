@@ -56,6 +56,7 @@ class Element(Frozen):
     materials: tuple[MaterialRef, ...]
     classifications: tuple[ClassificationRef, ...]
     origin_m: tuple[float, float, float] | None = None  # world placement origin; old snapshots lack it
+    tag: str | None = None  # IfcElement.Tag; Revit writes its ElementId here (BCF AuthoringToolId)
 
 
 class SpatialNode(Frozen):

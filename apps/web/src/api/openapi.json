@@ -868,6 +868,17 @@
               }
             ],
             "title": "Storey Global Id"
+          },
+          "tag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tag"
           }
         },
         "required": [
@@ -2793,7 +2804,8 @@
                 "json",
                 "csv",
                 "html",
-                "bcf"
+                "bcf",
+                "bcf21"
               ],
               "title": "Format",
               "type": "string"

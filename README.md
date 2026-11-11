@@ -59,7 +59,7 @@ It also found three bugs *in Axiom*, fixed the same day ([D-49](docs/DECISIONS.m
 | **Delivery gate** | Per-project, per-stage policy (concept → as-built) and a hash-frozen certificate. `axiom audit --gate` fails a CI job when a delivery is rejected |
 | **Revisions** | GlobalId diff, finding event history, MHI waterfall, recurring-issue detection |
 | **Issues** | State, assignee, due date, notes, waivers, full change history, Markdown digest per assignee |
-| **Exchange** | BCF 3.0 export: stable topic GUIDs across revisions and issue history as comments, so findings open in BIMcollab, Solibri and Revit. Printable HTML reports and CSV quantities |
+| **Exchange** | BCF 3.0 and 2.1 export with stable topic GUIDs and issue history as comments. Each viewpoint carries the GlobalId and the Revit ElementId, so issues open on the element in Revit add-ins, Autodesk Construction Cloud, BIMcollab and Solibri ([Revit workflow](docs/revit.md)). Printable HTML reports and CSV quantities |
 | **3D viewer** | Browser viewer (ThatOpen / web-ifc): a click on a finding focuses the element, findings can be coloured, models are cached locally |
 | **Coordination** | Latest delivery of every discipline side by side: units, georeferencing, storey levels |
 | **Copilot** (optional) | Read-only assistant in English, Russian and Kazakh. It answers through tools over stored results, and a post-check strips every element id it did not see in a tool result |
@@ -83,7 +83,7 @@ flowchart LR
   S --> L[Copilot: tool loop<br/>+ citation check]
 ```
 
-Design rules the code enforces ([all 49 decisions](docs/DECISIONS.md)):
+Design rules the code enforces ([all 50 decisions](docs/DECISIONS.md)):
 - **The backend is the source of truth.** The viewer renders and the LLM explains; neither computes an
   engineering result.
 - **Strict layering.** Routes → services → repositories; routes never touch the database, and the CLI uses
@@ -97,7 +97,7 @@ Design rules the code enforces ([all 49 decisions](docs/DECISIONS.md)):
 
 ## Engineering quality
 
-- **Tests:** 267 passing backend tests (pytest) on generated IFC fixtures with golden `expected.yaml` results, plus
+- **Tests:** 271 passing backend tests (pytest) on generated IFC fixtures with golden `expected.yaml` results, plus
   unit tests and Playwright end-to-end tests for the web app. CI runs both on every push.
 - **Copilot safety:** a live evaluation suite (`axiom.copilot.eval`), prompt-injection fixtures and a citation
   post-check. Model output never reaches the database.
@@ -138,7 +138,7 @@ folder, `uv run python scripts/e2e_fixtures.py /tmp/axiom-models` generates a sm
 uv run axiom audit model.ifc --ids requirements.ids --gate      # exit 1 unless the delivery is accepted
 uv run axiom audit model.ifc --geometry                         # adds declared-vs-geometric volume check
 uv run axiom compare rev1.ifc rev2.ifc rev3.ifc --ids requirements.ids
-uv run axiom report <audit-id> --format bcf --out issues.bcf    # or --format html
+uv run axiom report <audit-id> --format bcf21 --out issues.bcf  # BCF 2.1 for Revit; bcf = 3.0, or html
 uv run axiom quantities model.ifc --by storey --against previous.ifc
 uv run axiom digest --project "Tower A" --out digest.md         # open issues per assignee, overdue first
 ```

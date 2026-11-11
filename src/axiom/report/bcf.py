@@ -1,4 +1,7 @@
-"""BCF 3.0 export of open findings via IfcOpenShell's bcf-client (models generated from the official XSDs).
+"""BCF 3.0 and 2.1 export of open findings via IfcOpenShell's bcf-client (models from the official XSDs).
+
+2.1 exists for Revit: most Revit BCF add-ins and Autodesk Construction Cloud import 2.1 only. Components carry
+the element's IfcElement.Tag as AuthoringToolId (Revit writes its ElementId there) next to the IfcGuid.
 
 One topic per fail/warning finding. Topic GUIDs derive from the finding identity_key, so re-exporting a later
 audit updates the same topics in a BCF tool instead of duplicating them. Viewpoints select the element by
@@ -11,14 +14,20 @@ from __future__ import annotations
 import datetime
 import tempfile
 import uuid
+from dataclasses import dataclass
 from pathlib import Path
+from types import ModuleType
 
 import numpy as np
+from bcf import v2, v3
 from bcf.geometry import camera_vectors_from_target_position
+from bcf.v2 import bcfxml as bcfxml2
+from bcf.v2 import topic as topic2
+from bcf.v2 import visinfo as visinfo2
+from bcf.v3 import bcfxml as bcfxml3
 from bcf.v3 import model as mdl
-from bcf.v3.bcfxml import BcfXml
-from bcf.v3.topic import TopicHandler
-from bcf.v3.visinfo import VisualizationInfoHandler, build_camera_from_vectors, build_components
+from bcf.v3 import topic as topic3
+from bcf.v3 import visinfo as visinfo3
 from xsdata.models.datatype import XmlDateTime
 
 OPEN = frozenset({"fail", "warning"})
@@ -36,19 +45,36 @@ OVERVIEW_OFFSET_M = np.array((30.0, 30.0, 30.0))
 CLOSE_UP_OFFSET_M = np.array((6.0, -8.0, 5.0))  # ~11 m away, from the south-east, above
 
 
+@dataclass(frozen=True)
+class _Api:
+    version: str
+    mdl: ModuleType
+    bcfxml: ModuleType
+    topic: ModuleType
+    visinfo: ModuleType
+
+
+APIS = {
+    "3.0": _Api("3.0", v3.model, bcfxml3, topic3, visinfo3),
+    "2.1": _Api("2.1", v2.model, bcfxml2, topic2, visinfo2),
+}
+
+
 def topic_guid(identity_key: str) -> str:
     return str(uuid.uuid5(NAMESPACE, identity_key))
 
 
-def to_bcf(report: dict) -> bytes:
+def to_bcf(report: dict, version: str = "3.0") -> bytes:
+    api = APIS[version]
     revision = report["audit"]["revision"]
-    bcf = BcfXml.create_new(project_name=revision.get("project_name") or "Axiom BIM")
+    bcf = api.bcfxml.BcfXml.create_new(project_name=revision.get("project_name") or "Axiom BIM")
     now = XmlDateTime.from_datetime(datetime.datetime.now(datetime.UTC))
     for f in report["findings"]:
         if f["status"] in OPEN:
-            handler = _topic(f, now, report["audit"]["id"])
+            handler = _topic(api, f, now, report["audit"]["id"])
             bcf.topics[handler.guid] = handler
-    bcf.extensions = _extensions([h.topic for h in bcf.topics.values()])
+    if version == "3.0":  # 2.1 declares extensions as an XSD file; tools accept topics without one
+        bcf.extensions = _extensions([h.topic for h in bcf.topics.values()])
     with tempfile.TemporaryDirectory() as tmp:  # bcf-client saves to a path only
         path = Path(tmp) / "audit.bcf"
         bcf.save(path)
@@ -72,12 +98,15 @@ def _extensions(topics: list[mdl.Topic]) -> mdl.Extensions:
     )
 
 
-def _topic(f: dict, now: XmlDateTime, audit_id: int) -> TopicHandler:
+def _topic(api: _Api, f: dict, now: XmlDateTime, audit_id: int):
     guid = topic_guid(f["identity_key"])
     element = f["element_name"] or f["global_id"] or "project"
     issue = f.get("issue") or {}
     due = issue.get("due_date")
-    topic = mdl.Topic(
+    m = api.mdl
+    comments = _comments(m, f.get("history") or [], issue.get("note"), guid, now)
+    labels = [f["rule_id"], f["dimension"] or f["category"] or "other"]
+    common = dict(
         guid=guid,
         title=f"{f['rule_id']} · {element}: {f['message']}"[:250],
         description=_description(f, audit_id),
@@ -85,30 +114,39 @@ def _topic(f: dict, now: XmlDateTime, audit_id: int) -> TopicHandler:
         topic_status=BCF_STATUS[issue.get("state") or "open"],
         assigned_to=issue.get("assignee"),
         due_date=XmlDateTime.from_string(f"{due}T00:00:00Z") if due else None,
-        comments=_comments(f.get("history") or [], issue.get("note"), guid, now),
         priority=f["severity"],
-        labels=mdl.TopicLabels(label=[f["rule_id"], f["dimension"] or f["category"] or "other"]),
         creation_date=now,
         creation_author=AUTHOR,
     )
-    handler = TopicHandler(topic_dir=Path(guid))
-    handler.markup = mdl.Markup(topic=topic)
+    handler = api.topic.TopicHandler(topic_dir=Path(guid))
+    if api.version == "3.0":  # 3.0 nests labels and comments in the topic; 2.1 keeps comments in the markup
+        thread = m.TopicComments(comment=comments) if comments else None
+        topic = m.Topic(**common, labels=m.TopicLabels(label=labels), comments=thread)
+        handler.markup = m.Markup(topic=topic)
+    else:
+        handler.markup = m.Markup(topic=m.Topic(**common, labels=labels), comment=comments)
     if f["global_id"]:
-        vi = mdl.VisualizationInfo(
+        vi = m.VisualizationInfo(
             guid=str(uuid.uuid4()),
-            components=build_components(f["global_id"]),
-            perspective_camera=_camera(f.get("origin_m")),
+            components=_components(m, f["global_id"], f.get("authoring_tool_id")),
+            perspective_camera=_camera(api, f.get("origin_m")),
         )
-        handler.add_visinfo_handler(VisualizationInfoHandler(visualization_info=vi))
+        handler.add_visinfo_handler(api.visinfo.VisualizationInfoHandler(visualization_info=vi))
     return handler
 
 
-def _comments(
-    history: list[dict], note: str | None, topic: str, now: XmlDateTime
-) -> mdl.TopicComments | None:
+def _components(m: ModuleType, global_id: str, tag: str | None):
+    component = m.Component(ifc_guid=global_id, authoring_tool_id=tag)
+    return m.Components(
+        selection=m.ComponentSelection(component=[component]),
+        visibility=m.ComponentVisibility(default_visibility=True),
+    )
+
+
+def _comments(m: ModuleType, history: list[dict], note: str | None, topic: str, now: XmlDateTime) -> list:
     """Issue history (D-41) as dated comments by their author, then the current note. GUIDs are stable."""
     out = [
-        mdl.Comment(
+        m.Comment(
             guid=str(uuid.uuid5(NAMESPACE, f"{topic}:event:{i}")),
             date=XmlDateTime.from_datetime(_aware(e["at"])),
             author=e["author"] or AUTHOR,
@@ -119,11 +157,9 @@ def _comments(
     ]
     if note:
         out.append(
-            mdl.Comment(
-                guid=str(uuid.uuid5(NAMESPACE, f"{topic}:note")), date=now, author=AUTHOR, comment=note
-            )
+            m.Comment(guid=str(uuid.uuid5(NAMESPACE, f"{topic}:note")), date=now, author=AUTHOR, comment=note)
         )
-    return mdl.TopicComments(comment=out) if out else None
+    return out
 
 
 def _shown(field: str, value: str | None) -> str:
@@ -137,9 +173,9 @@ def _aware(at: datetime.datetime | str) -> datetime.datetime:
     return at if at.tzinfo else at.replace(tzinfo=datetime.UTC)  # SQLite returns naive UTC
 
 
-def _camera(origin: list[float] | None) -> mdl.PerspectiveCamera:
+def _camera(api: _Api, origin: list[float] | None):
     target, offset = (np.array(origin), CLOSE_UP_OFFSET_M) if origin else (np.zeros(3), OVERVIEW_OFFSET_M)
-    return build_camera_from_vectors(*camera_vectors_from_target_position(target, offset))
+    return api.visinfo.build_camera_from_vectors(*camera_vectors_from_target_position(target, offset))
 
 
 def _description(f: dict, audit_id: int) -> str:

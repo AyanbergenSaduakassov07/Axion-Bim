@@ -115,6 +115,7 @@ elements = Table(
     Column("origin_x", Float),  # world placement origin, metres (NULL: no placement / pre-0005)
     Column("origin_y", Float),
     Column("origin_z", Float),
+    Column("tag", String),  # authoring-tool id (Revit ElementId), NULL before 0012
     Index("ix_elements_revision_global", "revision_id", "global_id"),
 )
 
